@@ -1,4 +1,4 @@
-# fool-me-once-shame-on-me
+# shame-on-me
 
 ## Introduction
 

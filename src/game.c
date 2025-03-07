@@ -17,6 +17,10 @@ GameLoop(void)
 		{
 			switch (e.type)
 			{
+			case SDL_WINDOWEVENT:
+				if (e.window.event == SDL_WINDOWEVENT_RESIZED)
+					OnWindowResize(e.window.data1, e.window.data2);
+				break;
 			case SDL_QUIT:
 				return;
 			default:
