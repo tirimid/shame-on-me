@@ -8,10 +8,17 @@
 void
 GameLoop(void)
 {
+	g_Camera.Pos[0] -= 10.0f;
+	g_Camera.Pos[1] += 2.0f;
+	g_Camera.Pos[2] += 5.0f;
+	g_Camera.Yaw -= 3.1415f / 8.0f;
+	g_Camera.Pitch -= 3.1415f / 10.0f;
+	
 	for (;;)
 	{
 		BeginTick();
 		
+		// handle events.
 		SDL_Event e;
 		while (SDL_PollEvent(&e))
 		{
@@ -28,7 +35,18 @@ GameLoop(void)
 			}
 		}
 		
+		// update.
+		//g_Camera.Yaw += 0.01f;
+		
+		// render.
 		SetupFrameRender();
+		RenderModel(
+			M_CUBE,
+			T_SOMETHING,
+			(vec3){0},
+			(vec3){0},
+			(vec3){1.0f, 1.0f, 1.0f}
+		);
 		PresentFrame();
 		
 		EndTick();

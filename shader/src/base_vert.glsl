@@ -2,6 +2,7 @@
 
 layout (location = 0) in vec3 i_Pos;
 layout (location = 1) in vec2 i_Texcoord;
+layout (location = 2) in vec2 i_Normal;
 
 uniform mat4 i_ModelMat;
 uniform mat4 i_ViewMat;

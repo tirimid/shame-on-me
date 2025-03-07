@@ -1,5 +1,6 @@
 #include "render.h"
 
+#include <math.h>
 #include <stddef.h>
 #include <stdlib.h>
 
@@ -7,27 +8,29 @@
 #include <GL/gl.h>
 #include <SDL.h>
 #include <SDL_image.h>
-#include <tinyobj_loader_c.h>
 
 #include "util.h"
 
 // raw render data.
 #include "img/something_png.h"
-#include "model/plane_mtl.h"
+#include "model/cube_obj.h"
 #include "model/plane_obj.h"
 #include "shader/base_frag_glsl.h"
 #include "shader/base_vert_glsl.h"
 
 #define WND_TITLE "Fool Me Once, Shame on Me"
 #define MAX_SHADER_LOG_LEN 512
+#define CAM_UP_DIRECTION (vec3){0.0f, 1.0f, 0.0f}
+#define CAM_FOV 70.0f
+#define CAM_CLIP_NEAR 0.1f
+#define CAM_CLIP_FAR 500.0f
 
 #define INCLUDE_MODEL(Name) \
 	{ \
-		.ObjData = Name##_obj, \
-		.MtlData = Name##_mtl, \
-		.ObjDataLen = sizeof(Name##_obj), \
-		.MtlDataLen = sizeof(Name##_mtl), \
-		.Filename = #Name "_obj.h" \
+		.VertData = Name##_obj_VertData, \
+		.IdxData = Name##_obj_IdxData, \
+		.VertCnt = Name##_obj_VERT_CNT, \
+		.IdxCnt = Name##_obj_IDX_CNT \
 	}
 
 #define INCLUDE_SHADER_PROGRAM(VertName, FragName) \
@@ -46,18 +49,11 @@
 
 struct ModelData
 {
-	tinyobj_attrib_t Attrib;
-	tinyobj_material_t *Materials;
-	usize MaterialCnt;
-	tinyobj_shape_t *Shapes;
-	usize ShapeCnt;
-	u8 const *ObjData;
-	usize ObjDataLen;
-	u8 const *MtlData;
-	usize MtlDataLen;
-	char *Filename;
+	f32 const *VertData;
+	usize VertCnt;
+	u32 const *IdxData;
+	usize IdxCnt;
 	
-	f32 *VertexData;
 	u32 Vbo, Ibo, Vao;
 };
 
@@ -79,16 +75,19 @@ struct TextureData
 	u32 Tex;
 };
 
+struct Camera g_Camera;
+
 static void DeleteGlContext(void);
-static void GetModelFileData(void *Ctx, char const *Filename, int const IsMtl, char const *ObjFilename, char **Data, size_t *Len);
 
 static SDL_Window *Wnd;
 static SDL_GLContext GlContext;
+static u32 i_ModelMat, i_ViewMat, i_ProjMat;
 
 // data tables.
 static struct ModelData ModelData[M_END__] =
 {
-	INCLUDE_MODEL(plane)
+	INCLUDE_MODEL(plane),
+	INCLUDE_MODEL(cube)
 };
 
 static struct ShaderProgramData ShaderProgramData[SP_END__] =
@@ -143,35 +142,6 @@ InitRender(void)
 	// set up models.
 	for (usize i = 0; i < M_END__; ++i)
 	{
-		// parse OBJ data.
-		i32 Rc = tinyobj_parse_obj(
-			&ModelData[i].Attrib,
-			&ModelData[i].Shapes,
-			&ModelData[i].ShapeCnt,
-			&ModelData[i].Materials,
-			&ModelData[i].MaterialCnt,
-			ModelData[i].Filename,
-			GetModelFileData,
-			&i,
-			TINYOBJ_FLAG_TRIANGULATE
-		);
-		if (Rc != TINYOBJ_SUCCESS)
-		{
-			ShowError("render: failed to load a model - ID %zu!", i);
-			return 1;
-		}
-		
-		// process OBJ data.
-		ModelData[i].VertexData = malloc(5 * sizeof(f32) * ModelData[i].Attrib.num_vertices);
-		for (usize j = 0; j < ModelData[i].Attrib.num_vertices; ++j)
-		{
-			ModelData[i].VertexData[5 * j] = ModelData[i].Attrib.vertices[3 * j];
-			ModelData[i].VertexData[5 * j + 1] = ModelData[i].Attrib.vertices[3 * j + 1];
-			ModelData[i].VertexData[5 * j + 2] = ModelData[i].Attrib.vertices[3 * j + 2];
-			ModelData[i].VertexData[5 * j + 3] = ModelData[i].Attrib.texcoords[2 * j];
-			ModelData[i].VertexData[5 * j + 4] = ModelData[i].Attrib.texcoords[2 * j + 1];
-		}
-		
 		// generate GL state.
 		glGenVertexArrays(1, &ModelData[i].Vao);
 		glGenBuffers(1, &ModelData[i].Vbo);
@@ -183,21 +153,23 @@ InitRender(void)
 		
 		glBufferData(
 			GL_ARRAY_BUFFER,
-			5 * sizeof(float) * ModelData[i].Attrib.num_vertices,
-			ModelData[i].VertexData,
+			8 * sizeof(f32) * ModelData[i].VertCnt,
+			ModelData[i].VertData,
 			GL_STATIC_DRAW
 		);
 		glBufferData(
 			GL_ELEMENT_ARRAY_BUFFER,
-			sizeof(int) * ModelData[i].Attrib.num_face_num_verts,
-			ModelData[i].Attrib.face_num_verts,
+			sizeof(u32) * ModelData[i].IdxCnt,
+			ModelData[i].IdxData,
 			GL_STATIC_DRAW
 		);
 		
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(f32), (void *)0);
-		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(f32), (void *)(3 * sizeof(f32)));
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(f32), (void *)0);
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(f32), (void *)(3 * sizeof(f32)));
+		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(f32), (void *)(5 * sizeof(f32)));
 		glEnableVertexAttribArray(0);
 		glEnableVertexAttribArray(1);
+		glEnableVertexAttribArray(2);
 	}
 	
 	// set up shader programs.
@@ -296,7 +268,11 @@ InitRender(void)
 	}
 	
 	// set GL state.
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+	glFrontFace(GL_CCW);
+	SetShaderProgram(SP_BASE);
 	
 	return 0;
 }
@@ -304,7 +280,28 @@ InitRender(void)
 void
 SetupFrameRender(void)
 {
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	
+	// compute camera matrices.
+	vec3 CamDst =
+	{
+		cos(g_Camera.Yaw) * cos(g_Camera.Pitch),
+		sin(g_Camera.Pitch),
+		sin(g_Camera.Yaw) * cos(g_Camera.Pitch)
+	};
+	glm_normalize(CamDst);
+	glm_vec3_add(CamDst, g_Camera.Pos, CamDst);
+	
+	i32 w, h;
+	SDL_GetWindowSize(Wnd, &w, &h);
+	f32 Aspect = (f32)w / (f32)h;
+	
+	mat4 ViewMat, ProjMat;
+	glm_lookat(g_Camera.Pos, CamDst, CAM_UP_DIRECTION, ViewMat);
+	glm_perspective(CAM_FOV, Aspect, CAM_CLIP_NEAR, CAM_CLIP_FAR, ProjMat);
+	
+	glUniformMatrix4fv(i_ViewMat, 1, GL_FALSE, (float *)ViewMat);
+	glUniformMatrix4fv(i_ProjMat, 1, GL_FALSE, (float *)ProjMat);
 }
 
 void
@@ -319,31 +316,40 @@ OnWindowResize(i32 x, i32 y)
 	glViewport(0, 0, x, y);
 }
 
+void
+SetShaderProgram(enum ShaderProgram Prog)
+{
+	glUseProgram(ShaderProgramData[Prog].Prog);
+	
+	// set uniforms.
+	i_ModelMat = glGetUniformLocation(ShaderProgramData[Prog].Prog, "i_ModelMat");
+	i_ViewMat = glGetUniformLocation(ShaderProgramData[Prog].Prog, "i_ViewMat");
+	i_ProjMat = glGetUniformLocation(ShaderProgramData[Prog].Prog, "i_ProjMat");
+}
+
+void
+RenderModel(enum Model m, enum Texture t, vec3 Pos, vec3 Rot, vec3 Scale)
+{
+	// create transformation matrix.
+	mat4 TransMat, RotMat, ScaleMat;
+	glm_translate_make(TransMat, Pos);
+	glm_euler(Rot, RotMat);
+	glm_scale_make(ScaleMat, Scale);
+	
+	mat4 ModelMat = GLM_MAT4_IDENTITY_INIT;
+	glm_mat4_mul(ModelMat, TransMat, ModelMat);
+	glm_mat4_mul(ModelMat, RotMat, ModelMat);
+	glm_mat4_mul(ModelMat, ScaleMat, ModelMat);
+	
+	// render model.
+	glUniformMatrix4fv(i_ModelMat, 1, GL_FALSE, (float *)ModelMat);
+	glBindTexture(GL_TEXTURE_2D, TextureData[t].Tex);
+	glBindVertexArray(ModelData[m].Vao);
+	glDrawElements(GL_TRIANGLES, ModelData[m].IdxCnt, GL_UNSIGNED_INT, 0);
+}
+
 static void
 DeleteGlContext(void)
 {
 	SDL_GL_DeleteContext(GlContext);
-}
-
-static void
-GetModelFileData(
-	void *Ctx,
-	char const *Filename,
-	int const IsMtl,
-	char const *ObjFilename,
-	char **Data,
-	size_t *Len
-)
-{
-	enum Model m = *(usize *)Ctx;
-	if (IsMtl)
-	{
-		*Data = (char *)ModelData[m].MtlData;
-		*Len = ModelData[m].MtlDataLen;
-	}
-	else
-	{
-		*Data = (char *)ModelData[m].ObjData;
-		*Len = ModelData[m].ObjDataLen;
-	}
 }
