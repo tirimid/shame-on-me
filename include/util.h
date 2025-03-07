@@ -18,6 +18,9 @@ typedef size_t usize;
 typedef float f32;
 typedef double f64;
 
-void LogErr(char const *Fmt, ...);
+void ShowError(char const *Fmt, ...);
+u64 GetUnixTimeMs(void);
+void BeginTick(void);
+void EndTick(void);
 
 #endif

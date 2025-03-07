@@ -4,12 +4,16 @@
 #include <stdio.h>
 
 #include <SDL.h>
+#include <sys/time.h>
 
 #define ERR_TITLE "FMOSOM - Error"
 #define MAX_LOG_LEN 512
+#define TICK_MS 17
+
+static u64 TickStartTime;
 
 void
-LogErr(char const *Fmt, ...)
+ShowError(char const *Fmt, ...)
 {
 	va_list Args;
 	va_start(Args, Fmt);
@@ -23,4 +27,26 @@ LogErr(char const *Fmt, ...)
 		fprintf(stderr, "err: %s\n", Msg);
 	
 	va_end(Args);
+}
+
+u64
+GetUnixTimeMs(void)
+{
+	struct timeval Tv;
+	gettimeofday(&Tv, NULL);
+	return (u64)Tv.tv_sec * 1000 + (u64)Tv.tv_usec / 1000;
+}
+
+void
+BeginTick(void)
+{
+	TickStartTime = GetUnixTimeMs();
+}
+
+void
+EndTick(void)
+{
+	u64 TickEndTime = GetUnixTimeMs();
+	i64 TickTimeLeft = TICK_MS - TickEndTime + TickStartTime;
+	SDL_Delay(TickTimeLeft * (TickTimeLeft > 0));
 }

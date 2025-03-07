@@ -1,22 +1,16 @@
 #!/bin/bash
 
-if [ "$#" -ne 1 ]
-then
-	echo "usage: $0 jumbo/data/all" >&2
-	exit 1
-fi
-
 CC=gcc
 LD=gcc
-CFLAGS="-I. -Iinclude -Wall -O3 -std=c99 -pedantic $(pkg-config --cflags sdl2 gl SDL2_mixer SDL2_ttf cglm)"
-LDFLAGS="$(pkg-config --cflags --libs sdl2 gl SDL2_mixer SDL2_ttf cglm)"
+CFLAGS="-I. -Iinclude -Wall -std=c99 -pedantic $(pkg-config --cflags sdl2 gl SDL2_mixer SDL2_ttf cglm glew)"
+LDFLAGS="$(pkg-config --cflags --libs sdl2 gl SDL2_mixer SDL2_ttf cglm glew)"
 
 mkdir -p lib
 
-if [ "$1" == "all" ] || [ "$1" == "data" ]
+if [ $# -ne 1 ] || [ "$1" == "data" ]
 then
 	echo "build > data"
-	$CC $CFLAGS -o lib/build_data.o -c src/build_data.c
+	$CC $CFLAGS -o lib/data.o -c src/data.c
 	if [ $? -ne 0 ]
 	then
 		echo "err: build failed on data!" >&2
@@ -24,19 +18,19 @@ then
 	fi
 fi
 
-if [ "$1" == "all" ] || [ "$1" == "jumbo" ]
+if [ $# -ne 1 ] || [ "$1" == "main" ]
 then
-	echo "build > jumbo"
-	$CC $CFLAGS -o lib/build_jumbo.o -c src/build_jumbo.c
+	echo "build > main"
+	$CC $CFLAGS -o lib/main.o -c src/main.c
 	if [ $? -ne 0 ]
 	then
-		echo "err: build failed on jumbo!" >&2
+		echo "err: build failed on main!" >&2
 		exit 1
 	fi
 fi
 
 echo "build > link"
-$LD -o fool-me-once-shame-on-me lib/build_data.o lib/build_jumbo.o $LDFLAGS
+$LD -o fool-me-once-shame-on-me lib/data.o lib/main.o $LDFLAGS
 if [ $? -ne 0 ]
 then
 	echo "err: build failed on link!" >&2
