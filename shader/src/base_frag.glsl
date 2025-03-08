@@ -9,5 +9,8 @@ out vec4 f_Col;
 void
 main()
 {
-	f_Col = texture(i_Tex, v_Texcoord);
+	vec4 Pix = texture(i_Tex, v_Texcoord);
+	if (Pix.a == 0.0)
+		discard;
+	f_Col = Pix;
 }

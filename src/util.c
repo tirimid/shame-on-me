@@ -1,5 +1,6 @@
 #include "util.h"
 
+#include <math.h>
 #include <stdarg.h>
 #include <stdio.h>
 
@@ -49,4 +50,11 @@ EndTick(void)
 	u64 TickEndTime = GetUnixTimeMs();
 	i64 TickTimeLeft = TICK_MS - TickEndTime + TickStartTime;
 	SDL_Delay(TickTimeLeft * (TickTimeLeft > 0));
+}
+
+f32
+Atan2(f32 x, f32 y)
+{
+	// TODO: stop using real atan2.
+	return atan2(x, y);
 }

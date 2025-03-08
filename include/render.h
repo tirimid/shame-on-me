@@ -26,6 +26,7 @@ enum Texture
 	T_FLOOR,
 	T_CEILING,
 	T_WALL,
+	T_DUMMY0,
 	
 	T_END__
 };

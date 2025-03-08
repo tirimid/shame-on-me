@@ -13,6 +13,7 @@
 
 // raw render data.
 #include "img/ceiling_png.h"
+#include "img/dummy0_png.h"
 #include "img/floor_png.h"
 #include "img/something_png.h"
 #include "img/wall_png.h"
@@ -24,7 +25,7 @@
 #define WND_TITLE "Shame on Me"
 #define MAX_SHADER_LOG_LEN 512
 #define CAM_UP_DIRECTION (vec3){0.0f, 1.0f, 0.0f}
-#define CAM_FOV 70.0f
+#define CAM_FOV (GLM_PI / 2.5f)
 #define CAM_CLIP_NEAR 0.1f
 #define CAM_CLIP_FAR 500.0f
 
@@ -103,7 +104,8 @@ static struct TextureData TextureData[T_END__] =
 	INCLUDE_TEXTURE(something),
 	INCLUDE_TEXTURE(floor),
 	INCLUDE_TEXTURE(ceiling),
-	INCLUDE_TEXTURE(wall)
+	INCLUDE_TEXTURE(wall),
+	INCLUDE_TEXTURE(dummy0)
 };
 
 i32

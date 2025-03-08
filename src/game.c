@@ -9,14 +9,24 @@
 void
 GameLoop(void)
 {
-	ActorWalk(A_PLAYER, (vec2){12.0f, 0.0f});
-	ActorLook(A_PLAYER, 0.0f, GLM_PI / 2.0f);
-	ActorWalk(A_PLAYER, (vec2){12.0f, 20.0f});
-	ActorLook(A_PLAYER, 0.0f, GLM_PI);
-	ActorWalk(A_PLAYER, (vec2){0.0f, 20.0f});
-	ActorLook(A_PLAYER, 0.0f, 3.0f / 2.0f * GLM_PI);
-	ActorWalk(A_PLAYER, (vec2){0.0f, 0.0f});
-	ActorLook(A_PLAYER, 0.0f, 0.0f);
+	ActorWalkToPointLookDeg(A_PLAYER, 'A', 0.0f, 90.0f);
+	ActorWalkToPointLookDeg(A_PLAYER, 'B', 0.0f, 45.0f);
+	ActorWalkToPointLookDeg(A_PLAYER, 'C', 0.0f, 0.0f);
+	ActorWalkToPointLookDeg(A_PLAYER, 'D', 0.0f, 45.0f);
+	ActorWalkToPointLookDeg(A_PLAYER, 'E', 0.0f, 90.0f);
+	ActorWalkToPointLookDeg(A_PLAYER, 'F', 0.0f, 45.0f);
+	ActorWalkToPointLookDeg(A_PLAYER, 'G', 0.0f, 0.0f);
+	ActorWalkToPointLookDeg(A_PLAYER, 'H', 0.0f, -45.0f);
+	ActorWalkToPointLookDeg(A_PLAYER, 'I', 0.0f, -90.0f);
+	
+	ActorWalkToPoint(A_DUMMY, 'b');
+	ActorWalkToPoint(A_DUMMY, 'a');
+	ActorWalkToPoint(A_DUMMY, 'b');
+	ActorWalkToPoint(A_DUMMY, 'a');
+	ActorWalkToPoint(A_DUMMY, 'b');
+	ActorWalkToPoint(A_DUMMY, 'a');
+	ActorWalkToPoint(A_DUMMY, 'b');
+	ActorWalkToPoint(A_DUMMY, 'a');
 	
 	for (;;)
 	{

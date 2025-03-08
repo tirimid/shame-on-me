@@ -22,5 +22,6 @@ void ShowError(char const *Fmt, ...);
 u64 GetUnixTimeMs(void);
 void BeginTick(void);
 void EndTick(void);
+f32 Atan2(f32 x, f32 y);
 
 #endif
