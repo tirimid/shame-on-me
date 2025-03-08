@@ -12,13 +12,16 @@
 #include "util.h"
 
 // raw render data.
+#include "img/ceiling_png.h"
+#include "img/floor_png.h"
 #include "img/something_png.h"
+#include "img/wall_png.h"
 #include "model/cube_obj.h"
 #include "model/plane_obj.h"
 #include "shader/base_frag_glsl.h"
 #include "shader/base_vert_glsl.h"
 
-#define WND_TITLE "Fool Me Once, Shame on Me"
+#define WND_TITLE "Shame on Me"
 #define MAX_SHADER_LOG_LEN 512
 #define CAM_UP_DIRECTION (vec3){0.0f, 1.0f, 0.0f}
 #define CAM_FOV 70.0f
@@ -97,7 +100,10 @@ static struct ShaderProgramData ShaderProgramData[SP_END__] =
 
 static struct TextureData TextureData[T_END__] =
 {
-	INCLUDE_TEXTURE(something)
+	INCLUDE_TEXTURE(something),
+	INCLUDE_TEXTURE(floor),
+	INCLUDE_TEXTURE(ceiling),
+	INCLUDE_TEXTURE(wall)
 };
 
 i32

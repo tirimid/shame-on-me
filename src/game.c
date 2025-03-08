@@ -2,17 +2,21 @@
 
 #include <SDL.h>
 
+#include "choreo.h"
 #include "render.h"
 #include "util.h"
 
 void
 GameLoop(void)
 {
-	g_Camera.Pos[0] -= 10.0f;
-	g_Camera.Pos[1] += 2.0f;
-	g_Camera.Pos[2] += 5.0f;
-	g_Camera.Yaw -= 3.1415f / 8.0f;
-	g_Camera.Pitch -= 3.1415f / 10.0f;
+	ActorWalk(A_PLAYER, (vec2){12.0f, 0.0f});
+	ActorLook(A_PLAYER, 0.0f, GLM_PI / 2.0f);
+	ActorWalk(A_PLAYER, (vec2){12.0f, 20.0f});
+	ActorLook(A_PLAYER, 0.0f, GLM_PI);
+	ActorWalk(A_PLAYER, (vec2){0.0f, 20.0f});
+	ActorLook(A_PLAYER, 0.0f, 3.0f / 2.0f * GLM_PI);
+	ActorWalk(A_PLAYER, (vec2){0.0f, 0.0f});
+	ActorLook(A_PLAYER, 0.0f, 0.0f);
 	
 	for (;;)
 	{
@@ -36,17 +40,11 @@ GameLoop(void)
 		}
 		
 		// update.
-		//g_Camera.Yaw += 0.01f;
+		UpdateChoreo();
 		
 		// render.
 		SetupFrameRender();
-		RenderModel(
-			M_CUBE,
-			T_SOMETHING,
-			(vec3){0},
-			(vec3){0},
-			(vec3){1.0f, 1.0f, 1.0f}
-		);
+		RenderChoreo();
 		PresentFrame();
 		
 		EndTick();

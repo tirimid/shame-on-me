@@ -23,6 +23,9 @@ enum ShaderProgram
 enum Texture
 {
 	T_SOMETHING = 0,
+	T_FLOOR,
+	T_CEILING,
+	T_WALL,
 	
 	T_END__
 };

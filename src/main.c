@@ -5,6 +5,7 @@
 #include <SDL_image.h>
 #include <SDL_ttf.h>
 
+#include "src/choreo.c"
 #include "src/game.c"
 #include "src/input.c"
 #include "src/render.c"

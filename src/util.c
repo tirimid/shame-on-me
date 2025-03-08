@@ -6,7 +6,7 @@
 #include <SDL.h>
 #include <sys/time.h>
 
-#define ERR_TITLE "FMOSOM - Error"
+#define ERR_TITLE "Shame on Me - Error"
 #define MAX_LOG_LEN 512
 #define TICK_MS 17
 
