@@ -39,11 +39,11 @@ struct Camera
 
 extern struct Camera g_Camera;
 
-i32 InitRender(void);
-void SetupFrameRender(void);
-void PresentFrame(void);
-void OnWindowResize(i32 x, i32 y);
-void SetShaderProgram(enum ShaderProgram Prog);
-void RenderModel(enum Model m, enum Texture t, vec3 Pos, vec3 Rot, vec3 Scale);
+i32 R_Init(void);
+void R_BeginFrame(void);
+void R_EndFrame(void);
+void R_HandleResize(i32 x, i32 y);
+void R_SetShaderProgram(enum ShaderProgram Prog);
+void R_Model(enum Model m, enum Texture t, vec3 Pos, vec3 Rot, vec3 Scale);
 
 #endif

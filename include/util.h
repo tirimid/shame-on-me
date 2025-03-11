@@ -4,6 +4,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#define TICK_MS 20
+
 typedef int8_t i8;
 typedef int16_t i16;
 typedef int32_t i32;
@@ -23,5 +25,7 @@ u64 GetUnixTimeMs(void);
 void BeginTick(void);
 void EndTick(void);
 f32 Atan2(f32 x, f32 y);
+f32 InterpolateAngle(f32 a, f32 b, f32 t);
+f32 AngleDiff(f32 a, f32 b);
 
 #endif

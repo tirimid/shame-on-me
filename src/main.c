@@ -39,10 +39,10 @@ main(int Argc, char *Argv[])
 	}
 	atexit(TTF_Quit);
 	
-	if (InitRender())
+	if (R_Init())
 		return 1;
 	
-	GameLoop();
+	G_Loop();
 	
 	return 0;
 }

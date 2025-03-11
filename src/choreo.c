@@ -4,65 +4,49 @@
 #include <stdbool.h>
 #include <string.h>
 
-#define ACTION_BUF_CAP 32
+#define MAX_ACTIONS 256
 #define WALK_SPEED 0.08f
-#define WALK_DST_THRESHOLD2 0.0025f
-#define BOB_INTENSITY 0.2f
-#define BOB_FREQUENCY 1.1f
+#define WALK_DST_THRESHOLD2 0.015f
+#define VERT_BOB_INTENSITY 0.2f
+#define HORIZ_BOB_INTENSITY 0.1f
+#define BOB_FREQUENCY 0.1f
 #define LOOK_SPEED 0.25f
-#define LOOK_THRESHOLD 0.01f
-#define MAP_SIZE_X 25
-#define MAP_SIZE_Y 20
+#define LOOK_THRESHOLD 0.005f
 
 enum ActionType
 {
 	AT_WALK = 0,
+	AT_WALK_TO,
 	AT_LOOK,
-	AT_WALK_LOOK
+	AT_LOOK_AT,
+	AT_LOOK_WALK_TO,
+	AT_SET_TEXTURE,
+	AT_WAIT
 };
 
 struct Action
 {
-	// type-dependent data.
-	vec2 Dst0, Dst1;
-	u8 Type;
+	union
+	{
+		vec2 Dst;
+		char Point;
+		u8 Tex;
+		i64 Ms;
+	} Data;
+	u8 Type, Actor;
 };
 
 struct ActorData
 {
 	vec2 Pos;
 	f32 Pitch, Yaw;
-	struct Action ActionBuf[ACTION_BUF_CAP];
-	u8 ActionCnt;
 	u8 ActiveTex;
 	f32 BobTime;
 };
 
-static void DequeueAction(enum Actor a);
-static f32 InterpolateAngle(f32 a, f32 b, f32 t);
-static void GetPointPos(char Point, vec2 Out);
+struct Map g_Map;
 
-static char Map[MAP_SIZE_X * MAP_SIZE_Y] =
-	"..##...####...........###"
-	"..##...####...........###"
-	"..##...####..a.....b..###"
-	"..##...####...........###"
-	"..##...####...........###"
-	"..##...####...........###"
-	"..##...####...........###"
-	"..##...####...........###"
-	"A.##...####...........###"
-	".B..C..####.....I.....###"
-	"..##.D.####...........###"
-	"..##...####...........###"
-	"..##...####...........###"
-	"####...#########.########"
-	"####...#########.########"
-	".....E..........H........"
-	"......F........G........."
-	"........................."
-	"#########................"
-	"#########................";
+static void GetPointPos(char Point, vec2 Out);
 
 static struct ActorData ActorData[A_END__] =
 {
@@ -78,211 +62,284 @@ static struct ActorData ActorData[A_END__] =
 	}
 };
 
+static struct Action Actions[MAX_ACTIONS];
+static usize ActionCnt;
+
 void
-ActorWalk(enum Actor a, vec2 Pos)
+C_Walk(enum Actor a, vec2 Pos)
 {
-	u8 *ActionCnt = &ActorData[a].ActionCnt;
-	if (*ActionCnt < ACTION_BUF_CAP)
+	if (ActionCnt < MAX_ACTIONS)
 	{
-		ActorData[a].ActionBuf[*ActionCnt] = (struct Action)
+		Actions[ActionCnt++] = (struct Action)
 		{
+			.Data.Dst = {Pos[0], Pos[1]},
 			.Type = AT_WALK,
-			.Dst0 = {Pos[0], Pos[1]}
+			.Actor = a
 		};
-		++*ActionCnt;
 	}
 }
 
 void
-ActorWalkToPoint(enum Actor a, char Point)
+C_WalkTo(enum Actor a, char Point)
 {
-	vec2 Pos;
-	GetPointPos(Point, Pos);
-	ActorWalk(a, Pos);
+	if (ActionCnt < MAX_ACTIONS)
+	{
+		Actions[ActionCnt++] = (struct Action)
+		{
+			.Data.Point = Point,
+			.Type = AT_WALK_TO,
+			.Actor = a
+		};
+	}
 }
 
 void
-ActorLook(enum Actor a, f32 Pitch, f32 Yaw)
+C_Look(enum Actor a, f32 PitchDeg, f32 YawDeg)
 {
-	u8 *ActionCnt = &ActorData[a].ActionCnt;
-	if (*ActionCnt < ACTION_BUF_CAP)
+	if (ActionCnt < MAX_ACTIONS)
 	{
-		ActorData[a].ActionBuf[*ActionCnt] = (struct Action)
+		Actions[ActionCnt++] = (struct Action)
 		{
+			.Data.Dst = {glm_rad(PitchDeg), glm_rad(YawDeg)},
 			.Type = AT_LOOK,
-			.Dst0 = {Pitch, Yaw}
+			.Actor = a
 		};
-		++*ActionCnt;
 	}
 }
 
 void
-ActorLookDeg(enum Actor a, f32 PitchDeg, f32 YawDeg)
+C_LookAt(enum Actor a, char Point)
 {
-	ActorLook(a, glm_rad(PitchDeg), glm_rad(YawDeg));
-}
-
-void
-ActorWalkLook(enum Actor a, vec2 Pos, f32 Pitch, f32 Yaw)
-{
-	u8 *ActionCnt = &ActorData[a].ActionCnt;
-	if (*ActionCnt < ACTION_BUF_CAP)
+	if (ActionCnt < MAX_ACTIONS)
 	{
-		ActorData[a].ActionBuf[*ActionCnt] = (struct Action)
+		Actions[ActionCnt++] = (struct Action)
 		{
-			.Type = AT_WALK_LOOK,
-			.Dst0 = {Pos[0], Pos[1]},
-			.Dst1 = {Pitch, Yaw}
+			.Data.Point = Point,
+			.Type = AT_LOOK_AT,
+			.Actor = a
 		};
-		++*ActionCnt;
 	}
 }
 
 void
-ActorWalkLookDeg(enum Actor a, vec2 Pos, f32 PitchDeg, f32 YawDeg)
+C_LookWalkTo(enum Actor a, char Point)
 {
-	ActorWalkLook(a, Pos, glm_rad(PitchDeg), glm_rad(YawDeg));
-}
-
-void
-ActorWalkToPointLook(enum Actor a, char Point, f32 Pitch, f32 Yaw)
-{
-	vec2 Pos;
-	GetPointPos(Point, Pos);
-	ActorWalkLook(a, Pos, Pitch, Yaw);
-}
-
-void
-ActorWalkToPointLookDeg(enum Actor a, char Point, f32 PitchDeg, f32 YawDeg)
-{
-	vec2 Pos;
-	GetPointPos(Point, Pos);
-	ActorWalkLookDeg(a, Pos, PitchDeg, YawDeg);
-}
-
-void
-ActorSetTexture(enum Actor a, enum Texture t)
-{
-	ActorData[a].ActiveTex = t;
-}
-
-void
-UpdateChoreo(void)
-{
-	// update actor actions.
-	for (usize i = 0; i < A_END__; ++i)
+	if (ActionCnt < MAX_ACTIONS)
 	{
-		struct ActorData *Ad = &ActorData[i];
-		if (!Ad->ActionCnt)
-			continue;
-		
-		struct Action *a = &Ad->ActionBuf[0];
-		switch (a->Type)
+		Actions[ActionCnt++] = (struct Action)
 		{
-		case AT_WALK:
-		{
-			if (glm_vec2_distance2(Ad->Pos, a->Dst0) < WALK_DST_THRESHOLD2)
-			{
-				DequeueAction(i--);
-				continue;
-			}
-			
-			vec2 Move;
-			glm_vec2_sub(a->Dst0, Ad->Pos, Move);
-			glm_vec2_normalize(Move);
-			glm_vec2_scale(Move, WALK_SPEED, Move);
-			
-			glm_vec2_add(Ad->Pos, Move, Ad->Pos);
-			Ad->BobTime += BOB_FREQUENCY * glm_vec2_norm(Move);
-			
-			break;
-		}
-		case AT_LOOK:
-			if (fabs(a->Dst0[0] - Ad->Pitch) < LOOK_THRESHOLD
-				&& fabs(a->Dst0[1] - Ad->Yaw) < LOOK_THRESHOLD)
-			{
-				DequeueAction(i--);
-				continue;
-			}
-			
-			Ad->Pitch = InterpolateAngle(Ad->Pitch, a->Dst0[0], LOOK_SPEED);
-			Ad->Yaw = InterpolateAngle(Ad->Yaw, a->Dst0[1], LOOK_SPEED);
-			
-			break;
-		case AT_WALK_LOOK:
-		{
-			bool WalkDone = glm_vec2_distance2(Ad->Pos, a->Dst0) < WALK_DST_THRESHOLD2;
-			bool LookDone = fabs(a->Dst1[0] - Ad->Pitch) < LOOK_THRESHOLD
-				&& fabs(a->Dst1[1] - Ad->Yaw) < LOOK_THRESHOLD;
-			
-			if (WalkDone && LookDone)
-			{
-				DequeueAction(i--);
-				continue;
-			}
-			
-			if (!WalkDone)
-			{
-				vec2 Move;
-				glm_vec2_sub(a->Dst0, Ad->Pos, Move);
-				glm_vec2_normalize(Move);
-				glm_vec2_scale(Move, WALK_SPEED, Move);
-				
-				glm_vec2_add(Ad->Pos, Move, Ad->Pos);
-				Ad->BobTime += BOB_FREQUENCY * glm_vec2_norm(Move);
-			}
-			
-			if (!LookDone)
-			{
-				Ad->Pitch = InterpolateAngle(Ad->Pitch, a->Dst1[0], LOOK_SPEED);
-				Ad->Yaw = InterpolateAngle(Ad->Yaw, a->Dst1[1], LOOK_SPEED);
-			}
-			
-			break;
-		}
-		}
+			.Data.Point = Point,
+			.Type = AT_LOOK_WALK_TO,
+			.Actor = a
+		};
 	}
-	
+}
+
+void
+C_SetTexture(enum Actor a, enum Texture t)
+{
+	if (ActionCnt < MAX_ACTIONS)
+	{
+		Actions[ActionCnt++] = (struct Action)
+		{
+			.Data.Tex = t,
+			.Type = AT_SET_TEXTURE,
+			.Actor = a
+		};
+	}
+}
+
+void
+C_Wait(u32 Ms)
+{
+	if (ActionCnt < MAX_ACTIONS)
+	{
+		Actions[ActionCnt++] = (struct Action)
+		{
+			.Data.Ms = Ms,
+			.Type = AT_WAIT
+		};
+	}
+}
+
+void
+C_Update(void)
+{
 	// update render camera.
-	g_Camera.Pos[0] = ActorData[A_PLAYER].Pos[0];
-	g_Camera.Pos[1] = BOB_INTENSITY * fabs(sin(ActorData[A_PLAYER].BobTime));
-	g_Camera.Pos[2] = ActorData[A_PLAYER].Pos[1];
+	f32 VBob = fabs(sin(ActorData[A_PLAYER].BobTime));
+	f32 HBob = fabs(cos(ActorData[A_PLAYER].BobTime));
+	
+	g_Camera.Pos[0] = ActorData[A_PLAYER].Pos[0] + HORIZ_BOB_INTENSITY * HBob;
+	g_Camera.Pos[1] = VERT_BOB_INTENSITY * VBob;
+	g_Camera.Pos[2] = ActorData[A_PLAYER].Pos[1] + HORIZ_BOB_INTENSITY * HBob;
 	g_Camera.Pitch = ActorData[A_PLAYER].Pitch;
 	g_Camera.Yaw = ActorData[A_PLAYER].Yaw;
+	
+	// update choreography actions.
+	if (ActionCnt == 0)
+		return;
+	
+	struct Action *Action = &Actions[0];
+	struct ActorData *Actor = &ActorData[Action->Actor];
+	
+	switch (Action->Type)
+	{
+	case AT_WALK:
+	{
+		if (glm_vec2_distance2(Actor->Pos, Action->Data.Dst) < WALK_DST_THRESHOLD2)
+		{
+			glm_vec2_copy(Action->Data.Dst, Actor->Pos);
+			break;
+		}
+		
+		vec2 Move;
+		glm_vec2_sub(Action->Data.Dst, Actor->Pos, Move);
+		glm_vec2_normalize(Move);
+		glm_vec2_scale(Move, WALK_SPEED, Move);
+		
+		glm_vec2_add(Actor->Pos, Move, Actor->Pos);
+		Actor->BobTime += BOB_FREQUENCY;
+		
+		return;
+	}
+	case AT_WALK_TO:
+	{
+		vec2 Dst;
+		GetPointPos(Action->Data.Point, Dst);
+		
+		if (glm_vec2_distance2(Actor->Pos, Dst) < WALK_DST_THRESHOLD2)
+		{
+			glm_vec2_copy(Dst, Actor->Pos);
+			break;
+		}
+		
+		vec2 Move;
+		glm_vec2_sub(Dst, Actor->Pos, Move);
+		glm_vec2_normalize(Move);
+		glm_vec2_scale(Move, WALK_SPEED, Move);
+		
+		glm_vec2_add(Actor->Pos, Move, Actor->Pos);
+		Actor->BobTime += BOB_FREQUENCY;
+		
+		return;
+	}
+	case AT_LOOK:
+	{
+		if (AngleDiff(Action->Data.Dst[0], Actor->Pitch) < LOOK_THRESHOLD
+			&& AngleDiff(Action->Data.Dst[1], Actor->Yaw) < LOOK_THRESHOLD)
+		{
+			Actor->Pitch = Action->Data.Dst[0];
+			Actor->Yaw = Action->Data.Dst[1];
+			break;
+		}
+		
+		Actor->Pitch = InterpolateAngle(Actor->Pitch, Action->Data.Dst[0], LOOK_SPEED);
+		Actor->Yaw = InterpolateAngle(Actor->Yaw, Action->Data.Dst[1], LOOK_SPEED);
+		
+		return;
+	}
+	case AT_LOOK_AT:
+	{
+		vec2 Dir;
+		GetPointPos(Action->Data.Point, Dir);
+		glm_vec2_sub(Dir, Actor->Pos, Dir);
+		
+		f32 DstPitch = 0.0f;
+		f32 DstYaw = Atan2(Dir[1], Dir[0]);
+		
+		if (AngleDiff(DstPitch, Actor->Pitch) < LOOK_THRESHOLD
+			&& AngleDiff(DstYaw, Actor->Yaw) < LOOK_THRESHOLD)
+		{
+			Actor->Pitch = DstPitch;
+			Actor->Yaw = DstYaw;
+			break;
+		}
+		
+		Actor->Pitch = InterpolateAngle(Actor->Pitch, DstPitch, LOOK_SPEED);
+		Actor->Yaw = InterpolateAngle(Actor->Yaw, DstYaw, LOOK_SPEED);
+		
+		return;
+	}
+	case AT_LOOK_WALK_TO:
+	{
+		vec2 Dst, Dir;
+		GetPointPos(Action->Data.Point, Dst);
+		glm_vec2_sub(Dst, Actor->Pos, Dir);
+		
+		f32 DstPitch = 0.0f;
+		f32 DstYaw = Atan2(Dir[1], Dir[0]);
+		
+		if (AngleDiff(DstPitch, Actor->Pitch) < LOOK_THRESHOLD
+			&& AngleDiff(DstYaw, Actor->Yaw) < LOOK_THRESHOLD
+			&& glm_vec2_distance2(Actor->Pos, Dst) < WALK_DST_THRESHOLD2)
+		{
+			glm_vec2_copy(Dst, Actor->Pos);
+			Actor->Pitch = DstPitch;
+			Actor->Yaw = DstYaw;
+			break;
+		}
+		
+		Actor->Pitch = InterpolateAngle(Actor->Pitch, DstPitch, LOOK_SPEED);
+		Actor->Yaw = InterpolateAngle(Actor->Yaw, DstYaw, LOOK_SPEED);
+		
+		vec2 Move;
+		glm_vec2_sub(Dst, Actor->Pos, Move);
+		glm_vec2_normalize(Move);
+		glm_vec2_scale(Move, WALK_SPEED, Move);
+		
+		glm_vec2_add(Actor->Pos, Move, Actor->Pos);
+		Actor->BobTime += BOB_FREQUENCY;
+		
+		return;
+	}
+	case AT_SET_TEXTURE:
+		Actor->ActiveTex = Action->Data.Tex;
+		break;
+	case AT_WAIT:
+		if (Action->Data.Ms <= 0)
+			break;
+		
+		Action->Data.Ms -= TICK_MS;
+		
+		return;
+	}
+	
+	// dequeue completed action.
+	memmove(&Actions[0], &Actions[1], sizeof(struct Action) * --ActionCnt);
 }
 
 void
-RenderChoreo(void)
+C_Render(void)
 {
 	// draw floor, ceiling, inner walls.
-	for (i32 x = 0; x < MAP_SIZE_X; ++x)
+	for (i32 x = 0; x < g_Map.w; ++x)
 	{
-		for (i32 y = 0; y < MAP_SIZE_Y; ++y)
+		for (i32 y = 0; y < g_Map.h; ++y)
 		{
-			if (Map[MAP_SIZE_X * y + x] == '#')
+			if (g_Map.Data[g_Map.w * y + x] == '#')
 			{
-				RenderModel(
+				R_Model(
 					M_PLANE,
 					T_WALL,
 					(vec3){x + 0.5f, -0.5f, y},
 					(vec3){GLM_PI / 2.0f, GLM_PI, GLM_PI / 2.0f},
 					(vec3){0.5f, 0.5f, 1.0f}
 				);
-				RenderModel(
+				R_Model(
 					M_PLANE,
 					T_WALL,
 					(vec3){x - 0.5f, -0.5f, y},
 					(vec3){-GLM_PI / 2.0f, 0.0f, GLM_PI / 2.0f},
 					(vec3){0.5f, 0.5f, 1.0f}
 				);
-				RenderModel(
+				R_Model(
 					M_PLANE,
 					T_WALL,
 					(vec3){x, -0.5f, y + 0.5f},
 					(vec3){GLM_PI / 2.0f, GLM_PI, 0.0f},
 					(vec3){0.5f, 1.0f, 1.0f}
 				);
-				RenderModel(
+				R_Model(
 					M_PLANE,
 					T_WALL,
 					(vec3){x, -0.5f, y - 0.5f},
@@ -292,14 +349,14 @@ RenderChoreo(void)
 			}
 			else
 			{
-				RenderModel(
+				R_Model(
 					M_PLANE,
 					T_FLOOR,
 					(vec3){x, -1.5f, y},
 					(vec3){0.0f},
 					(vec3){0.5f, 1.0f, 0.5f}
 				);
-				RenderModel(
+				R_Model(
 					M_PLANE,
 					T_CEILING,
 					(vec3){x, 0.5f, y},
@@ -311,37 +368,37 @@ RenderChoreo(void)
 	}
 	
 	// draw map walls.
-	for (i32 x = 0; x < MAP_SIZE_X; ++x)
+	for (i32 x = 0; x < g_Map.w; ++x)
 	{
-		RenderModel(
+		R_Model(
 			M_PLANE,
 			T_WALL,
 			(vec3){x, -0.5f, -0.5f},
 			(vec3){GLM_PI / 2.0f, GLM_PI, 0.0f},
 			(vec3){0.5f, 1.0f, 1.0f}
 		);
-		RenderModel(
+		R_Model(
 			M_PLANE,
 			T_WALL,
-			(vec3){x, -0.5f, MAP_SIZE_Y - 0.5f},
+			(vec3){x, -0.5f, g_Map.h - 0.5f},
 			(vec3){-GLM_PI / 2.0f, 0.0f, 0.0f},
 			(vec3){0.5f, 1.0f, 1.0f}
 		);
 	}
 	
-	for (i32 y = 0; y < MAP_SIZE_Y; ++y)
+	for (i32 y = 0; y < g_Map.h; ++y)
 	{
-		RenderModel(
+		R_Model(
 			M_PLANE,
 			T_WALL,
 			(vec3){-0.5f, -0.5f, y},
 			(vec3){GLM_PI / 2.0f, GLM_PI, GLM_PI / 2.0f},
 			(vec3){0.5f, 0.5f, 1.0f}
 		);
-		RenderModel(
+		R_Model(
 			M_PLANE,
 			T_WALL,
-			(vec3){MAP_SIZE_X - 0.5f, -0.5f, y},
+			(vec3){g_Map.w - 0.5f, -0.5f, y},
 			(vec3){-GLM_PI / 2.0f, 0.0f, GLM_PI / 2.0f},
 			(vec3){0.5f, 0.5f, 1.0f}
 		);
@@ -358,9 +415,9 @@ RenderChoreo(void)
 		glm_vec2_normalize(Dir);
 		f32 Yaw = Atan2(Dir[0], -Dir[1]);
 		
-		f32 Bob = BOB_INTENSITY * fabs(sin(a->BobTime));
+		f32 Bob = VERT_BOB_INTENSITY * fabs(sin(a->BobTime));
 		
-		RenderModel(
+		R_Model(
 			M_PLANE,
 			a->ActiveTex,
 			(vec3){a->Pos[0], Bob - 0.65f, a->Pos[1]},
@@ -371,32 +428,13 @@ RenderChoreo(void)
 }
 
 static void
-DequeueAction(enum Actor a)
-{
-	memmove(
-		&ActorData[a].ActionBuf[0],
-		&ActorData[a].ActionBuf[1],
-		sizeof(struct Action) * (ActorData[a].ActionCnt - 1)
-	);
-	--ActorData[a].ActionCnt;
-}
-
-static f32
-InterpolateAngle(f32 a, f32 b, f32 t)
-{
-	f32 d = fmod(b - a, 2.0f * GLM_PI);
-	f32 Shortest = fmod(2.0f * d, 2.0f * GLM_PI) - d;
-	return a + Shortest * t;
-}
-
-static void
 GetPointPos(char Point, vec2 Out)
 {
-	for (i32 x = 0; x < MAP_SIZE_X; ++x)
+	for (i32 x = 0; x < g_Map.w; ++x)
 	{
-		for (i32 y = 0; y < MAP_SIZE_Y; ++y)
+		for (i32 y = 0; y < g_Map.h; ++y)
 		{
-			if (Map[y * MAP_SIZE_X + x] == Point)
+			if (g_Map.Data[y * g_Map.w + x] == Point)
 			{
 				Out[0] = x;
 				Out[1] = y;

@@ -9,7 +9,6 @@
 
 #define ERR_TITLE "Shame on Me - Error"
 #define MAX_LOG_LEN 512
-#define TICK_MS 17
 
 static u64 TickStartTime;
 
@@ -57,4 +56,20 @@ Atan2(f32 x, f32 y)
 {
 	// TODO: stop using real atan2.
 	return atan2(x, y);
+}
+
+f32
+InterpolateAngle(f32 a, f32 b, f32 t)
+{
+	f32 d = fmod(b - a, 2.0f * GLM_PI);
+	f32 Shortest = fmod(2.0f * d, 2.0f * GLM_PI) - d;
+	return a + Shortest * t;
+}
+
+f32
+AngleDiff(f32 a, f32 b)
+{
+	f32 d = fmod(b - a, 2.0f * GLM_PI);
+	f32 Shortest = fmod(2.0f * d, 2.0f * GLM_PI) - d;
+	return Shortest;
 }

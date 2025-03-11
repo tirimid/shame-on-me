@@ -28,6 +28,7 @@
 #define CAM_FOV (GLM_PI / 2.5f)
 #define CAM_CLIP_NEAR 0.1f
 #define CAM_CLIP_FAR 500.0f
+#define PIXELATION 4.0f
 
 #define INCLUDE_MODEL(Name) \
 	{ \
@@ -86,6 +87,7 @@ static void DeleteGlContext(void);
 static SDL_Window *Wnd;
 static SDL_GLContext GlContext;
 static u32 i_ModelMat, i_ViewMat, i_ProjMat;
+static u32 FrameBuffer, RColorBuffer, RDepthBuffer;
 
 // data tables.
 static struct ModelData ModelData[M_END__] =
@@ -109,8 +111,13 @@ static struct TextureData TextureData[T_END__] =
 };
 
 i32
-InitRender(void)
+R_Init(void)
 {
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 0);
+	
 	// set up rendering data and structures.
 	Wnd = SDL_CreateWindow(
 		WND_TITLE,
@@ -125,11 +132,6 @@ InitRender(void)
 		ShowError("render: failed to create window - %s!", SDL_GetError());
 		return 1;
 	}
-	
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 0);
 	
 	GlContext = SDL_GL_CreateContext(Wnd);
 	if (!GlContext)
@@ -275,19 +277,25 @@ InitRender(void)
 		);
 	}
 	
+	// create initial framebuffer data.
+	glGenFramebuffers(1, &FrameBuffer);
+	glGenRenderbuffers(1, &RColorBuffer);
+	glGenRenderbuffers(1, &RDepthBuffer);
+	
 	// set GL state.
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glFrontFace(GL_CCW);
-	SetShaderProgram(SP_BASE);
+	R_SetShaderProgram(SP_BASE);
 	
 	return 0;
 }
 
 void
-SetupFrameRender(void)
+R_BeginFrame(void)
 {
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, FrameBuffer);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 	// compute camera matrices.
@@ -313,19 +321,41 @@ SetupFrameRender(void)
 }
 
 void
-PresentFrame(void)
+R_EndFrame(void)
 {
+	i32 w, h;
+	SDL_GetWindowSize(Wnd, &w, &h);
+	
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, FrameBuffer);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	glBlitFramebuffer(0, 0, w / PIXELATION, h / PIXELATION, 0, 0, w, h, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 	SDL_GL_SwapWindow(Wnd);
 }
 
 void
-OnWindowResize(i32 x, i32 y)
+R_HandleResize(i32 x, i32 y)
 {
-	glViewport(0, 0, x, y);
+	glViewport(0, 0, x / PIXELATION, y / PIXELATION);
+	
+	// regenerate frame buffer.
+	glDeleteBuffers(1, &RColorBuffer);
+	glGenRenderbuffers(1, &RColorBuffer);
+	glDeleteBuffers(1, &RDepthBuffer);
+	glGenRenderbuffers(1, &RDepthBuffer);
+	
+	glBindFramebuffer(GL_FRAMEBUFFER, FrameBuffer);
+	
+	glBindRenderbuffer(GL_RENDERBUFFER, RColorBuffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB, x / PIXELATION, y / PIXELATION);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, RColorBuffer);
+	
+	glBindRenderbuffer(GL_RENDERBUFFER, RDepthBuffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, x / PIXELATION, y / PIXELATION);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, RDepthBuffer);
 }
 
 void
-SetShaderProgram(enum ShaderProgram Prog)
+R_SetShaderProgram(enum ShaderProgram Prog)
 {
 	glUseProgram(ShaderProgramData[Prog].Prog);
 	
@@ -336,7 +366,7 @@ SetShaderProgram(enum ShaderProgram Prog)
 }
 
 void
-RenderModel(enum Model m, enum Texture t, vec3 Pos, vec3 Rot, vec3 Scale)
+R_Model(enum Model m, enum Texture t, vec3 Pos, vec3 Rot, vec3 Scale)
 {
 	// create transformation matrix.
 	mat4 TransMat, RotMat, ScaleMat;

@@ -14,16 +14,22 @@ enum Actor
 	A_END__
 };
 
-void ActorWalk(enum Actor a, vec2 Pos);
-void ActorWalkToPoint(enum Actor a, char Point);
-void ActorLook(enum Actor a, f32 Pitch, f32 Yaw); 
-void ActorLookDeg(enum Actor a, f32 PitchDeg, f32 YawDeg);
-void ActorWalkLook(enum Actor a, vec2 Pos, f32 Pitch, f32 Yaw);
-void ActorWalkLookDeg(enum Actor a, vec2 Pos, f32 PitchDeg, f32 YawDeg);
-void ActorWalkToPointLook(enum Actor a, char Point, f32 Pitch, f32 Yaw);
-void ActorWalkToPointLookDeg(enum Actor a, char Point, f32 PitchDeg, f32 YawDeg);
-void ActorSetTexture(enum Actor a, enum Texture t);
-void UpdateChoreo(void);
-void RenderChoreo(void);
+struct Map
+{
+	char const *Data;
+	u32 w, h;
+};
+
+extern struct Map g_Map;
+
+void C_Walk(enum Actor a, vec2 Pos);
+void C_WalkTo(enum Actor a, char Point);
+void C_Look(enum Actor a, f32 PitchDeg, f32 YawDeg);
+void C_LookAt(enum Actor a, char Point);
+void C_LookWalkTo(enum Actor a, char Point);
+void C_SetTexture(enum Actor a, enum Texture t);
+void C_Wait(u32 Ms);
+void C_Update(void);
+void C_Render(void);
 
 #endif
