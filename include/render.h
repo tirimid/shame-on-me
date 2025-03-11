@@ -31,6 +31,13 @@ enum Texture
 	T_END__
 };
 
+enum Font
+{
+	F_5ID = 0,
+	
+	F_END__
+};
+
 struct Camera
 {
 	vec3 Pos;

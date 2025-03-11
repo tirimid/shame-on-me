@@ -8,10 +8,12 @@
 #include <GL/gl.h>
 #include <SDL.h>
 #include <SDL_image.h>
+#include <SDL_ttf.h>
 
 #include "util.h"
 
 // raw render data.
+#include "font/_5id_ttf.h"
 #include "img/ceiling_png.h"
 #include "img/dummy0_png.h"
 #include "img/floor_png.h"
@@ -29,6 +31,7 @@
 #define CAM_CLIP_NEAR 0.1f
 #define CAM_CLIP_FAR 500.0f
 #define PIXELATION 4.0f
+#define FONT_PT 12
 
 #define INCLUDE_MODEL(Name) \
 	{ \
@@ -52,13 +55,18 @@
 		.Size = sizeof(Name##_png) \
 	}
 
+#define INCLUDE_FONT(Name) \
+	{ \
+		.Data = Name##_ttf, \
+		.Size = sizeof(Name##_ttf) \
+	}
+
 struct ModelData
 {
 	f32 const *VertData;
 	usize VertCnt;
 	u32 const *IdxData;
 	usize IdxCnt;
-	
 	u32 Vbo, Ibo, Vao;
 };
 
@@ -66,7 +74,6 @@ struct ShaderProgramData
 {
 	char const *VertSrc, *FragSrc;
 	i32 VertSrcLen, FragSrcLen;
-	
 	u32 Vert, Frag;
 	u32 Prog;
 };
@@ -75,9 +82,15 @@ struct TextureData
 {
 	u8 const *Data;
 	usize Size;
-	
 	SDL_Surface *Surf;
 	u32 Tex;
+};
+
+struct FontData
+{
+	u8 const *Data;
+	usize Size;
+	TTF_Font *Font;
 };
 
 struct Camera g_Camera;
@@ -108,6 +121,11 @@ static struct TextureData TextureData[T_END__] =
 	INCLUDE_TEXTURE(ceiling),
 	INCLUDE_TEXTURE(wall),
 	INCLUDE_TEXTURE(dummy0)
+};
+
+static struct FontData FontData[F_END__] =
+{
+	INCLUDE_FONT(_5id)
 };
 
 i32
@@ -254,7 +272,7 @@ R_Init(void)
 		TextureData[i].Surf = IMG_Load_RW(Rwops, 1);
 		if (!TextureData[i].Surf)
 		{
-			ShowError("render: failed to create SDL surface - %s!", SDL_GetError());
+			ShowError("render: failed to create SDL surface - %s!", IMG_GetError());
 			return 1;
 		}
 		
@@ -275,6 +293,24 @@ R_Init(void)
 			GL_UNSIGNED_BYTE,
 			TextureData[i].Surf->pixels
 		);
+	}
+	
+	// set up all fonts.
+	for (usize i = 0; i < F_END__; ++i)
+	{
+		SDL_RWops *Rwops = SDL_RWFromConstMem(FontData[i].Data, FontData[i].Size);
+		if (!Rwops)
+		{
+			ShowError("render: failed to create font RWops - %s!", SDL_GetError());
+			return 1;
+		}
+		
+		FontData[i].Font = TTF_OpenFontRW(Rwops, 1, FONT_PT);
+		if (!FontData[i].Font)
+		{
+			ShowError("render: failed to open font - %s!", TTF_GetError());
+			return 1;
+		}
 	}
 	
 	// create initial framebuffer data.
