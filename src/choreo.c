@@ -225,8 +225,8 @@ C_Update(void)
 	}
 	case AT_LOOK:
 	{
-		if (AngleDiff(Action->Data.Dst[0], Actor->Pitch) < LOOK_THRESHOLD
-			&& AngleDiff(Action->Data.Dst[1], Actor->Yaw) < LOOK_THRESHOLD)
+		if (fabs(ShortestAngle(Action->Data.Dst[0], Actor->Pitch)) < LOOK_THRESHOLD
+			&& fabs(ShortestAngle(Action->Data.Dst[1], Actor->Yaw)) < LOOK_THRESHOLD)
 		{
 			Actor->Pitch = Action->Data.Dst[0];
 			Actor->Yaw = Action->Data.Dst[1];
@@ -247,8 +247,8 @@ C_Update(void)
 		f32 DstPitch = 0.0f;
 		f32 DstYaw = Atan2(Dir[1], Dir[0]);
 		
-		if (AngleDiff(DstPitch, Actor->Pitch) < LOOK_THRESHOLD
-			&& AngleDiff(DstYaw, Actor->Yaw) < LOOK_THRESHOLD)
+		if (fabs(ShortestAngle(Actor->Pitch, DstPitch)) < LOOK_THRESHOLD
+			&& fabs(ShortestAngle(Actor->Yaw, DstYaw)) < LOOK_THRESHOLD)
 		{
 			Actor->Pitch = DstPitch;
 			Actor->Yaw = DstYaw;
@@ -269,8 +269,8 @@ C_Update(void)
 		f32 DstPitch = 0.0f;
 		f32 DstYaw = Atan2(Dir[1], Dir[0]);
 		
-		if (AngleDiff(DstPitch, Actor->Pitch) < LOOK_THRESHOLD
-			&& AngleDiff(DstYaw, Actor->Yaw) < LOOK_THRESHOLD
+		if (ShortestAngle(DstPitch, Actor->Pitch) < LOOK_THRESHOLD
+			&& ShortestAngle(DstYaw, Actor->Yaw) < LOOK_THRESHOLD
 			&& glm_vec2_distance2(Actor->Pos, Dst) < WALK_DST_THRESHOLD2)
 		{
 			glm_vec2_copy(Dst, Actor->Pos);

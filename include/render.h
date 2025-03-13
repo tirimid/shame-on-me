@@ -5,7 +5,7 @@
 
 #include "util.h"
 
-#define MAX_LIGHTS 4
+#define MAX_LIGHTS 8
 
 enum Model
 {
@@ -19,6 +19,7 @@ enum ShaderProgram
 {
 	SP_BASE = 0,
 	SP_OVERLAY,
+	SP_SHADOW,
 	
 	SP_END__
 };
@@ -52,9 +53,8 @@ extern struct Camera g_Camera;
 i32 R_Init(void);
 usize R_GetLightCnt(void);
 void R_BeginShadow(usize Idx);
-void R_EndShadow(void);
 void R_BeginFrame(void);
-void R_EndFrame(void);
+void R_Present(void);
 void R_HandleResize(i32 x, i32 y);
 void R_SetShaderProgram(enum ShaderProgram Prog);
 void R_Model(enum Model m, enum Texture t, vec3 Pos, vec3 Rot, vec3 Scale);

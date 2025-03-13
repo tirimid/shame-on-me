@@ -26,6 +26,6 @@ void BeginTick(void);
 void EndTick(void);
 f32 Atan2(f32 x, f32 y);
 f32 InterpolateAngle(f32 a, f32 b, f32 t);
-f32 AngleDiff(f32 a, f32 b);
+f32 ShortestAngle(f32 a, f32 b);
 
 #endif

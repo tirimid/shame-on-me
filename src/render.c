@@ -25,6 +25,9 @@
 #include "shader/base_vert_glsl.h"
 #include "shader/overlay_frag_glsl.h"
 #include "shader/overlay_vert_glsl.h"
+#include "shader/shadow_frag_glsl.h"
+#include "shader/shadow_geo_glsl.h"
+#include "shader/shadow_vert_glsl.h"
 
 #define WND_TITLE "Shame on Me"
 #define MAX_SHADER_LOG_LEN 512
@@ -44,12 +47,22 @@
 		.IdxCnt = Name##_obj_IDX_CNT \
 	}
 
-#define INCLUDE_SHADER_PROGRAM(VertName, FragName) \
+#define INCLUDE_SHADER_PROGRAM(Name) \
 	{ \
-		.VertSrc = (char *)VertName##_glsl, \
-		.FragSrc = (char *)FragName##_glsl, \
-		.VertSrcLen = sizeof(VertName##_glsl), \
-		.FragSrcLen = sizeof(FragName##_glsl) \
+		.VertSrc = (char *)Name##_vert_glsl, \
+		.FragSrc = (char *)Name##_frag_glsl, \
+		.VertSrcLen = sizeof(Name##_vert_glsl), \
+		.FragSrcLen = sizeof(Name##_frag_glsl) \
+	}
+
+#define INCLUDE_GEO_SHADER_PROGRAM(Name) \
+	{ \
+		.GeoSrc = (char *)Name##_geo_glsl, \
+		.VertSrc = (char *)Name##_vert_glsl, \
+		.FragSrc = (char *)Name##_frag_glsl, \
+		.GeoSrcLen = sizeof(Name##_geo_glsl), \
+		.VertSrcLen = sizeof(Name##_vert_glsl), \
+		.FragSrcLen = sizeof(Name##_frag_glsl) \
 	}
 
 #define INCLUDE_TEXTURE(Name) \
@@ -75,9 +88,9 @@ struct ModelData
 
 struct ShaderProgramData
 {
-	char const *VertSrc, *FragSrc;
-	i32 VertSrcLen, FragSrcLen;
-	u32 Vert, Frag;
+	char const *GeoSrc, *VertSrc, *FragSrc;
+	i32 GeoSrcLen, VertSrcLen, FragSrcLen;
+	u32 Geo, Vert, Frag;
 	u32 Prog;
 };
 
@@ -104,11 +117,13 @@ static SDL_Window *Wnd;
 static SDL_GLContext GlContext;
 static u32 i_ModelMat, i_ViewMat, i_ProjMat;
 static u32 RFrameBuffer, RColorBuffer, RDepthBuffer;
+static u32 i_Tex;
 static vec4 Lights[MAX_LIGHTS];
 static u32 ShadowMaps[MAX_LIGHTS];
 static u32 ShadowFbos[MAX_LIGHTS];
 static usize LightCnt;
 static u32 i_Lights, i_ShadowMaps;
+static u32 i_LightPos, i_ShadowViewMats;
 
 // data tables.
 static struct ModelData ModelData[M_END__] =
@@ -119,8 +134,9 @@ static struct ModelData ModelData[M_END__] =
 
 static struct ShaderProgramData ShaderProgramData[SP_END__] =
 {
-	INCLUDE_SHADER_PROGRAM(base_vert, base_frag),
-	INCLUDE_SHADER_PROGRAM(overlay_vert, overlay_frag)
+	INCLUDE_SHADER_PROGRAM(base),
+	INCLUDE_SHADER_PROGRAM(overlay),
+	INCLUDE_GEO_SHADER_PROGRAM(shadow),
 };
 
 static struct TextureData TextureData[T_END__] =
@@ -214,6 +230,27 @@ R_Init(void)
 	{
 		i32 Rc;
 		static char Log[MAX_SHADER_LOG_LEN];
+		
+		// create geometry shader if present.
+		u32 Geo = 0;
+		if (ShaderProgramData[i].GeoSrc)
+		{
+			Geo = glCreateShader(GL_GEOMETRY_SHADER);
+			glShaderSource(
+				Geo,
+				1,
+				&ShaderProgramData[i].GeoSrc,
+				&ShaderProgramData[i].GeoSrcLen
+			);
+			glCompileShader(Geo);
+			glGetShaderiv(Geo, GL_COMPILE_STATUS, &Rc);
+			if (!Rc)
+			{
+				glGetShaderInfoLog(Geo, MAX_SHADER_LOG_LEN, NULL, Log);
+				ShowError("render: failed to compile geometry shader - %s!", Log);
+				return 1;
+			}
+		}
 
 		// create vertex shader.
 		u32 Vert = glCreateShader(GL_VERTEX_SHADER);
@@ -251,6 +288,8 @@ R_Init(void)
 		
 		// create program.
 		u32 Prog = glCreateProgram();
+		if (ShaderProgramData[i].GeoSrc)
+			glAttachShader(Prog, Geo);
 		glAttachShader(Prog, Vert);
 		glAttachShader(Prog, Frag);
 		glLinkProgram(Prog);
@@ -262,6 +301,7 @@ R_Init(void)
 			return 1;
 		}
 		
+		ShaderProgramData[i].Geo = Geo;
 		ShaderProgramData[i].Vert = Vert;
 		ShaderProgramData[i].Frag = Frag;
 		ShaderProgramData[i].Prog = Prog;
@@ -287,7 +327,6 @@ R_Init(void)
 		
 		// generate GL state.
 		glGenTextures(1, &TextureData[i].Tex);
-		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, TextureData[i].Tex);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -336,7 +375,7 @@ R_Init(void)
 		for (i32 j = 0; j < 6; ++j)
 		{
 			glTexImage2D(
-				GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+				GL_TEXTURE_CUBE_MAP_POSITIVE_X + j,
 				0,
 				GL_DEPTH_COMPONENT,
 				SHADOW_MAP_SIZE,
@@ -362,7 +401,6 @@ R_Init(void)
 	// set GL state.
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
 	glFrontFace(GL_CCW);
 	R_SetShaderProgram(SP_BASE);
 	
@@ -378,60 +416,105 @@ R_GetLightCnt(void)
 void
 R_BeginShadow(usize Idx)
 {
-	// TODO: implement begin shadow.
-}
-
-void
-R_EndShadow(void)
-{
-	// TODO: implement end shadow.
+	vec3 LightPos = {Lights[Idx][0], Lights[Idx][1], Lights[Idx][2]};
+	f32 Aspect = (f32)SHADOW_MAP_SIZE / (f32)SHADOW_MAP_SIZE;
+	
+	glViewport(0, 0, SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
+	
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, ShadowFbos[Idx]);
+	glClear(GL_DEPTH_BUFFER_BIT);
+	R_SetShaderProgram(SP_SHADOW);
+	glDisable(GL_CULL_FACE);
+	
+	// compute matrices.
+	mat4 ModelMat;
+	glm_translate_make(ModelMat, LightPos);
+	
+	mat4 ShadowViewMats[6];
+	glm_look(LightPos, (vec3){1.0f, 0.0f, 0.0f}, (vec3){0.0f, -1.0f, 0.0f}, ShadowViewMats[0]);
+	glm_look(LightPos, (vec3){-1.0f, 0.0f, 0.0f}, (vec3){0.0f, -1.0f, 0.0f}, ShadowViewMats[1]);
+	glm_look(LightPos, (vec3){0.0f, 1.0f, 0.0f}, (vec3){0.0f, 0.0f, 1.0f}, ShadowViewMats[2]);
+	glm_look(LightPos, (vec3){0.0f, -1.0f, 0.0f}, (vec3){0.0f, 0.0f, -1.0f}, ShadowViewMats[3]);
+	glm_look(LightPos, (vec3){0.0f, 0.0f, 1.0f}, (vec3){0.0f, -1.0f, 0.0f}, ShadowViewMats[4]);
+	glm_look(LightPos, (vec3){0.0f, 0.0f, -1.0f}, (vec3){0.0f, -1.0f, 0.0f}, ShadowViewMats[5]);
+	
+	mat4 ProjMat;
+	glm_perspective(GLM_PI / 2.0f, Aspect, CAM_CLIP_NEAR, CAM_CLIP_FAR, ProjMat);
+	
+	// upload uniforms.
+	glUniform3fv(i_LightPos, 1, (f32 *)LightPos);
+	glUniformMatrix4fv(i_ModelMat, 1, GL_FALSE, (f32 *)ModelMat);
+	glUniformMatrix4fv(i_ShadowViewMats, 6, GL_FALSE, (f32 *)ShadowViewMats);
+	glUniformMatrix4fv(i_ProjMat, 1, GL_FALSE, (f32 *)ProjMat);
 }
 
 void
 R_BeginFrame(void)
 {
+	i32 w, h;
+	SDL_GetWindowSize(Wnd, &w, &h);
+	f32 Aspect = (f32)w / (f32)h;
+	
+	glViewport(0, 0, w / PIXELATION, h / PIXELATION);
+	
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, RFrameBuffer);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	R_SetShaderProgram(SP_BASE);
+	glEnable(GL_CULL_FACE);
 	
-	// compute camera matrices.
-	vec3 CamDst =
+	// compute matrices.
+	vec3 CamDir =
 	{
 		cos(g_Camera.Yaw) * cos(g_Camera.Pitch),
 		sin(g_Camera.Pitch),
 		sin(g_Camera.Yaw) * cos(g_Camera.Pitch)
 	};
-	glm_normalize(CamDst);
-	glm_vec3_add(CamDst, g_Camera.Pos, CamDst);
-	
-	i32 w, h;
-	SDL_GetWindowSize(Wnd, &w, &h);
-	f32 Aspect = (f32)w / (f32)h;
+	glm_normalize(CamDir);
 	
 	mat4 ViewMat, ProjMat;
-	glm_lookat(g_Camera.Pos, CamDst, CAM_UP_DIRECTION, ViewMat);
+	glm_look(g_Camera.Pos, CamDir, CAM_UP_DIRECTION, ViewMat);
 	glm_perspective(CAM_FOV, Aspect, CAM_CLIP_NEAR, CAM_CLIP_FAR, ProjMat);
 	
+	// upload uniforms.
 	glUniformMatrix4fv(i_ViewMat, 1, GL_FALSE, (f32 *)ViewMat);
 	glUniformMatrix4fv(i_ProjMat, 1, GL_FALSE, (f32 *)ProjMat);
+	
+	u32 ShadowMapSamplers[MAX_LIGHTS] = {0};
+	for (usize i = 0; i < MAX_LIGHTS; ++i)
+	{
+		glActiveTexture(GL_TEXTURE1 + i);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, ShadowMaps[i]);
+		ShadowMapSamplers[i] = 1 + i;
+	}
+	glUniform1iv(i_ShadowMaps, MAX_LIGHTS, (i32 *)ShadowMapSamplers);
 }
 
 void
-R_EndFrame(void)
+R_Present(void)
 {
 	i32 w, h;
 	SDL_GetWindowSize(Wnd, &w, &h);
 	
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, RFrameBuffer);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-	glBlitFramebuffer(0, 0, w / PIXELATION, h / PIXELATION, 0, 0, w, h, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+	glBlitFramebuffer(
+		0,
+		0,
+		w / PIXELATION,
+		h / PIXELATION,
+		0,
+		0,
+		w,
+		h,
+		GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT,
+		GL_NEAREST
+	);
 	SDL_GL_SwapWindow(Wnd);
 }
 
 void
 R_HandleResize(i32 x, i32 y)
 {
-	glViewport(0, 0, x / PIXELATION, y / PIXELATION);
-	
 	// regenerate frame buffer.
 	glDeleteBuffers(1, &RColorBuffer);
 	glGenRenderbuffers(1, &RColorBuffer);
@@ -460,8 +543,11 @@ R_SetShaderProgram(enum ShaderProgram Prog)
 	i_ModelMat = glGetUniformLocation(p, "i_ModelMat");
 	i_ViewMat = glGetUniformLocation(p, "i_ViewMat");
 	i_ProjMat = glGetUniformLocation(p, "i_ProjMat");
+	i_Tex = glGetUniformLocation(p, "i_Tex");
 	i_Lights = glGetUniformLocation(p, "i_Lights");
 	i_ShadowMaps = glGetUniformLocation(p, "i_ShadowMaps");
+	i_LightPos = glGetUniformLocation(p, "i_LightPos");
+	i_ShadowViewMats = glGetUniformLocation(p, "i_ShadowViewMats");
 }
 
 void
@@ -480,7 +566,9 @@ R_Model(enum Model m, enum Texture t, vec3 Pos, vec3 Rot, vec3 Scale)
 	
 	// render model.
 	glUniformMatrix4fv(i_ModelMat, 1, GL_FALSE, (f32 *)ModelMat);
+	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, TextureData[t].Tex);
+	glUniform1i(i_Tex, 0);
 	glBindVertexArray(ModelData[m].Vao);
 	glDrawElements(GL_TRIANGLES, ModelData[m].IdxCnt, GL_UNSIGNED_INT, 0);
 }

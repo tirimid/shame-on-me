@@ -17,6 +17,7 @@ main()
 {
 	gl_Position = i_ProjMat * i_ViewMat * i_ModelMat * vec4(i_Pos, 1.0);
 	v_Texcoord = i_Texcoord;
+	// TODO: precompute normal matrix.
 	v_Normal = normalize(mat3(transpose(inverse(i_ModelMat))) * i_Normal);
 	v_FragPos = vec3(i_ModelMat * vec4(i_Pos, 1.0));
 }

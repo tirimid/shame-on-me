@@ -61,13 +61,11 @@ Atan2(f32 x, f32 y)
 f32
 InterpolateAngle(f32 a, f32 b, f32 t)
 {
-	f32 d = fmod(b - a, 2.0f * GLM_PI);
-	f32 Shortest = fmod(2.0f * d, 2.0f * GLM_PI) - d;
-	return a + Shortest * t;
+	return a + ShortestAngle(a, b) * t;
 }
 
 f32
-AngleDiff(f32 a, f32 b)
+ShortestAngle(f32 a, f32 b)
 {
 	f32 d = fmod(b - a, 2.0f * GLM_PI);
 	f32 Shortest = fmod(2.0f * d, 2.0f * GLM_PI) - d;

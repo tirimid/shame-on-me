@@ -10,15 +10,15 @@
 #define MAP_HEIGHT 10
 #define MAP \
 	"S.....A..." \
-	"######.###" \
-	"a.....B..." \
+	"######e###" \
+	"a.....B.C." \
+	".........D" \
 	".........." \
-	".........." \
-	"b........." \
-	".........." \
+	"b..H.....E" \
+	"....G...F." \
 	"..c...d..." \
 	".........." \
-	".........."
+	"......f..."
 
 void
 G_Loop(void)
@@ -30,7 +30,8 @@ G_Loop(void)
 		.h = MAP_HEIGHT
 	};
 	
-	R_Light((vec3){5.0f, 0.0f, 5.0f}, 2.2f);
+	//R_Light((vec3){5.0f, 0.0f, 5.0f}, 1.1f);
+	R_Light((vec3){6.0f, 0.0f, 0.0f}, 1.3f);
 	
 	C_LookWalkTo(A_PLAYER, 'A');
 	C_Wait(300);
@@ -41,6 +42,18 @@ G_Loop(void)
 	C_WalkTo(A_DUMMY, 'b');
 	C_WalkTo(A_DUMMY, 'c');
 	C_WalkTo(A_DUMMY, 'd');
+	C_Wait(300);
+	C_LookWalkTo(A_PLAYER, 'C');
+	C_LookWalkTo(A_PLAYER, 'D');
+	C_LookWalkTo(A_PLAYER, 'E');
+	C_LookWalkTo(A_PLAYER, 'F');
+	C_LookWalkTo(A_PLAYER, 'G');
+	C_LookWalkTo(A_PLAYER, 'H');
+	C_LookAt(A_PLAYER, 'A');
+	C_WalkTo(A_DUMMY, 'e');
+	C_Wait(200);
+	C_LookAt(A_PLAYER, 'f');
+	C_WalkTo(A_DUMMY, 'f');
 	
 	for (;;)
 	{
@@ -67,15 +80,16 @@ G_Loop(void)
 		C_Update();
 		
 		// render.
-		for (usize i = 0; i < R_GetLightCnt(); ++i)
+		for (usize i = 0; i < MAX_LIGHTS; ++i)
 		{
 			R_BeginShadow(i);
 			C_Render();
-			R_EndShadow();
 		}
+		
 		R_BeginFrame();
 		C_Render();
-		R_EndFrame();
+		
+		R_Present();
 		
 		EndTick();
 	}
