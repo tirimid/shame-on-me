@@ -1,13 +1,15 @@
 #version 330 core
 
-#define MAX_LIGHTS 64
+#define MAX_LIGHTS 4
 #define AMBIENT_LIGHT 0.05
+#define LIGHT_STEP 0.1
 
 in vec2 v_Texcoord;
 in vec3 v_Normal;
 in vec3 v_FragPos;
 
 uniform vec4 i_Lights[MAX_LIGHTS];
+uniform samplerCube i_ShadowMaps[MAX_LIGHTS];
 uniform sampler2D i_Tex;
 
 out vec4 f_Col;
@@ -25,8 +27,8 @@ main()
 		vec3 Dir = normalize(i_Lights[i].xyz - v_FragPos);
 		float Diff = max(dot(Dir, v_Normal), 0.0);
 		Brightness += sqrt(i_Lights[i].w * Diff);
-		Brightness = clamp(Brightness, 0.0, 1.0);
 	}
+	Brightness -= Brightness - LIGHT_STEP * floor(Brightness / LIGHT_STEP);
 
 	f_Col = vec4(Brightness * Pix.rgb, 1.0);
 }

@@ -30,7 +30,7 @@ G_Loop(void)
 		.h = MAP_HEIGHT
 	};
 	
-	R_Light((vec3){7.0f, 0.0f, 8.0f}, 2.2f);
+	R_Light((vec3){5.0f, 0.0f, 5.0f}, 2.2f);
 	
 	C_LookWalkTo(A_PLAYER, 'A');
 	C_Wait(300);
@@ -67,6 +67,12 @@ G_Loop(void)
 		C_Update();
 		
 		// render.
+		for (usize i = 0; i < R_GetLightCnt(); ++i)
+		{
+			R_BeginShadow(i);
+			C_Render();
+			R_EndShadow();
+		}
 		R_BeginFrame();
 		C_Render();
 		R_EndFrame();

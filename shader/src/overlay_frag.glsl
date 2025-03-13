@@ -1,10 +1,11 @@
 #version 330 core
 
-#define MAX_LIGHTS 64
+#define MAX_LIGHTS 4
 
 in vec2 v_Texcoord;
 
 uniform vec4 i_Lights[MAX_LIGHTS];
+uniform samplerCube i_ShadowMaps[MAX_LIGHTS];
 uniform sampler2D i_Tex;
 
 out vec4 f_Col;

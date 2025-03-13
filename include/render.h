@@ -5,6 +5,8 @@
 
 #include "util.h"
 
+#define MAX_LIGHTS 4
+
 enum Model
 {
 	M_PLANE = 0,
@@ -48,6 +50,9 @@ struct Camera
 extern struct Camera g_Camera;
 
 i32 R_Init(void);
+usize R_GetLightCnt(void);
+void R_BeginShadow(usize Idx);
+void R_EndShadow(void);
 void R_BeginFrame(void);
 void R_EndFrame(void);
 void R_HandleResize(i32 x, i32 y);

@@ -34,7 +34,7 @@
 #define CAM_CLIP_FAR 500.0f
 #define PIXELATION 4.0f
 #define FONT_PT 12
-#define MAX_LIGHTS 64
+#define SHADOW_MAP_SIZE 256
 
 #define INCLUDE_MODEL(Name) \
 	{ \
@@ -103,10 +103,12 @@ static void DeleteGlContext(void);
 static SDL_Window *Wnd;
 static SDL_GLContext GlContext;
 static u32 i_ModelMat, i_ViewMat, i_ProjMat;
-static u32 FrameBuffer, RColorBuffer, RDepthBuffer;
+static u32 RFrameBuffer, RColorBuffer, RDepthBuffer;
 static vec4 Lights[MAX_LIGHTS];
+static u32 ShadowMaps[MAX_LIGHTS];
+static u32 ShadowFbos[MAX_LIGHTS];
 static usize LightCnt;
-static u32 i_Lights;
+static u32 i_Lights, i_ShadowMaps;
 
 // data tables.
 static struct ModelData ModelData[M_END__] =
@@ -321,9 +323,41 @@ R_Init(void)
 	}
 	
 	// create initial framebuffer data.
-	glGenFramebuffers(1, &FrameBuffer);
+	glGenFramebuffers(1, &RFrameBuffer);
 	glGenRenderbuffers(1, &RColorBuffer);
 	glGenRenderbuffers(1, &RDepthBuffer);
+	
+	// create initial shadowmap data.
+	glGenTextures(MAX_LIGHTS, ShadowMaps);
+	glGenFramebuffers(MAX_LIGHTS, ShadowFbos);
+	for (usize i = 0; i < MAX_LIGHTS; ++i)
+	{
+		glBindTexture(GL_TEXTURE_CUBE_MAP, ShadowMaps[i]);
+		for (i32 j = 0; j < 6; ++j)
+		{
+			glTexImage2D(
+				GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+				0,
+				GL_DEPTH_COMPONENT,
+				SHADOW_MAP_SIZE,
+				SHADOW_MAP_SIZE,
+				0,
+				GL_DEPTH_COMPONENT,
+				GL_FLOAT,
+				NULL
+			);
+		}
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+		
+		glBindFramebuffer(GL_FRAMEBUFFER, ShadowFbos[i]);
+		glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, ShadowMaps[i], 0);
+		glDrawBuffer(GL_NONE);
+		glReadBuffer(GL_NONE);
+	}
 	
 	// set GL state.
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -335,10 +369,28 @@ R_Init(void)
 	return 0;
 }
 
+usize
+R_GetLightCnt(void)
+{
+	return LightCnt;
+}
+
+void
+R_BeginShadow(usize Idx)
+{
+	// TODO: implement begin shadow.
+}
+
+void
+R_EndShadow(void)
+{
+	// TODO: implement end shadow.
+}
+
 void
 R_BeginFrame(void)
 {
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, FrameBuffer);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, RFrameBuffer);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 	// compute camera matrices.
@@ -369,7 +421,7 @@ R_EndFrame(void)
 	i32 w, h;
 	SDL_GetWindowSize(Wnd, &w, &h);
 	
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, FrameBuffer);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, RFrameBuffer);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	glBlitFramebuffer(0, 0, w / PIXELATION, h / PIXELATION, 0, 0, w, h, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 	SDL_GL_SwapWindow(Wnd);
@@ -386,7 +438,7 @@ R_HandleResize(i32 x, i32 y)
 	glDeleteBuffers(1, &RDepthBuffer);
 	glGenRenderbuffers(1, &RDepthBuffer);
 	
-	glBindFramebuffer(GL_FRAMEBUFFER, FrameBuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, RFrameBuffer);
 	
 	glBindRenderbuffer(GL_RENDERBUFFER, RColorBuffer);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB, x / PIXELATION, y / PIXELATION);
@@ -400,13 +452,16 @@ R_HandleResize(i32 x, i32 y)
 void
 R_SetShaderProgram(enum ShaderProgram Prog)
 {
-	glUseProgram(ShaderProgramData[Prog].Prog);
+	u32 p = ShaderProgramData[Prog].Prog;
+	
+	glUseProgram(p);
 	
 	// set uniforms.
-	i_ModelMat = glGetUniformLocation(ShaderProgramData[Prog].Prog, "i_ModelMat");
-	i_ViewMat = glGetUniformLocation(ShaderProgramData[Prog].Prog, "i_ViewMat");
-	i_ProjMat = glGetUniformLocation(ShaderProgramData[Prog].Prog, "i_ProjMat");
-	i_Lights = glGetUniformLocation(ShaderProgramData[Prog].Prog, "i_Lights");
+	i_ModelMat = glGetUniformLocation(p, "i_ModelMat");
+	i_ViewMat = glGetUniformLocation(p, "i_ViewMat");
+	i_ProjMat = glGetUniformLocation(p, "i_ProjMat");
+	i_Lights = glGetUniformLocation(p, "i_Lights");
+	i_ShadowMaps = glGetUniformLocation(p, "i_ShadowMaps");
 }
 
 void
