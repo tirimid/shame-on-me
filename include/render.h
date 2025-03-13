@@ -5,7 +5,7 @@
 
 #include "util.h"
 
-#define MAX_LIGHTS 8
+#define MAX_LIGHTS 4
 
 enum Model
 {

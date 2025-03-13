@@ -16,6 +16,22 @@ uniform sampler2D i_Tex;
 
 out vec4 f_Col;
 
+float
+ComputeLight(vec4 Light, samplerCube ShadowMap)
+{
+	vec3 LightToFrag = v_FragPos - Light.xyz;
+	float Depth = CAM_CLIP_FAR * texture(ShadowMap, LightToFrag).r;
+
+	if (length(LightToFrag) - SHADOW_BIAS < Depth)
+	{
+		vec3 Dir = normalize(Light.xyz - v_FragPos);
+		float Diff = max(dot(Dir, v_Normal), 0.0);
+		return sqrt(Light.w * Diff);
+	}
+
+	return 0.0;
+}
+
 void
 main()
 {
@@ -24,18 +40,14 @@ main()
 		discard;
 
 	float Brightness = 0.0;
-	for (int i = 0; i < MAX_LIGHTS; ++i)
-	{
-		vec3 LightToFrag = v_FragPos - i_Lights[i].xyz;
-		float Depth = CAM_CLIP_FAR * texture(i_ShadowMaps[i], LightToFrag).r;
 
-		if (length(LightToFrag) - SHADOW_BIAS < Depth)
-		{
-			vec3 FragToLight = normalize(i_Lights[i].xyz - v_FragPos);
-			float Diff = max(dot(FragToLight, v_Normal), 0.0);
-			Brightness += sqrt(i_Lights[i].w * Diff);
-		}
-	}
+	// manually unrolled and refactored lighting computation loop.
+	// platform GLSL compiler cannot be relied on.
+	Brightness += ComputeLight(i_Lights[0], i_ShadowMaps[0]);
+	Brightness += ComputeLight(i_Lights[1], i_ShadowMaps[1]);
+	Brightness += ComputeLight(i_Lights[2], i_ShadowMaps[2]);
+	Brightness += ComputeLight(i_Lights[3], i_ShadowMaps[3]);
+
 	Brightness -= Brightness - LIGHT_STEP * floor(Brightness / LIGHT_STEP);
 	Brightness += AMBIENT_LIGHT;
 
