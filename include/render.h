@@ -16,6 +16,7 @@ enum Model
 enum ShaderProgram
 {
 	SP_BASE = 0,
+	SP_OVERLAY,
 	
 	SP_END__
 };
@@ -52,5 +53,6 @@ void R_EndFrame(void);
 void R_HandleResize(i32 x, i32 y);
 void R_SetShaderProgram(enum ShaderProgram Prog);
 void R_Model(enum Model m, enum Texture t, vec3 Pos, vec3 Rot, vec3 Scale);
+void R_Light(vec3 Pos, f32 Intensity);
 
 #endif

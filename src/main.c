@@ -9,6 +9,7 @@
 #include "src/game.c"
 #include "src/input.c"
 #include "src/render.c"
+#include "src/textbox.c"
 #include "src/util.c"
 
 #define SDL_INIT_FLAGS (SDL_INIT_VIDEO | SDL_INIT_AUDIO)

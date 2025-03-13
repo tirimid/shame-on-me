@@ -9,14 +9,10 @@ uniform mat4 i_ViewMat;
 uniform mat4 i_ProjMat;
 
 out vec2 v_Texcoord;
-out vec3 v_Normal;
-out vec3 v_FragPos;
 
 void
 main()
 {
-	gl_Position = i_ProjMat * i_ViewMat * i_ModelMat * vec4(i_Pos, 1.0);
+	gl_Position = i_ModelMat * vec4(i_Pos, 1.0);
 	v_Texcoord = i_Texcoord;
-	v_Normal = normalize(mat3(transpose(inverse(i_ModelMat))) * i_Normal);
-	v_FragPos = vec3(i_ModelMat * vec4(i_Pos, 1.0));
 }

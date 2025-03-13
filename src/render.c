@@ -23,6 +23,8 @@
 #include "model/plane_obj.h"
 #include "shader/base_frag_glsl.h"
 #include "shader/base_vert_glsl.h"
+#include "shader/overlay_frag_glsl.h"
+#include "shader/overlay_vert_glsl.h"
 
 #define WND_TITLE "Shame on Me"
 #define MAX_SHADER_LOG_LEN 512
@@ -32,6 +34,7 @@
 #define CAM_CLIP_FAR 500.0f
 #define PIXELATION 4.0f
 #define FONT_PT 12
+#define MAX_LIGHTS 64
 
 #define INCLUDE_MODEL(Name) \
 	{ \
@@ -101,6 +104,9 @@ static SDL_Window *Wnd;
 static SDL_GLContext GlContext;
 static u32 i_ModelMat, i_ViewMat, i_ProjMat;
 static u32 FrameBuffer, RColorBuffer, RDepthBuffer;
+static vec4 Lights[MAX_LIGHTS];
+static usize LightCnt;
+static u32 i_Lights;
 
 // data tables.
 static struct ModelData ModelData[M_END__] =
@@ -111,7 +117,8 @@ static struct ModelData ModelData[M_END__] =
 
 static struct ShaderProgramData ShaderProgramData[SP_END__] =
 {
-	INCLUDE_SHADER_PROGRAM(base_vert, base_frag)
+	INCLUDE_SHADER_PROGRAM(base_vert, base_frag),
+	INCLUDE_SHADER_PROGRAM(overlay_vert, overlay_frag)
 };
 
 static struct TextureData TextureData[T_END__] =
@@ -352,8 +359,8 @@ R_BeginFrame(void)
 	glm_lookat(g_Camera.Pos, CamDst, CAM_UP_DIRECTION, ViewMat);
 	glm_perspective(CAM_FOV, Aspect, CAM_CLIP_NEAR, CAM_CLIP_FAR, ProjMat);
 	
-	glUniformMatrix4fv(i_ViewMat, 1, GL_FALSE, (float *)ViewMat);
-	glUniformMatrix4fv(i_ProjMat, 1, GL_FALSE, (float *)ProjMat);
+	glUniformMatrix4fv(i_ViewMat, 1, GL_FALSE, (f32 *)ViewMat);
+	glUniformMatrix4fv(i_ProjMat, 1, GL_FALSE, (f32 *)ProjMat);
 }
 
 void
@@ -399,6 +406,7 @@ R_SetShaderProgram(enum ShaderProgram Prog)
 	i_ModelMat = glGetUniformLocation(ShaderProgramData[Prog].Prog, "i_ModelMat");
 	i_ViewMat = glGetUniformLocation(ShaderProgramData[Prog].Prog, "i_ViewMat");
 	i_ProjMat = glGetUniformLocation(ShaderProgramData[Prog].Prog, "i_ProjMat");
+	i_Lights = glGetUniformLocation(ShaderProgramData[Prog].Prog, "i_Lights");
 }
 
 void
@@ -416,10 +424,21 @@ R_Model(enum Model m, enum Texture t, vec3 Pos, vec3 Rot, vec3 Scale)
 	glm_mat4_mul(ModelMat, ScaleMat, ModelMat);
 	
 	// render model.
-	glUniformMatrix4fv(i_ModelMat, 1, GL_FALSE, (float *)ModelMat);
+	glUniformMatrix4fv(i_ModelMat, 1, GL_FALSE, (f32 *)ModelMat);
 	glBindTexture(GL_TEXTURE_2D, TextureData[t].Tex);
 	glBindVertexArray(ModelData[m].Vao);
 	glDrawElements(GL_TRIANGLES, ModelData[m].IdxCnt, GL_UNSIGNED_INT, 0);
+}
+
+void
+R_Light(vec3 Pos, f32 Intensity)
+{
+	if (LightCnt < MAX_LIGHTS)
+	{
+		vec4 NewLight = {Pos[0], Pos[1], Pos[2], Intensity};
+		glm_vec4_copy(NewLight, Lights[LightCnt++]);
+		glUniform4fv(i_Lights, MAX_LIGHTS, (f32 *)&Lights[0]);
+	}
 }
 
 static void

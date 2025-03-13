@@ -30,6 +30,8 @@ G_Loop(void)
 		.h = MAP_HEIGHT
 	};
 	
+	R_Light((vec3){7.0f, 0.0f, 8.0f}, 2.2f);
+	
 	C_LookWalkTo(A_PLAYER, 'A');
 	C_Wait(300);
 	C_LookAt(A_PLAYER, 'S');

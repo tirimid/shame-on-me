@@ -1,7 +1,13 @@
 #version 330 core
 
-in vec2 v_Texcoord;
+#define MAX_LIGHTS 64
+#define AMBIENT_LIGHT 0.05
 
+in vec2 v_Texcoord;
+in vec3 v_Normal;
+in vec3 v_FragPos;
+
+uniform vec4 i_Lights[MAX_LIGHTS];
 uniform sampler2D i_Tex;
 
 out vec4 f_Col;
@@ -12,5 +18,15 @@ main()
 	vec4 Pix = texture(i_Tex, v_Texcoord);
 	if (Pix.a == 0.0)
 		discard;
-	f_Col = Pix;
+
+	float Brightness = AMBIENT_LIGHT;
+	for (int i = 0; i < MAX_LIGHTS; ++i)
+	{
+		vec3 Dir = normalize(i_Lights[i].xyz - v_FragPos);
+		float Diff = max(dot(Dir, v_Normal), 0.0);
+		Brightness += sqrt(i_Lights[i].w * Diff);
+		Brightness = clamp(Brightness, 0.0, 1.0);
+	}
+
+	f_Col = vec4(Brightness * Pix.rgb, 1.0);
 }
