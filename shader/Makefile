@@ -6,4 +6,6 @@ SHADER_HEADERS := $(patsubst src/%.glsl,%_glsl.h,$(SHADER_FILES))
 all: $(SHADER_HEADERS)
 
 %_glsl.h: src/%.glsl
-	bin2header -o $@ $<
+	bin2header -o $@.tmp $<
+	sed -e "s/const//g" $@.tmp > $@
+	rm $@.tmp

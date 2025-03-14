@@ -16,7 +16,7 @@
 #define CF_MAX_CHOREO_ACTIONS 256
 #define CF_MAX_LOG_LEN 512
 
-// stylistic options.
+// non-render stylistic options.
 #define CF_VERT_BOB_INTENSITY 0.2f
 #define CF_HORIZ_BOB_INTENSITY 0.1f
 #define CF_BOB_FREQUENCY 0.1f
@@ -25,6 +25,9 @@
 
 // render options.
 #define CF_MAX_LIGHTS 4
+#define CF_AMBIENT_LIGHT 0.05f
+#define CF_LIGHT_STEP 0.1f
+#define CF_SHADOW_BIAS 0.4f
 #define CF_PIXELATION 5.0f
 #define CF_CAM_FOV (GLM_PI / 2.5f)
 #define CF_CAM_CLIP_NEAR 0.1f

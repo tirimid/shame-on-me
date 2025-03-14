@@ -64,7 +64,7 @@ struct ModelData
 
 struct ShaderProgramData
 {
-	char const *GeoSrc, *VertSrc, *FragSrc;
+	char *GeoSrc, *VertSrc, *FragSrc;
 	i32 GeoSrcLen, VertSrcLen, FragSrcLen;
 	u32 Geo, Vert, Frag;
 	u32 Prog;
@@ -87,6 +87,7 @@ struct FontData
 
 struct Camera g_Camera;
 
+static void PreprocShader(char *Src, usize Len);
 static void DeleteGlContext(void);
 
 static SDL_Window *Wnd;
@@ -211,11 +212,12 @@ R_Init(void)
 		u32 Geo = 0;
 		if (ShaderProgramData[i].GeoSrc)
 		{
+			PreprocShader(ShaderProgramData[i].GeoSrc, ShaderProgramData[i].GeoSrcLen);
 			Geo = glCreateShader(GL_GEOMETRY_SHADER);
 			glShaderSource(
 				Geo,
 				1,
-				&ShaderProgramData[i].GeoSrc,
+				(char const *const *)&ShaderProgramData[i].GeoSrc,
 				&ShaderProgramData[i].GeoSrcLen
 			);
 			glCompileShader(Geo);
@@ -229,11 +231,12 @@ R_Init(void)
 		}
 
 		// create vertex shader.
+		PreprocShader(ShaderProgramData[i].VertSrc, ShaderProgramData[i].VertSrcLen);
 		u32 Vert = glCreateShader(GL_VERTEX_SHADER);
 		glShaderSource(
 			Vert,
 			1,
-			&ShaderProgramData[i].VertSrc,
+			(char const *const *)&ShaderProgramData[i].VertSrc,
 			&ShaderProgramData[i].VertSrcLen
 		);
 		glCompileShader(Vert);
@@ -246,11 +249,12 @@ R_Init(void)
 		}
 		
 		// create fragment shader.
+		PreprocShader(ShaderProgramData[i].FragSrc, ShaderProgramData[i].FragSrcLen);
 		u32 Frag = glCreateShader(GL_FRAGMENT_SHADER);
 		glShaderSource(
 			Frag,
 			1,
-			&ShaderProgramData[i].FragSrc,
+			(char const *const *)&ShaderProgramData[i].FragSrc,
 			&ShaderProgramData[i].FragSrcLen
 		);
 		glCompileShader(Frag);
@@ -555,6 +559,45 @@ R_Light(vec3 Pos, f32 Intensity)
 		vec4 NewLight = {Pos[0], Pos[1], Pos[2], Intensity};
 		glm_vec4_copy(NewLight, Lights[LightCnt++]);
 		glUniform4fv(i_Lights, CF_MAX_LIGHTS, (f32 *)&Lights[0]);
+	}
+}
+
+static void
+PreprocShader(char *Src, usize Len)
+{
+	// substitute all constants for in-game values prior to shader compilation.
+	for (usize i = 0; i < Len; ++i)
+	{
+		if (Len - i >= 14 && !strncmp(&Src[i], "$CF_MAX_LIGHTS", 14))
+		{
+			printf("sub max lights\n");
+			usize Cl = snprintf(&Src[i], 14, "%u", CF_MAX_LIGHTS);
+			memset(&Src[i + Cl], ' ', 14 - Cl);
+		}
+		else if (Len - i >= 17 && !strncmp(&Src[i], "$CF_AMBIENT_LIGHT", 17))
+		{
+			printf("sub ambient light\n");
+			usize Cl = snprintf(&Src[i], 17, "%f", CF_AMBIENT_LIGHT);
+			memset(&Src[i + Cl], ' ', 17 - Cl);
+		}
+		else if (Len - i >= 14 && !strncmp(&Src[i], "$CF_LIGHT_STEP", 14))
+		{
+			printf("sub light step\n");
+			usize Cl = snprintf(&Src[i], 14, "%f", CF_LIGHT_STEP);
+			memset(&Src[i + Cl], ' ', 14 - Cl);
+		}
+		else if (Len - i >= 15 && !strncmp(&Src[i], "$CF_SHADOW_BIAS", 15))
+		{
+			printf("sub shadow bias\n");
+			usize Cl = snprintf(&Src[i], 15, "%f", CF_SHADOW_BIAS);
+			memset(&Src[i + Cl], ' ', 15 - Cl);
+		}
+		else if (Len - i >= 16 && !strncmp(&Src[i], "$CF_CAM_CLIP_FAR", 16))
+		{
+			printf("sub cam clip far\n");
+			usize Cl = snprintf(&Src[i], 16, "%f", CF_CAM_CLIP_FAR);
+			memset(&Src[i + Cl], ' ', 16 - Cl);
+		}
 	}
 }
 

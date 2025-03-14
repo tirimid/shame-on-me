@@ -258,7 +258,7 @@ C_Update(void)
 		glm_vec2_sub(Dir, Actor->Pos, Dir);
 		
 		f32 DstPitch = 0.0f;
-		f32 DstYaw = Atan2(Dir[1], Dir[0]);
+		f32 DstYaw = atan2f(Dir[1], Dir[0]);
 		
 		if (fabs(ShortestAngle(Actor->Pitch, DstPitch)) < LOOK_THRESHOLD
 			&& fabs(ShortestAngle(Actor->Yaw, DstYaw)) < LOOK_THRESHOLD)
@@ -280,7 +280,7 @@ C_Update(void)
 		glm_vec2_sub(Dst, Actor->Pos, Dir);
 		
 		f32 DstPitch = 0.0f;
-		f32 DstYaw = Atan2(Dir[1], Dir[0]);
+		f32 DstYaw = atan2f(Dir[1], Dir[0]);
 		
 		if (ShortestAngle(DstPitch, Actor->Pitch) < LOOK_THRESHOLD
 			&& ShortestAngle(DstYaw, Actor->Yaw) < LOOK_THRESHOLD
@@ -431,7 +431,7 @@ C_Render(void)
 		vec2 Dir;
 		glm_vec2_sub(Player->Pos, a->Pos, Dir);
 		glm_vec2_normalize(Dir);
-		f32 Yaw = Atan2(Dir[0], -Dir[1]);
+		f32 Yaw = atan2f(Dir[0], -Dir[1]);
 		
 		f32 Bob = CF_VERT_BOB_INTENSITY * fabs(sin(a->BobTime));
 		

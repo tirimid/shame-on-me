@@ -40,13 +40,6 @@ EndTick(void)
 }
 
 f32
-Atan2(f32 x, f32 y)
-{
-	// TODO: stop using real atan2.
-	return atan2(x, y);
-}
-
-f32
 InterpolateAngle(f32 a, f32 b, f32 t)
 {
 	return a + ShortestAngle(a, b) * t;
