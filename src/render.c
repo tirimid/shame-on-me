@@ -1,8 +1,13 @@
 // raw render data.
-#include "font/_5id_ttf.h"
+#include "font/vcr_osd_mono_ttf.h"
+#include "img/black_png.h"
+#include "img/black50_png.h"
 #include "img/ceiling_png.h"
 #include "img/dummy_png.h"
+#include "img/dummy_face_png.h"
 #include "img/floor_png.h"
+#include "img/glasses_dummy_png.h"
+#include "img/glasses_dummy_face_png.h"
 #include "img/something_png.h"
 #include "img/wall_png.h"
 #include "model/cube_obj.h"
@@ -95,9 +100,9 @@ static SDL_GLContext GlContext;
 static u32 i_ModelMat, i_ViewMat, i_ProjMat;
 static u32 RFrameBuffer, RColorBuffer, RDepthBuffer;
 static u32 i_Tex;
-static vec4 Lights[CF_MAX_LIGHTS];
-static u32 ShadowMaps[CF_MAX_LIGHTS];
-static u32 ShadowFbos[CF_MAX_LIGHTS];
+static vec4 Lights[O_MAX_LIGHTS];
+static u32 ShadowMaps[O_MAX_LIGHTS];
+static u32 ShadowFbos[O_MAX_LIGHTS];
 static usize LightCnt;
 static u32 i_Lights, i_ShadowMaps;
 static u32 i_LightPos, i_ShadowViewMats;
@@ -122,12 +127,17 @@ static struct TextureData TextureData[T_END__] =
 	INCLUDE_TEXTURE(floor),
 	INCLUDE_TEXTURE(ceiling),
 	INCLUDE_TEXTURE(wall),
-	INCLUDE_TEXTURE(dummy)
+	INCLUDE_TEXTURE(dummy),
+	INCLUDE_TEXTURE(black),
+	INCLUDE_TEXTURE(dummy_face),
+	INCLUDE_TEXTURE(black50),
+	INCLUDE_TEXTURE(glasses_dummy),
+	INCLUDE_TEXTURE(glasses_dummy_face)
 };
 
 static struct FontData FontData[F_END__] =
 {
-	INCLUDE_FONT(_5id)
+	INCLUDE_FONT(vcr_osd_mono)
 };
 
 i32
@@ -140,12 +150,12 @@ R_Init(void)
 	
 	// set up rendering data and structures.
 	Wnd = SDL_CreateWindow(
-		CF_WND_TITLE,
+		O_WND_TITLE,
 		SDL_WINDOWPOS_UNDEFINED,
 		SDL_WINDOWPOS_UNDEFINED,
 		0,
 		0,
-		CF_WND_FLAGS
+		O_WND_FLAGS
 	);
 	if (!Wnd)
 	{
@@ -203,7 +213,7 @@ R_Init(void)
 	}
 	
 	// set up shader programs.
-	char ShaderLog[CF_MAX_LOG_LEN]; // TODO: rectify uninit.
+	char ShaderLog[O_MAX_LOG_LEN];
 	for (usize i = 0; i < SP_END__; ++i)
 	{
 		i32 Rc;
@@ -224,7 +234,7 @@ R_Init(void)
 			glGetShaderiv(Geo, GL_COMPILE_STATUS, &Rc);
 			if (!Rc)
 			{
-				glGetShaderInfoLog(Geo, CF_MAX_LOG_LEN, NULL, ShaderLog);
+				glGetShaderInfoLog(Geo, O_MAX_LOG_LEN, NULL, ShaderLog);
 				ShowError("render: failed to compile geometry shader - %s!", ShaderLog);
 				return 1;
 			}
@@ -243,7 +253,7 @@ R_Init(void)
 		glGetShaderiv(Vert, GL_COMPILE_STATUS, &Rc);
 		if (!Rc)
 		{
-			glGetShaderInfoLog(Vert, CF_MAX_LOG_LEN, NULL, ShaderLog);
+			glGetShaderInfoLog(Vert, O_MAX_LOG_LEN, NULL, ShaderLog);
 			ShowError("render: failed to compile vertex shader - %s!", ShaderLog);
 			return 1;
 		}
@@ -261,7 +271,7 @@ R_Init(void)
 		glGetShaderiv(Frag, GL_COMPILE_STATUS, &Rc);
 		if (!Rc)
 		{
-			glGetShaderInfoLog(Frag, CF_MAX_LOG_LEN, NULL, ShaderLog);
+			glGetShaderInfoLog(Frag, O_MAX_LOG_LEN, NULL, ShaderLog);
 			ShowError("render: failed to compile fragment shader - %s!", ShaderLog);
 			return 1;
 		}
@@ -276,7 +286,7 @@ R_Init(void)
 		glGetProgramiv(Prog, GL_LINK_STATUS, &Rc);
 		if (!Rc)
 		{
-			glGetProgramInfoLog(Prog, CF_MAX_LOG_LEN, NULL, ShaderLog);
+			glGetProgramInfoLog(Prog, O_MAX_LOG_LEN, NULL, ShaderLog);
 			ShowError("render: failed to link shader program - %s!", ShaderLog);
 			return 1;
 		}
@@ -333,7 +343,7 @@ R_Init(void)
 			return 1;
 		}
 		
-		FontData[i].Font = TTF_OpenFontRW(Rwops, 1, CF_FONT_PT);
+		FontData[i].Font = TTF_OpenFontRW(Rwops, 1, O_FONT_PT);
 		if (!FontData[i].Font)
 		{
 			ShowError("render: failed to open font - %s!", TTF_GetError());
@@ -347,9 +357,9 @@ R_Init(void)
 	glGenRenderbuffers(1, &RDepthBuffer);
 	
 	// create initial shadowmap data.
-	glGenTextures(CF_MAX_LIGHTS, ShadowMaps);
-	glGenFramebuffers(CF_MAX_LIGHTS, ShadowFbos);
-	for (usize i = 0; i < CF_MAX_LIGHTS; ++i)
+	glGenTextures(O_MAX_LIGHTS, ShadowMaps);
+	glGenFramebuffers(O_MAX_LIGHTS, ShadowFbos);
+	for (usize i = 0; i < O_MAX_LIGHTS; ++i)
 	{
 		glBindTexture(GL_TEXTURE_CUBE_MAP, ShadowMaps[i]);
 		for (i32 j = 0; j < 6; ++j)
@@ -358,8 +368,8 @@ R_Init(void)
 				GL_TEXTURE_CUBE_MAP_POSITIVE_X + j,
 				0,
 				GL_DEPTH_COMPONENT,
-				CF_SHADOW_MAP_SIZE,
-				CF_SHADOW_MAP_SIZE,
+				O_SHADOW_MAP_SIZE,
+				O_SHADOW_MAP_SIZE,
 				0,
 				GL_DEPTH_COMPONENT,
 				GL_FLOAT,
@@ -379,9 +389,11 @@ R_Init(void)
 	}
 	
 	// set GL state.
-	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-	glEnable(GL_DEPTH_TEST);
-	glFrontFace(GL_CCW);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glFrontFace(GL_CW);
+	glCullFace(GL_FRONT);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	R_SetShaderProgram(SP_BASE);
 	
 	return 0;
@@ -394,16 +406,26 @@ R_GetLightCnt(void)
 }
 
 void
+R_GetRenderBounds(i32 *OutW, i32 *OutH)
+{
+	i32 w, h;
+	SDL_GetWindowSize(Wnd, &w, &h);
+	
+	*OutW = w / O_PIXELATION;
+	*OutH = h / O_PIXELATION;
+}
+
+void
 R_BeginShadow(usize Idx)
 {
 	vec3 LightPos = {Lights[Idx][0], Lights[Idx][1], Lights[Idx][2]};
-	f32 Aspect = (f32)CF_SHADOW_MAP_SIZE / (f32)CF_SHADOW_MAP_SIZE;
+	f32 Aspect = (f32)O_SHADOW_MAP_SIZE / (f32)O_SHADOW_MAP_SIZE;
 	
-	glViewport(0, 0, CF_SHADOW_MAP_SIZE, CF_SHADOW_MAP_SIZE);
-	
+	glViewport(0, 0, O_SHADOW_MAP_SIZE, O_SHADOW_MAP_SIZE);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, ShadowFbos[Idx]);
-	glClear(GL_DEPTH_BUFFER_BIT);
+	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
+	glClear(GL_DEPTH_BUFFER_BIT);
 	
 	// compute matrices.
 	mat4 ModelMat;
@@ -418,7 +440,7 @@ R_BeginShadow(usize Idx)
 	glm_look(LightPos, (vec3){0.0f, 0.0f, -1.0f}, (vec3){0.0f, -1.0f, 0.0f}, ShadowViewMats[5]);
 	
 	mat4 ProjMat;
-	glm_perspective(GLM_PI / 2.0f, Aspect, CF_CAM_CLIP_NEAR, CF_CAM_CLIP_FAR, ProjMat);
+	glm_perspective(GLM_PI / 2.0f, Aspect, O_CAM_CLIP_NEAR, O_CAM_CLIP_FAR, ProjMat);
 	
 	// upload uniforms.
 	glUniform3fv(i_LightPos, 1, (f32 *)LightPos);
@@ -428,17 +450,17 @@ R_BeginShadow(usize Idx)
 }
 
 void
-R_BeginFrame(void)
+R_BeginBase(void)
 {
 	i32 w, h;
 	SDL_GetWindowSize(Wnd, &w, &h);
 	f32 Aspect = (f32)w / (f32)h;
 	
-	glViewport(0, 0, w / CF_PIXELATION, h / CF_PIXELATION);
-	
+	glViewport(0, 0, w / O_PIXELATION, h / O_PIXELATION);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, RFrameBuffer);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 	// compute matrices.
 	vec3 CamDir =
@@ -451,20 +473,39 @@ R_BeginFrame(void)
 	
 	mat4 ViewMat, ProjMat;
 	glm_look(g_Camera.Pos, CamDir, (vec3){0.0f, 1.0f, 0.0f}, ViewMat);
-	glm_perspective(CF_CAM_FOV, Aspect, CF_CAM_CLIP_NEAR, CF_CAM_CLIP_FAR, ProjMat);
+	glm_perspective(O_CAM_FOV, Aspect, O_CAM_CLIP_NEAR, O_CAM_CLIP_FAR, ProjMat);
 	
 	// upload uniforms.
 	glUniformMatrix4fv(i_ViewMat, 1, GL_FALSE, (f32 *)ViewMat);
 	glUniformMatrix4fv(i_ProjMat, 1, GL_FALSE, (f32 *)ProjMat);
 	
-	u32 ShadowMapSamplers[CF_MAX_LIGHTS] = {0};
-	for (usize i = 0; i < CF_MAX_LIGHTS; ++i)
+	u32 ShadowMapSamplers[O_MAX_LIGHTS] = {0};
+	for (usize i = 0; i < O_MAX_LIGHTS; ++i)
 	{
 		glActiveTexture(GL_TEXTURE1 + i);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, ShadowMaps[i]);
 		ShadowMapSamplers[i] = 1 + i;
 	}
-	glUniform1iv(i_ShadowMaps, CF_MAX_LIGHTS, (i32 *)ShadowMapSamplers);
+	glUniform1iv(i_ShadowMaps, O_MAX_LIGHTS, (i32 *)ShadowMapSamplers);
+}
+
+void
+R_BeginOverlay(void)
+{
+	i32 w, h;
+	SDL_GetWindowSize(Wnd, &w, &h);
+	
+	glViewport(0, 0, w / O_PIXELATION, h / O_PIXELATION);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, RFrameBuffer);
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_CULL_FACE);
+	
+	// compute matrices.
+	mat4 ProjMat;
+	glm_ortho(0.0f, w / O_PIXELATION, 0.0f, h / O_PIXELATION, -1.0f, 1.0f, ProjMat);
+	
+	// upload uniforms.
+	glUniformMatrix4fv(i_ProjMat, 1, GL_FALSE, (f32 *)ProjMat);
 }
 
 void
@@ -478,8 +519,8 @@ R_Present(void)
 	glBlitFramebuffer(
 		0,
 		0,
-		w / CF_PIXELATION,
-		h / CF_PIXELATION,
+		w / O_PIXELATION,
+		h / O_PIXELATION,
 		0,
 		0,
 		w,
@@ -502,11 +543,11 @@ R_HandleResize(i32 x, i32 y)
 	glBindFramebuffer(GL_FRAMEBUFFER, RFrameBuffer);
 	
 	glBindRenderbuffer(GL_RENDERBUFFER, RColorBuffer);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB, x / CF_PIXELATION, y / CF_PIXELATION);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB, x / O_PIXELATION, y / O_PIXELATION);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, RColorBuffer);
 	
 	glBindRenderbuffer(GL_RENDERBUFFER, RDepthBuffer);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, x / CF_PIXELATION, y / CF_PIXELATION);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, x / O_PIXELATION, y / O_PIXELATION);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, RDepthBuffer);
 }
 
@@ -554,12 +595,94 @@ R_Model(enum Model m, enum Texture t, vec3 Pos, vec3 Rot, vec3 Scale)
 void
 R_Light(vec3 Pos, f32 Intensity)
 {
-	if (LightCnt < CF_MAX_LIGHTS)
+	if (LightCnt < O_MAX_LIGHTS)
 	{
 		vec4 NewLight = {Pos[0], Pos[1], Pos[2], Intensity};
 		glm_vec4_copy(NewLight, Lights[LightCnt++]);
-		glUniform4fv(i_Lights, CF_MAX_LIGHTS, (f32 *)&Lights[0]);
+		glUniform4fv(i_Lights, O_MAX_LIGHTS, (f32 *)&Lights[0]);
 	}
+}
+
+void
+R_Rect(enum Texture t, i32 x, i32 y, i32 w, i32 h)
+{
+	vec3 Pos = {x + w / 2.0f, y + h / 2.0f, 0.0f};
+	vec3 Rot = {GLM_PI / 2.0f, GLM_PI, GLM_PI};
+	vec3 Scale = {w / 2.0f, 1.0f, h / 2.0f};
+	
+	R_Model(M_PLANE, t, Pos, Rot, Scale);
+}
+
+void
+R_Text(enum Font f, char const *Text, i32 x, i32 y, i32 w, i32 h)
+{
+	// TTF render out text to create texture.
+	SDL_Surface *SolidSurf = TTF_RenderUTF8_Solid_Wrapped(
+		FontData[f].Font,
+		Text,
+		(SDL_Color)O_FONT_COLOR,
+		w
+	);
+	SolidSurf->h = SolidSurf->h < h ? SolidSurf->h : h;
+	
+	SDL_Surface *RgbaSurf = SDL_ConvertSurfaceFormat(SolidSurf, SDL_PIXELFORMAT_RGBA8888, 0);
+	SDL_FreeSurface(SolidSurf);
+	
+	u32 Tex;
+	glGenTextures(1, &Tex);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, Tex);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexImage2D(
+		GL_TEXTURE_2D,
+		0,
+		GL_RGBA,
+		RgbaSurf->w,
+		RgbaSurf->h,
+		0,
+		GL_RGBA,
+		GL_UNSIGNED_BYTE,
+		RgbaSurf->pixels
+	);
+	
+	y += h - RgbaSurf->h;
+	
+	// create transformation matrix.
+	vec3 Pos =
+	{
+		x + RgbaSurf->w / 2.0f,
+		y + RgbaSurf->h / 2.0f,
+		0.0f
+	};
+	
+	vec3 Scale =
+	{
+		RgbaSurf->w / 2.0f,
+		1.0f,
+		RgbaSurf->h / 2.0f
+	};
+	
+	mat4 TransMat, RotMat, ScaleMat;
+	glm_translate_make(TransMat, Pos);
+	glm_euler((vec3){GLM_PI / 2.0f, GLM_PI, GLM_PI}, RotMat);
+	glm_scale_make(ScaleMat, Scale);
+	
+	mat4 ModelMat = GLM_MAT4_IDENTITY_INIT;
+	glm_mat4_mul(ModelMat, TransMat, ModelMat);
+	glm_mat4_mul(ModelMat, RotMat, ModelMat);
+	glm_mat4_mul(ModelMat, ScaleMat, ModelMat);
+	
+	// render model.
+	glUniformMatrix4fv(i_ModelMat, 1, GL_FALSE, (f32 *)ModelMat);
+	glUniform1i(i_Tex, GL_TEXTURE0);
+	glBindVertexArray(ModelData[M_PLANE].Vao);
+	glDrawElements(GL_TRIANGLES, ModelData[M_PLANE].IdxCnt, GL_UNSIGNED_INT, 0);
+	
+	glDeleteTextures(1, &Tex);
+	SDL_FreeSurface(RgbaSurf);
 }
 
 static void
@@ -568,35 +691,30 @@ PreprocShader(char *Src, usize Len)
 	// substitute all constants for in-game values prior to shader compilation.
 	for (usize i = 0; i < Len; ++i)
 	{
-		if (Len - i >= 14 && !strncmp(&Src[i], "$CF_MAX_LIGHTS", 14))
+		if (Len - i >= 13 && !strncmp(&Src[i], "$O_MAX_LIGHTS", 13))
 		{
-			printf("sub max lights\n");
-			usize Cl = snprintf(&Src[i], 14, "%u", CF_MAX_LIGHTS);
-			memset(&Src[i + Cl], ' ', 14 - Cl);
+			usize Cl = snprintf(&Src[i], 13, "%u", O_MAX_LIGHTS);
+			memset(&Src[i + Cl], ' ', 13 - Cl);
 		}
-		else if (Len - i >= 17 && !strncmp(&Src[i], "$CF_AMBIENT_LIGHT", 17))
+		else if (Len - i >= 16 && !strncmp(&Src[i], "$O_AMBIENT_LIGHT", 16))
 		{
-			printf("sub ambient light\n");
-			usize Cl = snprintf(&Src[i], 17, "%f", CF_AMBIENT_LIGHT);
-			memset(&Src[i + Cl], ' ', 17 - Cl);
-		}
-		else if (Len - i >= 14 && !strncmp(&Src[i], "$CF_LIGHT_STEP", 14))
-		{
-			printf("sub light step\n");
-			usize Cl = snprintf(&Src[i], 14, "%f", CF_LIGHT_STEP);
-			memset(&Src[i + Cl], ' ', 14 - Cl);
-		}
-		else if (Len - i >= 15 && !strncmp(&Src[i], "$CF_SHADOW_BIAS", 15))
-		{
-			printf("sub shadow bias\n");
-			usize Cl = snprintf(&Src[i], 15, "%f", CF_SHADOW_BIAS);
-			memset(&Src[i + Cl], ' ', 15 - Cl);
-		}
-		else if (Len - i >= 16 && !strncmp(&Src[i], "$CF_CAM_CLIP_FAR", 16))
-		{
-			printf("sub cam clip far\n");
-			usize Cl = snprintf(&Src[i], 16, "%f", CF_CAM_CLIP_FAR);
+			usize Cl = snprintf(&Src[i], 16, "%f", O_AMBIENT_LIGHT);
 			memset(&Src[i + Cl], ' ', 16 - Cl);
+		}
+		else if (Len - i >= 13 && !strncmp(&Src[i], "$O_LIGHT_STEP", 13))
+		{
+			usize Cl = snprintf(&Src[i], 13, "%f", O_LIGHT_STEP);
+			memset(&Src[i + Cl], ' ', 13 - Cl);
+		}
+		else if (Len - i >= 14 && !strncmp(&Src[i], "$O_SHADOW_BIAS", 14))
+		{
+			usize Cl = snprintf(&Src[i], 14, "%f", O_SHADOW_BIAS);
+			memset(&Src[i + Cl], ' ', 14 - Cl);
+		}
+		else if (Len - i >= 15 && !strncmp(&Src[i], "$O_CAM_CLIP_FAR", 15))
+		{
+			usize Cl = snprintf(&Src[i], 15, "%f", O_CAM_CLIP_FAR);
+			memset(&Src[i + Cl], ' ', 15 - Cl);
 		}
 	}
 }

@@ -1,10 +1,10 @@
 #version 330 core
 
-#define MAX_LIGHTS 4
-#define AMBIENT_LIGHT 0.05
-#define LIGHT_STEP 0.1
-#define CAM_CLIP_FAR 500.0
-#define SHADOW_BIAS 0.4
+#define MAX_LIGHTS $O_MAX_LIGHTS
+#define AMBIENT_LIGHT $O_AMBIENT_LIGHT
+#define LIGHT_STEP $O_LIGHT_STEP
+#define CAM_CLIP_FAR $O_CAM_CLIP_FAR
+#define SHADOW_BIAS $O_SHADOW_BIAS
 
 in vec2 v_Texcoord;
 in vec3 v_Normal;

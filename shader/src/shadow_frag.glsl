@@ -1,6 +1,6 @@
 #version 330 core
 
-#define CAM_CLIP_FAR 500.0
+#define CAM_CLIP_FAR $O_CAM_CLIP_FAR
 
 in vec4 g_FragPos;
 

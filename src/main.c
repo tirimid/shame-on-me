@@ -8,7 +8,7 @@
 #include <SDL_ttf.h>
 #include <sys/time.h>
 
-#include "conf.h"
+#include "options.h"
 #include "util.h"
 #include "render.h"
 #include "textbox.h"
@@ -30,14 +30,14 @@ main(int Argc, char *Argv[])
 	(void)Argv;
 	
 	// initialize non-game systems.
-	if (SDL_Init(CF_SDL_INIT_FLAGS))
+	if (SDL_Init(O_SDL_INIT_FLAGS))
 	{
 		fprintf(stderr, "err: main: failed to init SDL2!\n");
 		return 1;
 	}
 	atexit(SDL_Quit);
 	
-	if (IMG_Init(CF_IMG_INIT_FLAGS) != CF_IMG_INIT_FLAGS)
+	if (IMG_Init(O_IMG_INIT_FLAGS) != O_IMG_INIT_FLAGS)
 	{
 		ShowError("main: failed to init SDL2 image!");
 		return 1;

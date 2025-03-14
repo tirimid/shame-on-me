@@ -35,7 +35,9 @@ G_Loop(void)
 	C_WalkTo(A_PETER, 'b');
 	C_WalkTo(A_PETER, 'c');
 	C_WalkTo(A_PETER, 'd');
-	C_Speak(TS_DUMMY, "Welcome... To the Bog...");
+	C_Speak(TS_PETER, "Welcome... To the Bog...");
+	C_Speak(TS_ARKADY, "I don't quite understand...");
+	C_Speak(TS_PETER, "I don't care! UwU");
 	C_LookWalkTo(A_ARKADY, 'C');
 	C_LookWalkTo(A_ARKADY, 'D');
 	C_LookWalkTo(A_ARKADY, 'E');
@@ -52,8 +54,19 @@ G_Loop(void)
 	C_WalkTo(A_MATTHEW, 'A');
 	C_WalkTo(A_MATTHEW, 'B');
 	C_WalkTo(A_MATTHEW, 'C');
+	C_Speak(TS_MATTHEW, "What's all the commotion?");
+	C_Speak(TS_ARKADY, "This cockmuncher told me to go to the Bog or something");
+	C_Speak(TS_PETER, "...");
+	C_Speak(TS_PETER, "(Quietly) I don't think he's been to the Bog...");
+	C_Speak(TS_MATTHEW, "He hasn't been to the bog?!");
+	C_Speak(TS_ARKADY, "What are you even on about?");
+	C_Speak(TS_PETER, "We're very disappointed in you...");
+	C_Speak(TS_MATTHEW, "Yeah...");
+	C_Speak(TS_ARKADY, "Seriously, go fuck yourselves");
 	C_WalkTo(A_GERASIM, 'A');
 	C_WalkTo(A_GERASIM, 'B');
+	C_Speak(TS_GERASIM, "Hai :3 Did I miss something?");
+	C_Speak(TS_ARKADY, "...");
 	
 	for (;;)
 	{
@@ -85,24 +98,29 @@ G_Loop(void)
 		
 		// update.
 		C_Update();
-		T_Update();
 		
 		// render.
 		R_SetShaderProgram(SP_SHADOW);
-		for (usize i = 0; i < CF_MAX_LIGHTS; ++i)
+		for (usize i = 0; i < O_MAX_LIGHTS; ++i)
 		{
 			R_BeginShadow(i);
 			C_Render();
 		}
 		
 		R_SetShaderProgram(SP_BASE);
-		R_BeginFrame();
+		R_BeginBase();
 		C_Render();
 		
 		R_SetShaderProgram(SP_OVERLAY);
-		T_Render();
+		R_BeginOverlay();
+		if (T_IsActive())
+			T_Render();
 		
 		R_Present();
+		
+		// update textbox after render in order to avoid effect where it disappears
+		// for one frame before reappearing on the next dialog.
+		T_Update();
 		
 		EndTick();
 	}

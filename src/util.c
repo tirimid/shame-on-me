@@ -6,12 +6,12 @@ ShowError(char const *Fmt, ...)
 	va_list Args;
 	va_start(Args, Fmt);
 	
-	char Msg[CF_MAX_LOG_LEN];
-	vsnprintf(Msg, CF_MAX_LOG_LEN, Fmt, Args);
+	char Msg[O_MAX_LOG_LEN];
+	vsnprintf(Msg, O_MAX_LOG_LEN, Fmt, Args);
 	
 	// stderr is backup so that error can still be processed in case a message
 	// box can't be opened.
-	if (SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, CF_ERR_WND_TITLE, Msg, NULL))
+	if (SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, O_ERR_WND_TITLE, Msg, NULL))
 		fprintf(stderr, "err: %s\n", Msg);
 	
 	va_end(Args);
@@ -35,7 +35,7 @@ void
 EndTick(void)
 {
 	u64 TickEndTime = GetUnixTimeMs();
-	i64 TickTimeLeft = CF_TICK_MS - TickEndTime + TickStartTime;
+	i64 TickTimeLeft = O_TICK_MS - TickEndTime + TickStartTime;
 	SDL_Delay(TickTimeLeft * (TickTimeLeft > 0));
 }
 
