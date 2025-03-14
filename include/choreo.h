@@ -8,8 +8,10 @@
 
 enum Actor
 {
-	A_PLAYER = 0,
-	A_DUMMY,
+	A_ARKADY = 0,
+	A_PETER,
+	A_MATTHEW,
+	A_GERASIM,
 	
 	A_END__
 };

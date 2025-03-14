@@ -50,13 +50,22 @@ static void GetPointPos(char Point, vec2 Out);
 
 static struct ActorData ActorData[A_END__] =
 {
-	// player.
+	// arkady (player).
 	{
-		// dummy value, player is not drawn.
-		.ActiveTex = 0,
+		.ActiveTex = 0 // dummy value, player is not drawn.
 	},
 	
-	// dummy.
+	// peter.
+	{
+		.ActiveTex = T_DUMMY0
+	},
+	
+	// matthew.
+	{
+		.ActiveTex = T_DUMMY0
+	},
+	
+	// gerasim.
 	{
 		.ActiveTex = T_DUMMY0
 	}
@@ -166,14 +175,14 @@ void
 C_Update(void)
 {
 	// update render camera.
-	f32 VBob = fabs(sin(ActorData[A_PLAYER].BobTime));
-	f32 HBob = fabs(cos(ActorData[A_PLAYER].BobTime));
+	f32 VBob = fabs(sin(ActorData[A_ARKADY].BobTime));
+	f32 HBob = fabs(cos(ActorData[A_ARKADY].BobTime));
 	
-	g_Camera.Pos[0] = ActorData[A_PLAYER].Pos[0] + HORIZ_BOB_INTENSITY * HBob;
+	g_Camera.Pos[0] = ActorData[A_ARKADY].Pos[0] + HORIZ_BOB_INTENSITY * HBob;
 	g_Camera.Pos[1] = VERT_BOB_INTENSITY * VBob;
-	g_Camera.Pos[2] = ActorData[A_PLAYER].Pos[1] + HORIZ_BOB_INTENSITY * HBob;
-	g_Camera.Pitch = ActorData[A_PLAYER].Pitch;
-	g_Camera.Yaw = ActorData[A_PLAYER].Yaw;
+	g_Camera.Pos[2] = ActorData[A_ARKADY].Pos[1] + HORIZ_BOB_INTENSITY * HBob;
+	g_Camera.Pitch = ActorData[A_ARKADY].Pitch;
+	g_Camera.Yaw = ActorData[A_ARKADY].Yaw;
 	
 	// update choreography actions.
 	if (ActionCnt == 0)
@@ -192,7 +201,7 @@ C_Update(void)
 			break;
 		}
 		
-		vec2 Move;
+		vec2 Move = {0};
 		glm_vec2_sub(Action->Data.Dst, Actor->Pos, Move);
 		glm_vec2_normalize(Move);
 		glm_vec2_scale(Move, WALK_SPEED, Move);
@@ -204,7 +213,7 @@ C_Update(void)
 	}
 	case AT_WALK_TO:
 	{
-		vec2 Dst;
+		vec2 Dst = {0};
 		GetPointPos(Action->Data.Point, Dst);
 		
 		if (glm_vec2_distance2(Actor->Pos, Dst) < WALK_DST_THRESHOLD2)
@@ -213,7 +222,7 @@ C_Update(void)
 			break;
 		}
 		
-		vec2 Move;
+		vec2 Move = {0};
 		glm_vec2_sub(Dst, Actor->Pos, Move);
 		glm_vec2_normalize(Move);
 		glm_vec2_scale(Move, WALK_SPEED, Move);
@@ -240,7 +249,7 @@ C_Update(void)
 	}
 	case AT_LOOK_AT:
 	{
-		vec2 Dir;
+		vec2 Dir = {0};
 		GetPointPos(Action->Data.Point, Dir);
 		glm_vec2_sub(Dir, Actor->Pos, Dir);
 		
@@ -262,7 +271,7 @@ C_Update(void)
 	}
 	case AT_LOOK_WALK_TO:
 	{
-		vec2 Dst, Dir;
+		vec2 Dst = {0}, Dir = {0};
 		GetPointPos(Action->Data.Point, Dst);
 		glm_vec2_sub(Dst, Actor->Pos, Dir);
 		
@@ -282,7 +291,7 @@ C_Update(void)
 		Actor->Pitch = InterpolateAngle(Actor->Pitch, DstPitch, LOOK_SPEED);
 		Actor->Yaw = InterpolateAngle(Actor->Yaw, DstYaw, LOOK_SPEED);
 		
-		vec2 Move;
+		vec2 Move = {0};
 		glm_vec2_sub(Dst, Actor->Pos, Move);
 		glm_vec2_normalize(Move);
 		glm_vec2_scale(Move, WALK_SPEED, Move);
@@ -312,9 +321,9 @@ void
 C_Render(void)
 {
 	// draw floor, ceiling, inner walls.
-	for (i32 x = 0; x < g_Map.w; ++x)
+	for (u32 x = 0; x < g_Map.w; ++x)
 	{
-		for (i32 y = 0; y < g_Map.h; ++y)
+		for (u32 y = 0; y < g_Map.h; ++y)
 		{
 			if (g_Map.Data[g_Map.w * y + x] == '#')
 			{
@@ -368,7 +377,7 @@ C_Render(void)
 	}
 	
 	// draw map walls.
-	for (i32 x = 0; x < g_Map.w; ++x)
+	for (u32 x = 0; x < g_Map.w; ++x)
 	{
 		R_Model(
 			M_PLANE,
@@ -386,7 +395,7 @@ C_Render(void)
 		);
 	}
 	
-	for (i32 y = 0; y < g_Map.h; ++y)
+	for (u32 y = 0; y < g_Map.h; ++y)
 	{
 		R_Model(
 			M_PLANE,
@@ -405,9 +414,9 @@ C_Render(void)
 	}
 	
 	// draw all non-player characters.
-	for (usize i = A_PLAYER + 1; i < A_END__; ++i)
+	for (usize i = A_ARKADY + 1; i < A_END__; ++i)
 	{
-		struct ActorData *Player = &ActorData[A_PLAYER];
+		struct ActorData *Player = &ActorData[A_ARKADY];
 		struct ActorData *a = &ActorData[i];
 		
 		vec2 Dir;
@@ -430,9 +439,9 @@ C_Render(void)
 static void
 GetPointPos(char Point, vec2 Out)
 {
-	for (i32 x = 0; x < g_Map.w; ++x)
+	for (u32 x = 0; x < g_Map.w; ++x)
 	{
-		for (i32 y = 0; y < g_Map.h; ++y)
+		for (u32 y = 0; y < g_Map.h; ++y)
 		{
 			if (g_Map.Data[y * g_Map.w + x] == Point)
 			{

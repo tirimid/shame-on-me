@@ -18,6 +18,9 @@
 int
 main(int Argc, char *Argv[])
 {
+	(void)Argc;
+	(void)Argv;
+	
 	// initialize non-game systems.
 	if (SDL_Init(SDL_INIT_FLAGS))
 	{

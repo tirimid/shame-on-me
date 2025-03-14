@@ -10,7 +10,7 @@
 #define MAP_HEIGHT 10
 #define MAP \
 	"S.....A..." \
-	"######e###" \
+	"..####e###" \
 	"a.....B.C." \
 	".........D" \
 	".........." \
@@ -32,28 +32,36 @@ G_Loop(void)
 	
 	//R_Light((vec3){5.0f, 0.0f, 5.0f}, 1.1f);
 	R_Light((vec3){6.0f, 0.0f, 0.0f}, 1.3f);
+	R_Light((vec3){8.0f, -0.6f, 3.0f}, 0.3f);
 	
-	C_LookWalkTo(A_PLAYER, 'A');
+	C_LookWalkTo(A_ARKADY, 'A');
 	C_Wait(300);
-	C_LookAt(A_PLAYER, 'S');
+	C_LookAt(A_ARKADY, 'S');
 	C_Wait(200);
-	C_LookWalkTo(A_PLAYER, 'B');
-	C_WalkTo(A_DUMMY, 'a');
-	C_WalkTo(A_DUMMY, 'b');
-	C_WalkTo(A_DUMMY, 'c');
-	C_WalkTo(A_DUMMY, 'd');
+	C_LookWalkTo(A_ARKADY, 'B');
+	C_WalkTo(A_PETER, 'a');
+	C_WalkTo(A_PETER, 'b');
+	C_WalkTo(A_PETER, 'c');
+	C_WalkTo(A_PETER, 'd');
 	C_Wait(300);
-	C_LookWalkTo(A_PLAYER, 'C');
-	C_LookWalkTo(A_PLAYER, 'D');
-	C_LookWalkTo(A_PLAYER, 'E');
-	C_LookWalkTo(A_PLAYER, 'F');
-	C_LookWalkTo(A_PLAYER, 'G');
-	C_LookWalkTo(A_PLAYER, 'H');
-	C_LookAt(A_PLAYER, 'A');
-	C_WalkTo(A_DUMMY, 'e');
+	C_LookWalkTo(A_ARKADY, 'C');
+	C_LookWalkTo(A_ARKADY, 'D');
+	C_LookWalkTo(A_ARKADY, 'E');
+	C_LookWalkTo(A_ARKADY, 'F');
+	C_LookWalkTo(A_ARKADY, 'G');
+	C_LookWalkTo(A_ARKADY, 'H');
+	C_LookAt(A_ARKADY, 'A');
+	C_WalkTo(A_PETER, 'e');
 	C_Wait(200);
-	C_LookAt(A_PLAYER, 'f');
-	C_WalkTo(A_DUMMY, 'f');
+	C_LookAt(A_ARKADY, 'f');
+	C_WalkTo(A_PETER, 'f');
+	C_LookAt(A_ARKADY, 'e');
+	C_WalkTo(A_PETER, 'D');
+	C_WalkTo(A_MATTHEW, 'A');
+	C_WalkTo(A_MATTHEW, 'B');
+	C_WalkTo(A_MATTHEW, 'C');
+	C_WalkTo(A_GERASIM, 'A');
+	C_WalkTo(A_GERASIM, 'B');
 	
 	for (;;)
 	{
@@ -80,12 +88,14 @@ G_Loop(void)
 		C_Update();
 		
 		// render.
+		R_SetShaderProgram(SP_SHADOW);
 		for (usize i = 0; i < MAX_LIGHTS; ++i)
 		{
 			R_BeginShadow(i);
 			C_Render();
 		}
 		
+		R_SetShaderProgram(SP_BASE);
 		R_BeginFrame();
 		C_Render();
 		

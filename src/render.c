@@ -35,9 +35,9 @@
 #define CAM_FOV (GLM_PI / 2.5f)
 #define CAM_CLIP_NEAR 0.1f
 #define CAM_CLIP_FAR 500.0f
-#define PIXELATION 4.0f
+#define PIXELATION 6.0f
 #define FONT_PT 12
-#define SHADOW_MAP_SIZE 256
+#define SHADOW_MAP_SIZE 128
 
 #define INCLUDE_MODEL(Name) \
 	{ \
@@ -423,7 +423,6 @@ R_BeginShadow(usize Idx)
 	
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, ShadowFbos[Idx]);
 	glClear(GL_DEPTH_BUFFER_BIT);
-	R_SetShaderProgram(SP_SHADOW);
 	glDisable(GL_CULL_FACE);
 	
 	// compute matrices.
@@ -459,7 +458,6 @@ R_BeginFrame(void)
 	
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, RFrameBuffer);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	R_SetShaderProgram(SP_BASE);
 	glEnable(GL_CULL_FACE);
 	
 	// compute matrices.
