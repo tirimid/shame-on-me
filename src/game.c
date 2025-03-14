@@ -1,11 +1,3 @@
-#include "game.h"
-
-#include <SDL.h>
-
-#include "choreo.h"
-#include "render.h"
-#include "util.h"
-
 #define MAP_WIDTH 10
 #define MAP_HEIGHT 10
 #define MAP \
@@ -43,7 +35,7 @@ G_Loop(void)
 	C_WalkTo(A_PETER, 'b');
 	C_WalkTo(A_PETER, 'c');
 	C_WalkTo(A_PETER, 'd');
-	C_Wait(300);
+	C_Speak(TS_DUMMY, "Welcome... To the Bog...");
 	C_LookWalkTo(A_ARKADY, 'C');
 	C_LookWalkTo(A_ARKADY, 'D');
 	C_LookWalkTo(A_ARKADY, 'E');
@@ -68,6 +60,7 @@ G_Loop(void)
 		BeginTick();
 		
 		// handle events.
+		I_Prepare();
 		SDL_Event e;
 		while (SDL_PollEvent(&e))
 		{
@@ -76,6 +69,12 @@ G_Loop(void)
 			case SDL_WINDOWEVENT:
 				if (e.window.event == SDL_WINDOWEVENT_RESIZED)
 					R_HandleResize(e.window.data1, e.window.data2);
+				break;
+			case SDL_KEYDOWN:
+				I_SetKeybdState(&e, IT_PRESS);
+				break;
+			case SDL_KEYUP:
+				I_SetKeybdState(&e, IT_RELEASE);
 				break;
 			case SDL_QUIT:
 				return;
@@ -86,10 +85,11 @@ G_Loop(void)
 		
 		// update.
 		C_Update();
+		T_Update();
 		
 		// render.
 		R_SetShaderProgram(SP_SHADOW);
-		for (usize i = 0; i < MAX_LIGHTS; ++i)
+		for (usize i = 0; i < CF_MAX_LIGHTS; ++i)
 		{
 			R_BeginShadow(i);
 			C_Render();
@@ -98,6 +98,9 @@ G_Loop(void)
 		R_SetShaderProgram(SP_BASE);
 		R_BeginFrame();
 		C_Render();
+		
+		R_SetShaderProgram(SP_OVERLAY);
+		T_Render();
 		
 		R_Present();
 		

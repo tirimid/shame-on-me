@@ -1,19 +1,27 @@
-#include <stdio.h>
 #include <stdlib.h>
 
+#include <cglm/cglm.h>
+#include <GL/glew.h>
+#include <GL/gl.h>
 #include <SDL.h>
 #include <SDL_image.h>
 #include <SDL_ttf.h>
+#include <sys/time.h>
 
-#include "src/choreo.c"
-#include "src/game.c"
-#include "src/input.c"
-#include "src/render.c"
-#include "src/textbox.c"
-#include "src/util.c"
+#include "conf.h"
+#include "util.h"
+#include "render.h"
+#include "textbox.h"
+#include "choreo.h"
+#include "game.h"
+#include "input.h"
 
-#define SDL_INIT_FLAGS (SDL_INIT_VIDEO | SDL_INIT_AUDIO)
-#define IMG_INIT_FLAGS IMG_INIT_PNG
+#include "choreo.c"
+#include "game.c"
+#include "input.c"
+#include "render.c"
+#include "textbox.c"
+#include "util.c"
 
 int
 main(int Argc, char *Argv[])
@@ -22,14 +30,14 @@ main(int Argc, char *Argv[])
 	(void)Argv;
 	
 	// initialize non-game systems.
-	if (SDL_Init(SDL_INIT_FLAGS))
+	if (SDL_Init(CF_SDL_INIT_FLAGS))
 	{
 		fprintf(stderr, "err: main: failed to init SDL2!\n");
 		return 1;
 	}
 	atexit(SDL_Quit);
 	
-	if (IMG_Init(IMG_INIT_FLAGS) != IMG_INIT_FLAGS)
+	if (IMG_Init(CF_IMG_INIT_FLAGS) != CF_IMG_INIT_FLAGS)
 	{
 		ShowError("main: failed to init SDL2 image!");
 		return 1;

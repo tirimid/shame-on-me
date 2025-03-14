@@ -1,16 +1,4 @@
-#include "choreo.h"
-
-#include <math.h>
-#include <stdbool.h>
-#include <string.h>
-
-#define MAX_ACTIONS 256
-#define WALK_SPEED 0.08f
 #define WALK_DST_THRESHOLD2 0.015f
-#define VERT_BOB_INTENSITY 0.2f
-#define HORIZ_BOB_INTENSITY 0.1f
-#define BOB_FREQUENCY 0.1f
-#define LOOK_SPEED 0.25f
 #define LOOK_THRESHOLD 0.005f
 
 enum ActionType
@@ -21,7 +9,8 @@ enum ActionType
 	AT_LOOK_AT,
 	AT_LOOK_WALK_TO,
 	AT_SET_TEXTURE,
-	AT_WAIT
+	AT_WAIT,
+	AT_SPEAK
 };
 
 struct Action
@@ -32,6 +21,7 @@ struct Action
 		char Point;
 		u8 Tex;
 		i64 Ms;
+		char const *Msg;
 	} Data;
 	u8 Type, Actor;
 };
@@ -57,27 +47,27 @@ static struct ActorData ActorData[A_END__] =
 	
 	// peter.
 	{
-		.ActiveTex = T_DUMMY0
+		.ActiveTex = T_DUMMY
 	},
 	
 	// matthew.
 	{
-		.ActiveTex = T_DUMMY0
+		.ActiveTex = T_DUMMY
 	},
 	
 	// gerasim.
 	{
-		.ActiveTex = T_DUMMY0
+		.ActiveTex = T_DUMMY
 	}
 };
 
-static struct Action Actions[MAX_ACTIONS];
+static struct Action Actions[CF_MAX_CHOREO_ACTIONS];
 static usize ActionCnt;
 
 void
 C_Walk(enum Actor a, vec2 Pos)
 {
-	if (ActionCnt < MAX_ACTIONS)
+	if (ActionCnt < CF_MAX_CHOREO_ACTIONS)
 	{
 		Actions[ActionCnt++] = (struct Action)
 		{
@@ -91,7 +81,7 @@ C_Walk(enum Actor a, vec2 Pos)
 void
 C_WalkTo(enum Actor a, char Point)
 {
-	if (ActionCnt < MAX_ACTIONS)
+	if (ActionCnt < CF_MAX_CHOREO_ACTIONS)
 	{
 		Actions[ActionCnt++] = (struct Action)
 		{
@@ -105,7 +95,7 @@ C_WalkTo(enum Actor a, char Point)
 void
 C_Look(enum Actor a, f32 PitchDeg, f32 YawDeg)
 {
-	if (ActionCnt < MAX_ACTIONS)
+	if (ActionCnt < CF_MAX_CHOREO_ACTIONS)
 	{
 		Actions[ActionCnt++] = (struct Action)
 		{
@@ -119,7 +109,7 @@ C_Look(enum Actor a, f32 PitchDeg, f32 YawDeg)
 void
 C_LookAt(enum Actor a, char Point)
 {
-	if (ActionCnt < MAX_ACTIONS)
+	if (ActionCnt < CF_MAX_CHOREO_ACTIONS)
 	{
 		Actions[ActionCnt++] = (struct Action)
 		{
@@ -133,7 +123,7 @@ C_LookAt(enum Actor a, char Point)
 void
 C_LookWalkTo(enum Actor a, char Point)
 {
-	if (ActionCnt < MAX_ACTIONS)
+	if (ActionCnt < CF_MAX_CHOREO_ACTIONS)
 	{
 		Actions[ActionCnt++] = (struct Action)
 		{
@@ -147,7 +137,7 @@ C_LookWalkTo(enum Actor a, char Point)
 void
 C_SetTexture(enum Actor a, enum Texture t)
 {
-	if (ActionCnt < MAX_ACTIONS)
+	if (ActionCnt < CF_MAX_CHOREO_ACTIONS)
 	{
 		Actions[ActionCnt++] = (struct Action)
 		{
@@ -161,12 +151,26 @@ C_SetTexture(enum Actor a, enum Texture t)
 void
 C_Wait(u32 Ms)
 {
-	if (ActionCnt < MAX_ACTIONS)
+	if (ActionCnt < CF_MAX_CHOREO_ACTIONS)
 	{
 		Actions[ActionCnt++] = (struct Action)
 		{
 			.Data.Ms = Ms,
 			.Type = AT_WAIT
+		};
+	}
+}
+
+void
+C_Speak(enum TextboxSprite Ts, char const *Msg)
+{
+	if (ActionCnt < CF_MAX_CHOREO_ACTIONS)
+	{
+		Actions[ActionCnt++] = (struct Action)
+		{
+			.Data.Msg = Msg,
+			.Actor = Ts,
+			.Type = AT_SPEAK
 		};
 	}
 }
@@ -178,9 +182,9 @@ C_Update(void)
 	f32 VBob = fabs(sin(ActorData[A_ARKADY].BobTime));
 	f32 HBob = fabs(cos(ActorData[A_ARKADY].BobTime));
 	
-	g_Camera.Pos[0] = ActorData[A_ARKADY].Pos[0] + HORIZ_BOB_INTENSITY * HBob;
-	g_Camera.Pos[1] = VERT_BOB_INTENSITY * VBob;
-	g_Camera.Pos[2] = ActorData[A_ARKADY].Pos[1] + HORIZ_BOB_INTENSITY * HBob;
+	g_Camera.Pos[0] = ActorData[A_ARKADY].Pos[0] + CF_HORIZ_BOB_INTENSITY * HBob;
+	g_Camera.Pos[1] = CF_VERT_BOB_INTENSITY * VBob;
+	g_Camera.Pos[2] = ActorData[A_ARKADY].Pos[1] + CF_HORIZ_BOB_INTENSITY * HBob;
 	g_Camera.Pitch = ActorData[A_ARKADY].Pitch;
 	g_Camera.Yaw = ActorData[A_ARKADY].Yaw;
 	
@@ -204,10 +208,10 @@ C_Update(void)
 		vec2 Move = {0};
 		glm_vec2_sub(Action->Data.Dst, Actor->Pos, Move);
 		glm_vec2_normalize(Move);
-		glm_vec2_scale(Move, WALK_SPEED, Move);
+		glm_vec2_scale(Move, CF_WALK_SPEED, Move);
 		
 		glm_vec2_add(Actor->Pos, Move, Actor->Pos);
-		Actor->BobTime += BOB_FREQUENCY;
+		Actor->BobTime += CF_BOB_FREQUENCY;
 		
 		return;
 	}
@@ -225,10 +229,10 @@ C_Update(void)
 		vec2 Move = {0};
 		glm_vec2_sub(Dst, Actor->Pos, Move);
 		glm_vec2_normalize(Move);
-		glm_vec2_scale(Move, WALK_SPEED, Move);
+		glm_vec2_scale(Move, CF_WALK_SPEED, Move);
 		
 		glm_vec2_add(Actor->Pos, Move, Actor->Pos);
-		Actor->BobTime += BOB_FREQUENCY;
+		Actor->BobTime += CF_BOB_FREQUENCY;
 		
 		return;
 	}
@@ -242,8 +246,8 @@ C_Update(void)
 			break;
 		}
 		
-		Actor->Pitch = InterpolateAngle(Actor->Pitch, Action->Data.Dst[0], LOOK_SPEED);
-		Actor->Yaw = InterpolateAngle(Actor->Yaw, Action->Data.Dst[1], LOOK_SPEED);
+		Actor->Pitch = InterpolateAngle(Actor->Pitch, Action->Data.Dst[0], CF_LOOK_SPEED);
+		Actor->Yaw = InterpolateAngle(Actor->Yaw, Action->Data.Dst[1], CF_LOOK_SPEED);
 		
 		return;
 	}
@@ -264,8 +268,8 @@ C_Update(void)
 			break;
 		}
 		
-		Actor->Pitch = InterpolateAngle(Actor->Pitch, DstPitch, LOOK_SPEED);
-		Actor->Yaw = InterpolateAngle(Actor->Yaw, DstYaw, LOOK_SPEED);
+		Actor->Pitch = InterpolateAngle(Actor->Pitch, DstPitch, CF_LOOK_SPEED);
+		Actor->Yaw = InterpolateAngle(Actor->Yaw, DstYaw, CF_LOOK_SPEED);
 		
 		return;
 	}
@@ -288,16 +292,16 @@ C_Update(void)
 			break;
 		}
 		
-		Actor->Pitch = InterpolateAngle(Actor->Pitch, DstPitch, LOOK_SPEED);
-		Actor->Yaw = InterpolateAngle(Actor->Yaw, DstYaw, LOOK_SPEED);
+		Actor->Pitch = InterpolateAngle(Actor->Pitch, DstPitch, CF_LOOK_SPEED);
+		Actor->Yaw = InterpolateAngle(Actor->Yaw, DstYaw, CF_LOOK_SPEED);
 		
 		vec2 Move = {0};
 		glm_vec2_sub(Dst, Actor->Pos, Move);
 		glm_vec2_normalize(Move);
-		glm_vec2_scale(Move, WALK_SPEED, Move);
+		glm_vec2_scale(Move, CF_WALK_SPEED, Move);
 		
 		glm_vec2_add(Actor->Pos, Move, Actor->Pos);
-		Actor->BobTime += BOB_FREQUENCY;
+		Actor->BobTime += CF_BOB_FREQUENCY;
 		
 		return;
 	}
@@ -308,7 +312,12 @@ C_Update(void)
 		if (Action->Data.Ms <= 0)
 			break;
 		
-		Action->Data.Ms -= TICK_MS;
+		Action->Data.Ms -= CF_TICK_MS;
+		
+		return;
+	case AT_SPEAK:
+		if (I_KeyPressed(CF_KEY_NEXT))
+			break;
 		
 		return;
 	}
@@ -424,7 +433,7 @@ C_Render(void)
 		glm_vec2_normalize(Dir);
 		f32 Yaw = Atan2(Dir[0], -Dir[1]);
 		
-		f32 Bob = VERT_BOB_INTENSITY * fabs(sin(a->BobTime));
+		f32 Bob = CF_VERT_BOB_INTENSITY * fabs(sin(a->BobTime));
 		
 		R_Model(
 			M_PLANE,

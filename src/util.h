@@ -1,11 +1,6 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#include <stddef.h>
-#include <stdint.h>
-
-#define TICK_MS 20
-
 typedef int8_t i8;
 typedef int16_t i16;
 typedef int32_t i32;

@@ -1,12 +1,6 @@
 #ifndef RENDER_H
 #define RENDER_H
 
-#include <cglm/cglm.h>
-
-#include "util.h"
-
-#define MAX_LIGHTS 4
-
 enum Model
 {
 	M_PLANE = 0,
@@ -30,7 +24,7 @@ enum Texture
 	T_FLOOR,
 	T_CEILING,
 	T_WALL,
-	T_DUMMY0,
+	T_DUMMY,
 	
 	T_END__
 };
