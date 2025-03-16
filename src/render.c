@@ -2,7 +2,44 @@
 #include "font/vcr_osd_mono_ttf.h"
 #include "img/black_png.h"
 #include "img/black50_png.h"
+#include "img/c_clubs_6_png.h"
+#include "img/c_clubs_7_png.h"
+#include "img/c_clubs_8_png.h"
+#include "img/c_clubs_9_png.h"
+#include "img/c_clubs_10_png.h"
+#include "img/c_clubs_j_png.h"
+#include "img/c_clubs_q_png.h"
+#include "img/c_clubs_k_png.h"
+#include "img/c_clubs_a_png.h"
+#include "img/c_diamonds_6_png.h"
+#include "img/c_diamonds_7_png.h"
+#include "img/c_diamonds_8_png.h"
+#include "img/c_diamonds_9_png.h"
+#include "img/c_diamonds_10_png.h"
+#include "img/c_diamonds_j_png.h"
+#include "img/c_diamonds_q_png.h"
+#include "img/c_diamonds_k_png.h"
+#include "img/c_diamonds_a_png.h"
+#include "img/c_hearts_6_png.h"
+#include "img/c_hearts_7_png.h"
+#include "img/c_hearts_8_png.h"
+#include "img/c_hearts_9_png.h"
+#include "img/c_hearts_10_png.h"
+#include "img/c_hearts_j_png.h"
+#include "img/c_hearts_q_png.h"
+#include "img/c_hearts_k_png.h"
+#include "img/c_hearts_a_png.h"
+#include "img/c_spades_6_png.h"
+#include "img/c_spades_7_png.h"
+#include "img/c_spades_8_png.h"
+#include "img/c_spades_9_png.h"
+#include "img/c_spades_10_png.h"
+#include "img/c_spades_j_png.h"
+#include "img/c_spades_q_png.h"
+#include "img/c_spades_k_png.h"
+#include "img/c_spades_a_png.h"
 #include "img/ceiling_png.h"
+#include "img/door_png.h"
 #include "img/dummy_png.h"
 #include "img/dummy_face_png.h"
 #include "img/floor_png.h"
@@ -11,6 +48,8 @@
 #include "img/something_png.h"
 #include "img/wall_png.h"
 #include "model/cube_obj.h"
+#include "model/door_closed_obj.h"
+#include "model/door_open_obj.h"
 #include "model/plane_obj.h"
 #include "shader/base_frag_glsl.h"
 #include "shader/base_vert_glsl.h"
@@ -106,12 +145,17 @@ static u32 ShadowFbos[O_MAX_LIGHTS];
 static usize LightCnt;
 static u32 i_Lights, i_ShadowMaps;
 static u32 i_LightPos, i_ShadowViewMats;
+static f32 FadeBrightness = 0.0f;
+static enum FadeStatus FadeStatus;
+static u32 i_FadeBrightness;
 
 // data tables.
 static struct ModelData ModelData[M_END__] =
 {
 	INCLUDE_MODEL(plane),
-	INCLUDE_MODEL(cube)
+	INCLUDE_MODEL(cube),
+	INCLUDE_MODEL(door_open),
+	INCLUDE_MODEL(door_closed)
 };
 
 static struct ShaderProgramData ShaderProgramData[SP_END__] =
@@ -132,7 +176,44 @@ static struct TextureData TextureData[T_END__] =
 	INCLUDE_TEXTURE(dummy_face),
 	INCLUDE_TEXTURE(black50),
 	INCLUDE_TEXTURE(glasses_dummy),
-	INCLUDE_TEXTURE(glasses_dummy_face)
+	INCLUDE_TEXTURE(glasses_dummy_face),
+	INCLUDE_TEXTURE(c_spades_6),
+	INCLUDE_TEXTURE(c_spades_7),
+	INCLUDE_TEXTURE(c_spades_8),
+	INCLUDE_TEXTURE(c_spades_9),
+	INCLUDE_TEXTURE(c_spades_10),
+	INCLUDE_TEXTURE(c_spades_j),
+	INCLUDE_TEXTURE(c_spades_q),
+	INCLUDE_TEXTURE(c_spades_k),
+	INCLUDE_TEXTURE(c_spades_a),
+	INCLUDE_TEXTURE(c_diamonds_6),
+	INCLUDE_TEXTURE(c_diamonds_7),
+	INCLUDE_TEXTURE(c_diamonds_8),
+	INCLUDE_TEXTURE(c_diamonds_9),
+	INCLUDE_TEXTURE(c_diamonds_10),
+	INCLUDE_TEXTURE(c_diamonds_j),
+	INCLUDE_TEXTURE(c_diamonds_q),
+	INCLUDE_TEXTURE(c_diamonds_k),
+	INCLUDE_TEXTURE(c_diamonds_a),
+	INCLUDE_TEXTURE(c_clubs_6),
+	INCLUDE_TEXTURE(c_clubs_7),
+	INCLUDE_TEXTURE(c_clubs_8),
+	INCLUDE_TEXTURE(c_clubs_9),
+	INCLUDE_TEXTURE(c_clubs_10),
+	INCLUDE_TEXTURE(c_clubs_j),
+	INCLUDE_TEXTURE(c_clubs_q),
+	INCLUDE_TEXTURE(c_clubs_k),
+	INCLUDE_TEXTURE(c_clubs_a),
+	INCLUDE_TEXTURE(c_hearts_6),
+	INCLUDE_TEXTURE(c_hearts_7),
+	INCLUDE_TEXTURE(c_hearts_8),
+	INCLUDE_TEXTURE(c_hearts_9),
+	INCLUDE_TEXTURE(c_hearts_10),
+	INCLUDE_TEXTURE(c_hearts_j),
+	INCLUDE_TEXTURE(c_hearts_q),
+	INCLUDE_TEXTURE(c_hearts_k),
+	INCLUDE_TEXTURE(c_hearts_a),
+	INCLUDE_TEXTURE(door)
 };
 
 static struct FontData FontData[F_END__] =
@@ -391,7 +472,7 @@ R_Init(void)
 	// set GL state.
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glFrontFace(GL_CW);
-	glCullFace(GL_FRONT);
+	glCullFace(GL_BACK);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	R_SetShaderProgram(SP_BASE);
@@ -479,6 +560,8 @@ R_BeginBase(void)
 	glUniformMatrix4fv(i_ViewMat, 1, GL_FALSE, (f32 *)ViewMat);
 	glUniformMatrix4fv(i_ProjMat, 1, GL_FALSE, (f32 *)ProjMat);
 	
+	glUniform1f(i_FadeBrightness, FadeBrightness);
+	
 	u32 ShadowMapSamplers[O_MAX_LIGHTS] = {0};
 	for (usize i = 0; i < O_MAX_LIGHTS; ++i)
 	{
@@ -498,7 +581,6 @@ R_BeginOverlay(void)
 	glViewport(0, 0, w / O_PIXELATION, h / O_PIXELATION);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, RFrameBuffer);
 	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_CULL_FACE);
 	
 	// compute matrices.
 	mat4 ProjMat;
@@ -567,6 +649,7 @@ R_SetShaderProgram(enum ShaderProgram Prog)
 	i_ShadowMaps = glGetUniformLocation(p, "i_ShadowMaps");
 	i_LightPos = glGetUniformLocation(p, "i_LightPos");
 	i_ShadowViewMats = glGetUniformLocation(p, "i_ShadowViewMats");
+	i_FadeBrightness = glGetUniformLocation(p, "i_FadeBrightness");
 }
 
 void
@@ -592,15 +675,18 @@ R_Model(enum Model m, enum Texture t, vec3 Pos, vec3 Rot, vec3 Scale)
 	glDrawElements(GL_TRIANGLES, ModelData[m].IdxCnt, GL_UNSIGNED_INT, 0);
 }
 
-void
-R_Light(vec3 Pos, f32 Intensity)
+i32
+R_PutLight(vec3 Pos, f32 Intensity)
 {
 	if (LightCnt < O_MAX_LIGHTS)
 	{
 		vec4 NewLight = {Pos[0], Pos[1], Pos[2], Intensity};
-		glm_vec4_copy(NewLight, Lights[LightCnt++]);
+		glm_vec4_copy(NewLight, Lights[LightCnt]);
 		glUniform4fv(i_Lights, O_MAX_LIGHTS, (f32 *)&Lights[0]);
+		return LightCnt++;
 	}
+	
+	return -1;
 }
 
 void
@@ -683,6 +769,28 @@ R_Text(enum Font f, char const *Text, i32 x, i32 y, i32 w, i32 h)
 	
 	glDeleteTextures(1, &Tex);
 	SDL_FreeSurface(RgbaSurf);
+}
+
+void
+R_Update(void)
+{
+	// update fade brightness.
+	if (FadeStatus)
+	{
+		FadeBrightness += O_FADE_SPEED;
+		FadeBrightness = FadeBrightness > 1.0f ? 1.0f : FadeBrightness;
+	}
+	else
+	{
+		FadeBrightness -= O_FADE_SPEED;
+		FadeBrightness = FadeBrightness < 0.0f ? 0.0f : FadeBrightness;
+	}
+}
+
+void
+R_Fade(enum FadeStatus Fs)
+{
+	FadeStatus = Fs;
 }
 
 static void

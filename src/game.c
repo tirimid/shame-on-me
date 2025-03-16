@@ -1,72 +1,70 @@
-#define MAP_WIDTH 10
-#define MAP_HEIGHT 10
+#define MAP_WIDTH 17
+#define MAP_HEIGHT 12
 #define MAP \
-	"S.....A..." \
-	"..####e###" \
-	"a.....B.C." \
-	".........D" \
-	".........." \
-	"b..H.....E" \
-	"....G...F." \
-	"..c...d..." \
-	".........." \
-	"......f..."
+	".............A..#" \
+	"#############.B.#" \
+	"........#...#...#" \
+	"........#...#...#" \
+	"........#...#...." \
+	"###.######.##...#" \
+	"...G.......E#...#" \
+	"....F.....D...C.#" \
+	"............#...#" \
+	"#############...#" \
+	"............#...#" \
+	"............#...#"
+
+static void IntroSeq(void);
+
+static i32 MainDoorProp;
 
 void
 G_Loop(void)
 {
+	// set up environment.
 	g_Map = (struct Map)
 	{
 		.Data = MAP,
 		.w = MAP_WIDTH,
 		.h = MAP_HEIGHT
 	};
+	R_PutLight((vec3){14.0f, 0.4f, 1.0f}, 1.5f);
+	R_PutLight((vec3){14.0f, 0.4f, 7.0f}, 1.5f);
+	R_PutLight((vec3){9.0f, 0.4f, 8.0f}, 1.5f);
 	
-	//R_Light((vec3){5.0f, 0.0f, 5.0f}, 1.1f);
-	R_Light((vec3){6.0f, 0.0f, 0.0f}, 1.3f);
-	R_Light((vec3){8.0f, -0.6f, 3.0f}, 0.3f);
+	MainDoorProp = C_PutProp(
+		M_DOOR_CLOSED,
+		T_DOOR,
+		(vec3){12.0f, -1.5f, 7.0f},
+		(vec3){0.0f, 0.0f, 0.0f},
+		(vec3){1.0f, 1.0f, 1.0f}
+	);
 	
-	C_LookWalkTo(A_ARKADY, 'A');
-	C_Wait(300);
-	C_LookAt(A_ARKADY, 'S');
-	C_Wait(200);
-	C_LookWalkTo(A_ARKADY, 'B');
-	C_WalkTo(A_PETER, 'a');
-	C_WalkTo(A_PETER, 'b');
-	C_WalkTo(A_PETER, 'c');
-	C_WalkTo(A_PETER, 'd');
-	C_Speak(TS_PETER, "Welcome... To the Bog...");
-	C_Speak(TS_ARKADY, "I don't quite understand...");
-	C_Speak(TS_PETER, "I don't care! UwU");
-	C_LookWalkTo(A_ARKADY, 'C');
-	C_LookWalkTo(A_ARKADY, 'D');
-	C_LookWalkTo(A_ARKADY, 'E');
-	C_LookWalkTo(A_ARKADY, 'F');
-	C_LookWalkTo(A_ARKADY, 'G');
-	C_LookWalkTo(A_ARKADY, 'H');
-	C_LookAt(A_ARKADY, 'A');
-	C_WalkTo(A_PETER, 'e');
-	C_Wait(200);
-	C_LookAt(A_ARKADY, 'f');
-	C_WalkTo(A_PETER, 'f');
-	C_LookAt(A_ARKADY, 'e');
-	C_WalkTo(A_PETER, 'D');
-	C_WalkTo(A_MATTHEW, 'A');
-	C_WalkTo(A_MATTHEW, 'B');
-	C_WalkTo(A_MATTHEW, 'C');
-	C_Speak(TS_MATTHEW, "What's all the commotion?");
-	C_Speak(TS_ARKADY, "This cockmuncher told me to go to the Bog or something");
-	C_Speak(TS_PETER, "...");
-	C_Speak(TS_PETER, "(Quietly) I don't think he's been to the Bog...");
-	C_Speak(TS_MATTHEW, "He hasn't been to the bog?!");
-	C_Speak(TS_ARKADY, "What are you even on about?");
-	C_Speak(TS_PETER, "We're very disappointed in you...");
-	C_Speak(TS_MATTHEW, "Yeah...");
-	C_Speak(TS_ARKADY, "Seriously, go fuck yourselves");
-	C_WalkTo(A_GERASIM, 'A');
-	C_WalkTo(A_GERASIM, 'B');
-	C_Speak(TS_GERASIM, "Hai :3 Did I miss something?");
-	C_Speak(TS_ARKADY, "...");
+	C_PutProp(
+		M_DOOR_CLOSED,
+		T_DOOR,
+		(vec3){16.0f, -1.5f, 4.0f},
+		(vec3){0.0f, 0.0f, 0.0f},
+		(vec3){1.0f, 1.0f, 1.0f}
+	);
+	
+	C_PutProp(
+		M_DOOR_OPEN,
+		T_DOOR,
+		(vec3){3.0f, -1.5f, 5.0f},
+		(vec3){0.0f, GLM_PI / 2.0f, 0.0f},
+		(vec3){1.0f, 1.0f, 1.0f}
+	);
+	
+	C_PutProp(
+		M_DOOR_CLOSED,
+		T_DOOR,
+		(vec3){10.0f, -1.5f, 5.0f},
+		(vec3){0.0f, GLM_PI / 2.0f, 0.0f},
+		(vec3){1.0f, 1.0f, 1.0f}
+	);
+	
+	IntroSeq();
 	
 	for (;;)
 	{
@@ -98,6 +96,7 @@ G_Loop(void)
 		
 		// update.
 		C_Update();
+		R_Update();
 		
 		// render.
 		R_SetShaderProgram(SP_SHADOW);
@@ -124,4 +123,45 @@ G_Loop(void)
 		
 		EndTick();
 	}
+}
+
+static void
+IntroSeq(void)
+{
+	R_Fade(FS_FADE_IN);
+	
+	C_LookWalkTo(A_ARKADY, 'A');
+	C_LookWalkTo(A_ARKADY, 'B');
+	C_LookAt(A_ARKADY, 'C');
+	C_Speak(TS_ARKADY, "...");
+	C_Speak(TS_ARKADY, "I dread that this'll be what I thought");
+	C_Speak(TS_ARKADY, "...");
+	C_Speak(TS_ARKADY, "But I've already arrived");
+	C_Speak(TS_ARKADY, "It's too late to leave");
+	C_Speak(TS_ARKADY, "...");
+	C_Speak(TS_ARKADY, "There's no turning back now");
+	C_Wait(300);
+	C_WalkTo(A_ARKADY, 'C');
+	C_LookAt(A_ARKADY, 'D');
+	C_Wait(2500);
+	C_Speak(TS_ARKADY, "(Knock knock knock)");
+	C_Speak(TS_ARKADY, "...");
+	C_Wait(1500);
+	C_TeleportTo(A_GERASIM, 'D');
+	C_SwapModel(MainDoorProp, M_DOOR_OPEN);
+	C_Wait(400);
+	C_Speak(TS_GERASIM, "...");
+	C_Speak(TS_GERASIM, "(Gerasim looks at you quizzically, in an almost sad way)");
+	C_Wait(1500);
+	C_Speak(TS_ARKADY, "It's good to see you again");
+	C_Speak(TS_GERASIM, "...");
+	C_WalkTo(A_GERASIM, 'E');
+	C_WalkTo(A_ARKADY, 'D');
+	C_LookAt(A_ARKADY, 'E');
+	C_Speak(TS_ARKADY, "Are the others already here?");
+	C_Speak(TS_GERASIM, "(He nods weightfully)");
+	C_Speak(TS_ARKADY, "I see");
+	C_Wait(200);
+	C_LookWalkTo(A_ARKADY, 'F');
+	C_LookWalkTo(A_ARKADY, 'G');
 }

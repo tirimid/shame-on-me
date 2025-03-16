@@ -14,6 +14,7 @@
 // game system options.
 #define O_TICK_MS 20
 #define O_MAX_CHOREO_ACTIONS 256
+#define O_MAX_CHOREO_PROPS 64
 #define O_MAX_LOG_LEN 512
 
 // stylistic options.
@@ -24,6 +25,7 @@
 #define O_LOOK_SPEED 0.25f
 #define O_TEXT_BOX_SIZE 70
 #define O_TEXT_SPRITE_SIZE 60
+#define O_FADE_SPEED 0.005f
 
 // render options.
 #define O_MAX_LIGHTS 4

@@ -15,8 +15,10 @@
 #include "choreo.h"
 #include "game.h"
 #include "input.h"
+#include "durak.h"
 
 #include "choreo.c"
+#include "durak.c"
 #include "game.c"
 #include "input.c"
 #include "render.c"

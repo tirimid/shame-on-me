@@ -13,6 +13,7 @@ in vec3 v_FragPos;
 uniform vec4 i_Lights[MAX_LIGHTS];
 uniform samplerCube i_ShadowMaps[MAX_LIGHTS];
 uniform sampler2D i_Tex;
+uniform float i_FadeBrightness;
 
 out vec4 f_Col;
 
@@ -51,5 +52,5 @@ main()
 	Brightness -= Brightness - LIGHT_STEP * floor(Brightness / LIGHT_STEP);
 	Brightness += AMBIENT_LIGHT;
 
-	f_Col = vec4(Brightness * Pix.rgb, 1.0);
+	f_Col = vec4(i_FadeBrightness * Brightness * Pix.rgb, 1.0);
 }

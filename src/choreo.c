@@ -3,14 +3,17 @@
 
 enum ActionType
 {
-	AT_WALK = 0,
+	AT_TELEPORT = 0,
+	AT_TELEPORT_TO,
+	AT_WALK,
 	AT_WALK_TO,
 	AT_LOOK,
 	AT_LOOK_AT,
 	AT_LOOK_WALK_TO,
 	AT_SET_TEXTURE,
 	AT_WAIT,
-	AT_SPEAK
+	AT_SPEAK,
+	AT_SWAP_MODEL
 };
 
 struct Action
@@ -19,7 +22,7 @@ struct Action
 	{
 		vec2 Dst;
 		char Point;
-		u8 Tex;
+		u8 Type;
 		i64 Ms;
 		char const *Msg;
 	} Data;
@@ -35,6 +38,8 @@ struct ActorData
 };
 
 struct Map g_Map;
+struct Prop g_Props[O_MAX_CHOREO_PROPS];
+usize g_PropCnt;
 
 static void GetPointPos(char Point, vec2 Out);
 
@@ -47,7 +52,7 @@ static struct ActorData ActorData[A_END__] =
 	
 	// peter.
 	{
-		.ActiveTex = T_DUMMY
+		.ActiveTex = T_C_HEARTS_J
 	},
 	
 	// matthew.
@@ -63,6 +68,34 @@ static struct ActorData ActorData[A_END__] =
 
 static struct Action Actions[O_MAX_CHOREO_ACTIONS];
 static usize ActionCnt;
+
+void
+C_Teleport(enum Actor a, vec2 Pos)
+{
+	if (ActionCnt < O_MAX_CHOREO_ACTIONS)
+	{
+		Actions[ActionCnt++] = (struct Action)
+		{
+			.Data.Dst = {Pos[0], Pos[1]},
+			.Type = AT_TELEPORT,
+			.Actor = a
+		};
+	}
+}
+
+void
+C_TeleportTo(enum Actor a, char Point)
+{
+	if (ActionCnt < O_MAX_CHOREO_ACTIONS)
+	{
+		Actions[ActionCnt++] = (struct Action)
+		{
+			.Data.Point = Point,
+			.Type = AT_TELEPORT_TO,
+			.Actor = a
+		};
+	}
+}
 
 void
 C_Walk(enum Actor a, vec2 Pos)
@@ -141,7 +174,7 @@ C_SetTexture(enum Actor a, enum Texture t)
 	{
 		Actions[ActionCnt++] = (struct Action)
 		{
-			.Data.Tex = t,
+			.Data.Type = t,
 			.Type = AT_SET_TEXTURE,
 			.Actor = a
 		};
@@ -176,6 +209,20 @@ C_Speak(enum TextboxSprite Ts, char const *Msg)
 }
 
 void
+C_SwapModel(i32 Idx, enum Model NewModel)
+{
+	if (ActionCnt < O_MAX_CHOREO_ACTIONS)
+	{
+		Actions[ActionCnt++] = (struct Action)
+		{
+			.Data.Type = NewModel,
+			.Actor = Idx,
+			.Type = AT_SWAP_MODEL
+		};
+	}
+}
+
+void
 C_Update(void)
 {
 	// update render camera.
@@ -197,6 +244,13 @@ C_Update(void)
 	
 	switch (Action->Type)
 	{
+	case AT_TELEPORT:
+		Actor->Pos[0] = Action->Data.Dst[0];
+		Actor->Pos[1] = Action->Data.Dst[1];
+		break;
+	case AT_TELEPORT_TO:
+		GetPointPos(Action->Data.Point, Actor->Pos);
+		break;
 	case AT_WALK:
 	{
 		if (glm_vec2_distance2(Actor->Pos, Action->Data.Dst) < WALK_DST_THRESHOLD2)
@@ -306,7 +360,7 @@ C_Update(void)
 		return;
 	}
 	case AT_SET_TEXTURE:
-		Actor->ActiveTex = Action->Data.Tex;
+		Actor->ActiveTex = Action->Data.Type;
 		break;
 	case AT_WAIT:
 		if (Action->Data.Ms <= 0)
@@ -323,6 +377,9 @@ C_Update(void)
 			break;
 		
 		return;
+	case AT_SWAP_MODEL:
+		g_Props[Action->Actor].m = Action->Data.Type;
+		break;
 	}
 	
 	// dequeue completed action.
@@ -343,28 +400,28 @@ C_Render(void)
 					M_PLANE,
 					T_WALL,
 					(vec3){x + 0.5f, -0.5f, y},
-					(vec3){GLM_PI / 2.0f, GLM_PI, GLM_PI / 2.0f},
-					(vec3){0.5f, 0.5f, 1.0f}
-				);
-				R_Model(
-					M_PLANE,
-					T_WALL,
-					(vec3){x - 0.5f, -0.5f, y},
 					(vec3){-GLM_PI / 2.0f, 0.0f, GLM_PI / 2.0f},
 					(vec3){0.5f, 0.5f, 1.0f}
 				);
 				R_Model(
 					M_PLANE,
 					T_WALL,
+					(vec3){x - 0.5f, -0.5f, y},
+					(vec3){GLM_PI / 2.0f, GLM_PI, GLM_PI / 2.0f},
+					(vec3){0.5f, 0.5f, 1.0f}
+				);
+				R_Model(
+					M_PLANE,
+					T_WALL,
 					(vec3){x, -0.5f, y + 0.5f},
-					(vec3){GLM_PI / 2.0f, GLM_PI, 0.0f},
+					(vec3){-GLM_PI / 2.0f, 0.0f, 0.0f},
 					(vec3){0.5f, 1.0f, 1.0f}
 				);
 				R_Model(
 					M_PLANE,
 					T_WALL,
 					(vec3){x, -0.5f, y - 0.5f},
-					(vec3){-GLM_PI / 2.0f, 0.0f, 0.0f},
+					(vec3){GLM_PI / 2.0f, GLM_PI, 0.0f},
 					(vec3){0.5f, 1.0f, 1.0f}
 				);
 			}
@@ -374,14 +431,14 @@ C_Render(void)
 					M_PLANE,
 					T_FLOOR,
 					(vec3){x, -1.5f, y},
-					(vec3){0.0f, 0.0f, 0.0f},
+					(vec3){GLM_PI, 0.0f, 0.0f},
 					(vec3){0.5f, 1.0f, 0.5f}
 				);
 				R_Model(
 					M_PLANE,
 					T_CEILING,
 					(vec3){x, 0.5f, y},
-					(vec3){GLM_PI, 0.0f, 0.0f},
+					(vec3){0.0f, 0.0f, 0.0f},
 					(vec3){0.5f, 1.0f, 0.5f}
 				);
 			}
@@ -395,14 +452,14 @@ C_Render(void)
 			M_PLANE,
 			T_WALL,
 			(vec3){x, -0.5f, -0.5f},
-			(vec3){GLM_PI / 2.0f, GLM_PI, 0.0f},
+			(vec3){-GLM_PI / 2.0f, 0.0f, 0.0f},
 			(vec3){0.5f, 1.0f, 1.0f}
 		);
 		R_Model(
 			M_PLANE,
 			T_WALL,
 			(vec3){x, -0.5f, g_Map.h - 0.5f},
-			(vec3){-GLM_PI / 2.0f, 0.0f, 0.0f},
+			(vec3){GLM_PI / 2.0f, GLM_PI, 0.0f},
 			(vec3){0.5f, 1.0f, 1.0f}
 		);
 	}
@@ -413,14 +470,14 @@ C_Render(void)
 			M_PLANE,
 			T_WALL,
 			(vec3){-0.5f, -0.5f, y},
-			(vec3){GLM_PI / 2.0f, GLM_PI, GLM_PI / 2.0f},
+			(vec3){-GLM_PI / 2.0f, 0.0f, GLM_PI / 2.0f},
 			(vec3){0.5f, 0.5f, 1.0f}
 		);
 		R_Model(
 			M_PLANE,
 			T_WALL,
 			(vec3){g_Map.w - 0.5f, -0.5f, y},
-			(vec3){-GLM_PI / 2.0f, 0.0f, GLM_PI / 2.0f},
+			(vec3){GLM_PI / 2.0f, GLM_PI, GLM_PI / 2.0f},
 			(vec3){0.5f, 0.5f, 1.0f}
 		);
 	}
@@ -442,10 +499,41 @@ C_Render(void)
 			M_PLANE,
 			a->ActiveTex,
 			(vec3){a->Pos[0], Bob - 0.65f, a->Pos[1]},
-			(vec3){-GLM_PI / 2.0f, 0.0f, 2.0f * GLM_PI - Yaw},
+			(vec3){GLM_PI / 2.0f, GLM_PI, 2.0f * GLM_PI - Yaw},
 			(vec3){0.5f, 1.0f, 0.875f}
 		);
 	}
+	
+	// draw all props.
+	for (usize i = 0; i < g_PropCnt; ++i)
+	{
+		R_Model(
+			g_Props[i].m,
+			g_Props[i].t,
+			g_Props[i].Pos,
+			g_Props[i].Rot,
+			g_Props[i].Scale
+		);
+	}
+}
+
+i32
+C_PutProp(enum Model m, enum Texture t, vec3 Pos, vec3 Rot, vec3 Scale)
+{
+	if (g_PropCnt < O_MAX_CHOREO_PROPS)
+	{
+		g_Props[g_PropCnt] = (struct Prop)
+		{
+			.m = m,
+			.t = t,
+			.Pos = {Pos[0], Pos[1], Pos[2]},
+			.Rot = {Rot[0], Rot[1], Rot[2]},
+			.Scale = {Scale[0], Scale[1], Scale[2]}
+		};
+		return g_PropCnt++;
+	}
+	
+	return -1;
 }
 
 static void

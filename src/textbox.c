@@ -6,7 +6,7 @@ static char const *TextboxMsg;
 static u8 SpriteTextures[TS_END__] =
 {
 	T_SOMETHING, // arkady.
-	T_DUMMY_FACE, // peter.
+	T_C_HEARTS_J, // peter.
 	T_GLASSES_DUMMY_FACE, // matthew.
 	T_DUMMY_FACE // gerasim.
 };
