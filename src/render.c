@@ -136,7 +136,7 @@ static void DeleteGlContext(void);
 
 static SDL_Window *Wnd;
 static SDL_GLContext GlContext;
-static u32 i_ModelMat, i_ViewMat, i_ProjMat;
+static u32 i_ModelMats, i_NormalMats, i_ViewMat, i_ProjMat;
 static u32 RFrameBuffer, RColorBuffer, RDepthBuffer;
 static u32 i_Tex;
 static vec4 Lights[O_MAX_LIGHTS];
@@ -224,7 +224,7 @@ static struct FontData FontData[F_END__] =
 i32
 R_Init(void)
 {
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 0);
@@ -234,8 +234,8 @@ R_Init(void)
 		O_WND_TITLE,
 		SDL_WINDOWPOS_UNDEFINED,
 		SDL_WINDOWPOS_UNDEFINED,
-		0,
-		0,
+		O_WND_WIDTH,
+		O_WND_HEIGHT,
 		O_WND_FLAGS
 	);
 	if (!Wnd)
@@ -525,7 +525,7 @@ R_BeginShadow(usize Idx)
 	
 	// upload uniforms.
 	glUniform3fv(i_LightPos, 1, (f32 *)LightPos);
-	glUniformMatrix4fv(i_ModelMat, 1, GL_FALSE, (f32 *)ModelMat);
+	glUniformMatrix4fv(i_ModelMats, 1, GL_FALSE, (f32 *)ModelMat);
 	glUniformMatrix4fv(i_ShadowViewMats, 6, GL_FALSE, (f32 *)ShadowViewMats);
 	glUniformMatrix4fv(i_ProjMat, 1, GL_FALSE, (f32 *)ProjMat);
 }
@@ -641,7 +641,8 @@ R_SetShaderProgram(enum ShaderProgram Prog)
 	glUseProgram(p);
 	
 	// set uniforms.
-	i_ModelMat = glGetUniformLocation(p, "i_ModelMat");
+	i_ModelMats = glGetUniformLocation(p, "i_ModelMats");
+	i_NormalMats = glGetUniformLocation(p, "i_NormalMats");
 	i_ViewMat = glGetUniformLocation(p, "i_ViewMat");
 	i_ProjMat = glGetUniformLocation(p, "i_ProjMat");
 	i_Tex = glGetUniformLocation(p, "i_Tex");
@@ -653,24 +654,26 @@ R_SetShaderProgram(enum ShaderProgram Prog)
 }
 
 void
-R_Model(enum Model m, enum Texture t, vec3 Pos, vec3 Rot, vec3 Scale)
+R_SetTexture(enum Texture t)
 {
-	// create transformation matrix.
-	mat4 TransMat, RotMat, ScaleMat;
-	glm_translate_make(TransMat, Pos);
-	glm_euler(Rot, RotMat);
-	glm_scale_make(ScaleMat, Scale);
-	
-	mat4 ModelMat = GLM_MAT4_IDENTITY_INIT;
-	glm_mat4_mul(ModelMat, TransMat, ModelMat);
-	glm_mat4_mul(ModelMat, RotMat, ModelMat);
-	glm_mat4_mul(ModelMat, ScaleMat, ModelMat);
-	
-	// render model.
-	glUniformMatrix4fv(i_ModelMat, 1, GL_FALSE, (f32 *)ModelMat);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, TextureData[t].Tex);
 	glUniform1i(i_Tex, 0);
+}
+
+void
+R_RenderModel(enum Model m, vec3 Pos, vec3 Rot, vec3 Scale)
+{
+	// create transformation matrices.
+	mat4 ModelMat;
+	MakeXformMat(Pos, Rot, Scale, ModelMat);
+	
+	mat3 NormalMat;
+	MakeNormalMat(ModelMat, NormalMat);
+	
+	// render model.
+	glUniformMatrix4fv(i_ModelMats, 1, GL_FALSE, (f32 *)ModelMat);
+	glUniformMatrix3fv(i_NormalMats, 1, GL_FALSE, (f32 *)NormalMat);
 	glBindVertexArray(ModelData[m].Vao);
 	glDrawElements(GL_TRIANGLES, ModelData[m].IdxCnt, GL_UNSIGNED_INT, 0);
 }
@@ -690,17 +693,18 @@ R_PutLight(vec3 Pos, f32 Intensity)
 }
 
 void
-R_Rect(enum Texture t, i32 x, i32 y, i32 w, i32 h)
+R_RenderRect(enum Texture t, i32 x, i32 y, i32 w, i32 h)
 {
 	vec3 Pos = {x + w / 2.0f, y + h / 2.0f, 0.0f};
 	vec3 Rot = {GLM_PI / 2.0f, GLM_PI, GLM_PI};
 	vec3 Scale = {w / 2.0f, 1.0f, h / 2.0f};
 	
-	R_Model(M_PLANE, t, Pos, Rot, Scale);
+	R_SetTexture(t);
+	R_RenderModel(M_PLANE, Pos, Rot, Scale);
 }
 
 void
-R_Text(enum Font f, char const *Text, i32 x, i32 y, i32 w, i32 h)
+R_RenderText(enum Font f, char const *Text, i32 x, i32 y, i32 w, i32 h)
 {
 	// TTF render out text to create texture.
 	SDL_Surface *SolidSurf = TTF_RenderUTF8_Solid_Wrapped(
@@ -762,13 +766,25 @@ R_Text(enum Font f, char const *Text, i32 x, i32 y, i32 w, i32 h)
 	glm_mat4_mul(ModelMat, ScaleMat, ModelMat);
 	
 	// render model.
-	glUniformMatrix4fv(i_ModelMat, 1, GL_FALSE, (f32 *)ModelMat);
+	glUniformMatrix4fv(i_ModelMats, 1, GL_FALSE, (f32 *)ModelMat);
 	glUniform1i(i_Tex, GL_TEXTURE0);
 	glBindVertexArray(ModelData[M_PLANE].Vao);
 	glDrawElements(GL_TRIANGLES, ModelData[M_PLANE].IdxCnt, GL_UNSIGNED_INT, 0);
 	
 	glDeleteTextures(1, &Tex);
 	SDL_FreeSurface(RgbaSurf);
+}
+
+void
+R_BatchRenderPlane(vec3 Pos, vec3 Rot, vec3 Scale)
+{
+	// TODO: implement plane batch render.
+}
+
+void
+R_FlushPlaneBatch(void)
+{
+	// TODO: implement plane batch flush.
 }
 
 void
@@ -823,6 +839,11 @@ PreprocShader(char *Src, usize Len)
 		{
 			usize Cl = snprintf(&Src[i], 15, "%f", O_CAM_CLIP_FAR);
 			memset(&Src[i + Cl], ' ', 15 - Cl);
+		}
+		else if (Len - i >= 18 && !strncmp(&Src[i], "$O_MAX_PLANE_BATCH", 18))
+		{
+			usize Cl = snprintf(&Src[i], 18, "%u", O_MAX_PLANE_BATCH);
+			memset(&Src[i + Cl], ' ', 18 - Cl);
 		}
 	}
 }

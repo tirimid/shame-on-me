@@ -103,10 +103,13 @@ void R_BeginOverlay(void);
 void R_Present(void);
 void R_HandleResize(i32 x, i32 y);
 void R_SetShaderProgram(enum ShaderProgram Prog);
-void R_Model(enum Model m, enum Texture t, vec3 Pos, vec3 Rot, vec3 Scale);
+void R_SetTexture(enum Texture t);
+void R_RenderModel(enum Model m, vec3 Pos, vec3 Rot, vec3 Scale);
 i32 R_PutLight(vec3 Pos, f32 Intensity);
-void R_Rect(enum Texture t, i32 x, i32 y, i32 w, i32 h);
-void R_Text(enum Font f, char const *Text, i32 x, i32 y, i32 w, i32 h);
+void R_RenderRect(enum Texture t, i32 x, i32 y, i32 w, i32 h);
+void R_RenderText(enum Font f, char const *Text, i32 x, i32 y, i32 w, i32 h);
+void R_BatchRenderPlane(vec3 Pos, vec3 Rot, vec3 Scale);
+void R_FlushPlaneBatch(void);
 void R_Update(void);
 void R_Fade(enum FadeStatus Fs);
 

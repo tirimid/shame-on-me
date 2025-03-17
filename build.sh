@@ -1,7 +1,7 @@
 #!/bin/bash
 
 CC=gcc
-CFLAGS="-I. -Isrc -Wall -Wextra -std=c99 -pedantic -O3 $(pkg-config --cflags --libs sdl2 gl SDL2_mixer SDL2_ttf SDL2_image cglm glew) -lm"
+CFLAGS="-I. -Isrc -Wall -Wextra -std=c99 -pedantic -march=native -O3 $(pkg-config --cflags --libs sdl2 gl SDL2_mixer SDL2_ttf SDL2_image cglm glew) -lm"
 
 echo "[$0] build: resources" >&2
 make -s -C img > /dev/null

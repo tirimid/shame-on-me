@@ -1,4 +1,4 @@
-#version 330 core
+#version 430 core
 
 #define CAM_CLIP_FAR $O_CAM_CLIP_FAR
 

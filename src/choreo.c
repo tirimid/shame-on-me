@@ -389,54 +389,34 @@ C_Update(void)
 void
 C_Render(void)
 {
-	// draw floor, ceiling, inner walls.
+	// draw floor.
+	R_SetTexture(T_FLOOR);
 	for (u32 x = 0; x < g_Map.w; ++x)
 	{
 		for (u32 y = 0; y < g_Map.h; ++y)
 		{
-			if (g_Map.Data[g_Map.w * y + x] == '#')
+			if (g_Map.Data[g_Map.w * y + x] != '#')
 			{
-				R_Model(
+				R_RenderModel(
 					M_PLANE,
-					T_WALL,
-					(vec3){x + 0.5f, -0.5f, y},
-					(vec3){-GLM_PI / 2.0f, 0.0f, GLM_PI / 2.0f},
-					(vec3){0.5f, 0.5f, 1.0f}
-				);
-				R_Model(
-					M_PLANE,
-					T_WALL,
-					(vec3){x - 0.5f, -0.5f, y},
-					(vec3){GLM_PI / 2.0f, GLM_PI, GLM_PI / 2.0f},
-					(vec3){0.5f, 0.5f, 1.0f}
-				);
-				R_Model(
-					M_PLANE,
-					T_WALL,
-					(vec3){x, -0.5f, y + 0.5f},
-					(vec3){-GLM_PI / 2.0f, 0.0f, 0.0f},
-					(vec3){0.5f, 1.0f, 1.0f}
-				);
-				R_Model(
-					M_PLANE,
-					T_WALL,
-					(vec3){x, -0.5f, y - 0.5f},
-					(vec3){GLM_PI / 2.0f, GLM_PI, 0.0f},
-					(vec3){0.5f, 1.0f, 1.0f}
-				);
-			}
-			else
-			{
-				R_Model(
-					M_PLANE,
-					T_FLOOR,
 					(vec3){x, -1.5f, y},
 					(vec3){GLM_PI, 0.0f, 0.0f},
 					(vec3){0.5f, 1.0f, 0.5f}
 				);
-				R_Model(
+			}
+		}
+	}
+	
+	// draw ceiling.
+	R_SetTexture(T_CEILING);
+	for (u32 x = 0; x < g_Map.w; ++x)
+	{
+		for (u32 y = 0; y < g_Map.h; ++y)
+		{
+			if (g_Map.Data[g_Map.w * y + x] != '#')
+			{
+				R_RenderModel(
 					M_PLANE,
-					T_CEILING,
 					(vec3){x, 0.5f, y},
 					(vec3){0.0f, 0.0f, 0.0f},
 					(vec3){0.5f, 1.0f, 0.5f}
@@ -445,19 +425,53 @@ C_Render(void)
 		}
 	}
 	
-	// draw map walls.
+	// draw walls.
+	R_SetTexture(T_WALL);
+	
 	for (u32 x = 0; x < g_Map.w; ++x)
 	{
-		R_Model(
+		for (u32 y = 0; y < g_Map.h; ++y)
+		{
+			if (g_Map.Data[g_Map.w * y + x] == '#')
+			{
+				R_RenderModel(
+					M_PLANE,
+					(vec3){x + 0.5f, -0.5f, y},
+					(vec3){-GLM_PI / 2.0f, 0.0f, GLM_PI / 2.0f},
+					(vec3){0.5f, 0.5f, 1.0f}
+				);
+				R_RenderModel(
+					M_PLANE,
+					(vec3){x - 0.5f, -0.5f, y},
+					(vec3){GLM_PI / 2.0f, GLM_PI, GLM_PI / 2.0f},
+					(vec3){0.5f, 0.5f, 1.0f}
+				);
+				R_RenderModel(
+					M_PLANE,
+					(vec3){x, -0.5f, y + 0.5f},
+					(vec3){-GLM_PI / 2.0f, 0.0f, 0.0f},
+					(vec3){0.5f, 1.0f, 1.0f}
+				);
+				R_RenderModel(
+					M_PLANE,
+					(vec3){x, -0.5f, y - 0.5f},
+					(vec3){GLM_PI / 2.0f, GLM_PI, 0.0f},
+					(vec3){0.5f, 1.0f, 1.0f}
+				);
+			}
+		}
+	}
+	
+	for (u32 x = 0; x < g_Map.w; ++x)
+	{
+		R_RenderModel(
 			M_PLANE,
-			T_WALL,
 			(vec3){x, -0.5f, -0.5f},
 			(vec3){-GLM_PI / 2.0f, 0.0f, 0.0f},
 			(vec3){0.5f, 1.0f, 1.0f}
 		);
-		R_Model(
+		R_RenderModel(
 			M_PLANE,
-			T_WALL,
 			(vec3){x, -0.5f, g_Map.h - 0.5f},
 			(vec3){GLM_PI / 2.0f, GLM_PI, 0.0f},
 			(vec3){0.5f, 1.0f, 1.0f}
@@ -466,16 +480,14 @@ C_Render(void)
 	
 	for (u32 y = 0; y < g_Map.h; ++y)
 	{
-		R_Model(
+		R_RenderModel(
 			M_PLANE,
-			T_WALL,
 			(vec3){-0.5f, -0.5f, y},
 			(vec3){-GLM_PI / 2.0f, 0.0f, GLM_PI / 2.0f},
 			(vec3){0.5f, 0.5f, 1.0f}
 		);
-		R_Model(
+		R_RenderModel(
 			M_PLANE,
-			T_WALL,
 			(vec3){g_Map.w - 0.5f, -0.5f, y},
 			(vec3){GLM_PI / 2.0f, GLM_PI, GLM_PI / 2.0f},
 			(vec3){0.5f, 0.5f, 1.0f}
@@ -495,9 +507,9 @@ C_Render(void)
 		
 		f32 Bob = O_VERT_BOB_INTENSITY * fabs(sin(a->BobTime));
 		
-		R_Model(
+		R_SetTexture(a->ActiveTex);
+		R_RenderModel(
 			M_PLANE,
-			a->ActiveTex,
 			(vec3){a->Pos[0], Bob - 0.65f, a->Pos[1]},
 			(vec3){GLM_PI / 2.0f, GLM_PI, 2.0f * GLM_PI - Yaw},
 			(vec3){0.5f, 1.0f, 0.875f}
@@ -507,13 +519,8 @@ C_Render(void)
 	// draw all props.
 	for (usize i = 0; i < g_PropCnt; ++i)
 	{
-		R_Model(
-			g_Props[i].m,
-			g_Props[i].t,
-			g_Props[i].Pos,
-			g_Props[i].Rot,
-			g_Props[i].Scale
-		);
+		R_SetTexture(g_Props[i].t);
+		R_RenderModel(g_Props[i].m, g_Props[i].Pos, g_Props[i].Rot, g_Props[i].Scale);
 	}
 }
 

@@ -1,4 +1,4 @@
-#version 330 core
+#version 430 core
 
 #define MAX_LIGHTS $O_MAX_LIGHTS
 #define AMBIENT_LIGHT $O_AMBIENT_LIGHT

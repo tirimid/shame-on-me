@@ -21,6 +21,9 @@ static i32 MainDoorProp;
 void
 G_Loop(void)
 {
+	// benchmarking timers.
+	u64 Timer;
+	
 	// set up environment.
 	g_Map = (struct Map)
 	{
@@ -99,21 +102,27 @@ G_Loop(void)
 		R_Update();
 		
 		// render.
+		BeginMicroTimer(&Timer);
 		R_SetShaderProgram(SP_SHADOW);
 		for (usize i = 0; i < O_MAX_LIGHTS; ++i)
 		{
 			R_BeginShadow(i);
 			C_Render();
 		}
+		EndMicroTimer(Timer, "render shadows");
 		
+		BeginMicroTimer(&Timer);
 		R_SetShaderProgram(SP_BASE);
 		R_BeginBase();
 		C_Render();
+		EndMicroTimer(Timer, "render base");
 		
+		BeginMicroTimer(&Timer);
 		R_SetShaderProgram(SP_OVERLAY);
 		R_BeginOverlay();
 		if (T_IsActive())
 			T_Render();
+		EndMicroTimer(Timer, "render overlay");
 		
 		R_Present();
 		

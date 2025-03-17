@@ -16,10 +16,15 @@ typedef float f32;
 typedef double f64;
 
 void ShowError(char const *Fmt, ...);
+u64 GetUnixTimeUs(void);
 u64 GetUnixTimeMs(void);
 void BeginTick(void);
 void EndTick(void);
 f32 InterpolateAngle(f32 a, f32 b, f32 t);
 f32 ShortestAngle(f32 a, f32 b);
+void MakeXformMat(vec3 Pos, vec3 Rot, vec3 Scale, mat4 Out);
+void MakeNormalMat(mat4 Xform, mat3 Out);
+void BeginMicroTimer(u64 *OutTimer);
+void EndMicroTimer(u64 TimerStart, char const *Name);
 
 #endif

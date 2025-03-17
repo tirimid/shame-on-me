@@ -6,6 +6,8 @@
 #define O_IMG_INIT_FLAGS IMG_INIT_PNG
 #define O_WND_TITLE "Shame on Me"
 #define O_WND_FLAGS (SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_MAXIMIZED)
+#define O_WND_WIDTH 800
+#define O_WND_HEIGHT 450
 #define O_ERR_WND_TITLE "Shame on Me - Error"
 
 // input options.
@@ -39,5 +41,6 @@
 #define O_FONT_PT 16
 #define O_FONT_COLOR {255, 255, 255, 255}
 #define O_SHADOW_MAP_SIZE 512
+#define O_MAX_PLANE_BATCH 64
 
 #endif

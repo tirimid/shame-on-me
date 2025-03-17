@@ -18,11 +18,17 @@ ShowError(char const *Fmt, ...)
 }
 
 u64
-GetUnixTimeMs(void)
+GetUnixTimeUs(void)
 {
 	struct timeval Tv;
 	gettimeofday(&Tv, NULL);
-	return (u64)Tv.tv_sec * 1000 + (u64)Tv.tv_usec / 1000;
+	return (u64)Tv.tv_sec * 1000000 + (u64)Tv.tv_usec;
+}
+
+u64
+GetUnixTimeMs(void)
+{
+	return GetUnixTimeUs() / 1000;
 }
 
 void
@@ -51,4 +57,40 @@ ShortestAngle(f32 a, f32 b)
 	f32 d = fmod(b - a, 2.0f * GLM_PI);
 	f32 Shortest = fmod(2.0f * d, 2.0f * GLM_PI) - d;
 	return Shortest;
+}
+
+void
+MakeXformMat(vec3 Pos, vec3 Rot, vec3 Scale, mat4 Out)
+{
+	mat4 TransMat, RotMat, ScaleMat;
+	glm_translate_make(TransMat, Pos);
+	glm_euler(Rot, RotMat);
+	glm_scale_make(ScaleMat, Scale);
+	
+	glm_mat4_identity(Out);
+	glm_mat4_mul(Out, TransMat, Out);
+	glm_mat4_mul(Out, RotMat, Out);
+	glm_mat4_mul(Out, ScaleMat, Out);
+}
+
+void
+MakeNormalMat(mat4 Xform, mat3 Out)
+{
+	mat4 Tmp;
+	glm_mat4_inv_fast(Xform, Tmp);
+	glm_mat4_transpose(Tmp);
+	glm_mat4_pick3(Tmp, Out);
+}
+
+void
+BeginMicroTimer(u64 *OutTimer)
+{
+	*OutTimer = GetUnixTimeUs();
+}
+
+void
+EndMicroTimer(u64 TimerStart, char const *Name)
+{
+	u64 Delta = GetUnixTimeUs() - TimerStart;
+	fprintf(stderr, "%s: %lu\n", Name, Delta);
 }
