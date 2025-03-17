@@ -1,6 +1,18 @@
 #ifndef UTIL_H
 #define UTIL_H
 
+// use for microsecond profiling.
+// compile debug code with -DPROFILE, and release code without.
+#ifdef PROFILE
+#define NEW_MICRO_TIMER(Name) u64 Name
+#define BEGIN_MICRO_TIMER(OutTimer) BeginMicroTimer(OutTimer)
+#define END_MICRO_TIMER(TimerStart, Name) EndMicroTimer(TimerStart, Name)
+#else
+#define NEW_MICRO_TIMER(Name)
+#define BEGIN_MICRO_TIMER(OutTimer)
+#define END_MICRO_TIMER(TimerStart, Name)
+#endif
+
 typedef int8_t i8;
 typedef int16_t i16;
 typedef int32_t i32;

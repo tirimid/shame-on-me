@@ -397,8 +397,7 @@ C_Render(void)
 		{
 			if (g_Map.Data[g_Map.w * y + x] != '#')
 			{
-				R_RenderModel(
-					M_PLANE,
+				R_BatchRenderPlane(
 					(vec3){x, -1.5f, y},
 					(vec3){GLM_PI, 0.0f, 0.0f},
 					(vec3){0.5f, 1.0f, 0.5f}
@@ -406,6 +405,8 @@ C_Render(void)
 			}
 		}
 	}
+	
+	R_FlushPlaneBatch();
 	
 	// draw ceiling.
 	R_SetTexture(T_CEILING);
@@ -415,8 +416,7 @@ C_Render(void)
 		{
 			if (g_Map.Data[g_Map.w * y + x] != '#')
 			{
-				R_RenderModel(
-					M_PLANE,
+				R_BatchRenderPlane(
 					(vec3){x, 0.5f, y},
 					(vec3){0.0f, 0.0f, 0.0f},
 					(vec3){0.5f, 1.0f, 0.5f}
@@ -424,6 +424,8 @@ C_Render(void)
 			}
 		}
 	}
+	
+	R_FlushPlaneBatch();
 	
 	// draw walls.
 	R_SetTexture(T_WALL);
@@ -434,26 +436,22 @@ C_Render(void)
 		{
 			if (g_Map.Data[g_Map.w * y + x] == '#')
 			{
-				R_RenderModel(
-					M_PLANE,
+				R_BatchRenderPlane(
 					(vec3){x + 0.5f, -0.5f, y},
 					(vec3){-GLM_PI / 2.0f, 0.0f, GLM_PI / 2.0f},
 					(vec3){0.5f, 0.5f, 1.0f}
 				);
-				R_RenderModel(
-					M_PLANE,
+				R_BatchRenderPlane(
 					(vec3){x - 0.5f, -0.5f, y},
 					(vec3){GLM_PI / 2.0f, GLM_PI, GLM_PI / 2.0f},
 					(vec3){0.5f, 0.5f, 1.0f}
 				);
-				R_RenderModel(
-					M_PLANE,
+				R_BatchRenderPlane(
 					(vec3){x, -0.5f, y + 0.5f},
 					(vec3){-GLM_PI / 2.0f, 0.0f, 0.0f},
 					(vec3){0.5f, 1.0f, 1.0f}
 				);
-				R_RenderModel(
-					M_PLANE,
+				R_BatchRenderPlane(
 					(vec3){x, -0.5f, y - 0.5f},
 					(vec3){GLM_PI / 2.0f, GLM_PI, 0.0f},
 					(vec3){0.5f, 1.0f, 1.0f}
@@ -464,14 +462,12 @@ C_Render(void)
 	
 	for (u32 x = 0; x < g_Map.w; ++x)
 	{
-		R_RenderModel(
-			M_PLANE,
+		R_BatchRenderPlane(
 			(vec3){x, -0.5f, -0.5f},
 			(vec3){-GLM_PI / 2.0f, 0.0f, 0.0f},
 			(vec3){0.5f, 1.0f, 1.0f}
 		);
-		R_RenderModel(
-			M_PLANE,
+		R_BatchRenderPlane(
 			(vec3){x, -0.5f, g_Map.h - 0.5f},
 			(vec3){GLM_PI / 2.0f, GLM_PI, 0.0f},
 			(vec3){0.5f, 1.0f, 1.0f}
@@ -480,19 +476,19 @@ C_Render(void)
 	
 	for (u32 y = 0; y < g_Map.h; ++y)
 	{
-		R_RenderModel(
-			M_PLANE,
+		R_BatchRenderPlane(
 			(vec3){-0.5f, -0.5f, y},
 			(vec3){-GLM_PI / 2.0f, 0.0f, GLM_PI / 2.0f},
 			(vec3){0.5f, 0.5f, 1.0f}
 		);
-		R_RenderModel(
-			M_PLANE,
+		R_BatchRenderPlane(
 			(vec3){g_Map.w - 0.5f, -0.5f, y},
 			(vec3){GLM_PI / 2.0f, GLM_PI, GLM_PI / 2.0f},
 			(vec3){0.5f, 0.5f, 1.0f}
 		);
 	}
+	
+	R_FlushPlaneBatch();
 	
 	// draw all non-player characters.
 	for (usize i = A_ARKADY + 1; i < A_END__; ++i)

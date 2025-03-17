@@ -148,6 +148,9 @@ static u32 i_LightPos, i_ShadowViewMats;
 static f32 FadeBrightness = 0.0f;
 static enum FadeStatus FadeStatus;
 static u32 i_FadeBrightness;
+static mat4 BatchModelMats[O_MAX_PLANE_BATCH];
+static mat3 BatchNormalMats[O_MAX_PLANE_BATCH];
+static usize BatchSize;
 
 // data tables.
 static struct ModelData ModelData[M_END__] =
@@ -769,7 +772,7 @@ R_RenderText(enum Font f, char const *Text, i32 x, i32 y, i32 w, i32 h)
 	glUniformMatrix4fv(i_ModelMats, 1, GL_FALSE, (f32 *)ModelMat);
 	glUniform1i(i_Tex, GL_TEXTURE0);
 	glBindVertexArray(ModelData[M_PLANE].Vao);
-	glDrawElements(GL_TRIANGLES, ModelData[M_PLANE].IdxCnt, GL_UNSIGNED_INT, 0);
+	glDrawElements(GL_TRIANGLES, ModelData[M_PLANE].IdxCnt, GL_UNSIGNED_INT, NULL);
 	
 	glDeleteTextures(1, &Tex);
 	SDL_FreeSurface(RgbaSurf);
@@ -778,13 +781,25 @@ R_RenderText(enum Font f, char const *Text, i32 x, i32 y, i32 w, i32 h)
 void
 R_BatchRenderPlane(vec3 Pos, vec3 Rot, vec3 Scale)
 {
-	// TODO: implement plane batch render.
+	if (BatchSize >= O_MAX_PLANE_BATCH)
+		R_FlushPlaneBatch();
+	
+	MakeXformMat(Pos, Rot, Scale, BatchModelMats[BatchSize]);
+	MakeNormalMat(BatchModelMats[BatchSize], BatchNormalMats[BatchSize]);
+	++BatchSize;
 }
 
 void
 R_FlushPlaneBatch(void)
 {
-	// TODO: implement plane batch flush.
+	if (BatchSize == 0)
+		return;
+	
+	glUniformMatrix4fv(i_ModelMats, BatchSize, GL_FALSE, (f32 *)BatchModelMats);
+	glUniformMatrix3fv(i_NormalMats, BatchSize, GL_FALSE, (f32 *)BatchNormalMats);
+	glBindVertexArray(ModelData[M_PLANE].Vao);
+	glDrawElementsInstanced(GL_TRIANGLES, ModelData[M_PLANE].IdxCnt, GL_UNSIGNED_INT, NULL, BatchSize);
+	BatchSize = 0;
 }
 
 void
