@@ -92,5 +92,5 @@ void
 EndMicroTimer(u64 TimerStart, char const *Name)
 {
 	u64 Delta = GetUnixTimeUs() - TimerStart;
-	fprintf(stderr, "%s: %lu\n", Name, Delta);
+	fprintf(stderr, "[profile] %s: %lu\n", Name, Delta);
 }

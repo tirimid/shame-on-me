@@ -108,20 +108,20 @@ G_Loop(void)
 			R_BeginShadow(i);
 			C_Render();
 		}
-		END_MICRO_TIMER(Timer, "[profile] game: render shadows");
+		END_MICRO_TIMER(Timer, "game: render shadows");
 		
 		BEGIN_MICRO_TIMER(&Timer);
 		R_SetShaderProgram(SP_BASE);
 		R_BeginBase();
 		C_Render();
-		END_MICRO_TIMER(Timer, "[profile] game: render base");
+		END_MICRO_TIMER(Timer, "game: render base");
 		
 		BEGIN_MICRO_TIMER(&Timer);
 		R_SetShaderProgram(SP_OVERLAY);
 		R_BeginOverlay();
 		if (T_IsActive())
 			T_Render();
-		END_MICRO_TIMER(Timer, "[profile] game: render overlay");
+		END_MICRO_TIMER(Timer, "game: render overlay");
 		
 		R_Present();
 		
