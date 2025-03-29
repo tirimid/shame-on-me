@@ -1,46 +1,46 @@
 #ifndef CHOREO_H
 #define CHOREO_H
 
-enum Actor
+typedef enum C_Actor
 {
-	A_ARKADY = 0,
-	A_PETER,
-	A_MATTHEW,
-	A_GERASIM,
+	C_A_ARKADY = 0,
+	C_A_PETER,
+	C_A_MATTHEW,
+	C_A_GERASIM,
 	
-	A_END__
-};
+	C_A_END__
+} C_Actor;
 
-struct Map
+typedef struct C_MapData
 {
 	char const *Data;
 	u32 w, h;
-};
+} C_MapData;
 
-struct Prop
+typedef struct C_Prop
 {
-	enum Model m;
-	enum Texture t;
 	vec3 Pos, Rot, Scale;
-};
+	u8 Model;
+	u8 Tex;
+} C_Prop;
 
-extern struct Map g_Map;
-extern struct Prop g_Props[O_MAX_CHOREO_PROPS];
-extern usize g_PropCnt;
+extern C_MapData C_Map;
+extern C_Prop C_Props[O_MAX_CHOREO_PROPS];
+extern usize C_PropCnt;
 
-void C_Teleport(enum Actor a, vec2 Pos);
-void C_TeleportTo(enum Actor a, char Point);
-void C_Walk(enum Actor a, vec2 Pos);
-void C_WalkTo(enum Actor a, char Point);
-void C_Look(enum Actor a, f32 PitchDeg, f32 YawDeg);
-void C_LookAt(enum Actor a, char Point);
-void C_LookWalkTo(enum Actor a, char Point);
-void C_SetTexture(enum Actor a, enum Texture t);
-void C_Wait(u32 Ms);
-void C_Speak(enum TextboxSprite Ts, char const *Msg);
-void C_SwapModel(i32 Idx, enum Model NewModel);
+void C_Teleport(C_Actor a, vec2 Pos);
+void C_TeleportTo(C_Actor a, char Point);
+void C_Walk(C_Actor a, vec2 Pos);
+void C_WalkTo(C_Actor a, char Point);
+void C_Look(C_Actor a, f32 PitchDeg, f32 YawDeg);
+void C_LookAt(C_Actor a, char Point);
+void C_LookWalkTo(C_Actor a, char Point);
+void C_SetTexture(C_Actor a, R_Texture t);
+void C_Wait(u64 MS);
+void C_Speak(T_TextboxSprite t, char const *Msg);
+void C_SwapModel(usize Idx, R_Model NewModel);
 void C_Update(void);
 void C_Render(void);
-i32 C_PutProp(enum Model m, enum Texture t, vec3 Pos, vec3 Rot, vec3 Scale);
+i64 C_PutProp(R_Model m, R_Texture t, vec3 Pos, vec3 Rot, vec3 Scale);
 
 #endif

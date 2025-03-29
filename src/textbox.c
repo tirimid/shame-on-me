@@ -1,38 +1,35 @@
-static bool TextboxActive = false;
-static u8 TextboxSprite;
-static char const *TextboxMsg;
+static bool T_Active = false;
+static u8 T_ActiveSprite;
+static char const *T_ActiveMsg;
 
 // data tables.
-static u8 SpriteTextures[TS_END__] =
+static u8 T_SpriteTextures[T_TS_END__] =
 {
-	T_SOMETHING, // arkady.
-	T_C_HEARTS_J, // peter.
-	T_GLASSES_DUMMY_FACE, // matthew.
-	T_DUMMY_FACE // gerasim.
+	R_T_SOMETHING, // arkady.
+	R_T_C_HEARTS_J, // peter.
+	R_T_GLASSES_DUMMY_FACE, // matthew.
+	R_T_DUMMY_FACE // gerasim.
 };
 
 bool
 T_IsActive(void)
 {
-	return TextboxActive;
+	return T_Active;
 }
 
 void
-T_Show(enum TextboxSprite Ts, char const *Msg)
+T_Show(T_TextboxSprite Sprite, char const *Msg)
 {
-	TextboxActive = true;
-	TextboxSprite = Ts;
-	TextboxMsg = Msg;
+	T_Active = true;
+	T_ActiveSprite = Sprite;
+	T_ActiveMsg = Msg;
 }
 
 void
 T_Update(void)
 {
-	if (!TextboxActive)
-		return;
-	
-	if (I_KeyPressed(O_KEY_NEXT))
-		TextboxActive = false;
+	if (!T_Active) {return;}
+	if (I_KeyPressed(O_KEY_NEXT)) {T_Active = false;}
 }
 
 void
@@ -41,14 +38,14 @@ T_Render(void)
 	i32 Rw, Rh;
 	R_GetRenderBounds(&Rw, &Rh);
 	
-	R_RenderRect(T_BLACK50, 0, 0, Rw, Rh);
+	R_RenderRect(R_T_BLACK50, 0, 0, Rw, Rh);
 	R_RenderRect(
-		SpriteTextures[TextboxSprite],
+		T_SpriteTextures[T_ActiveSprite],
 		5,
 		5 + O_TEXT_BOX_SIZE,
 		O_TEXT_SPRITE_SIZE,
 		O_TEXT_SPRITE_SIZE
 	);
-	R_RenderRect(T_BLACK, 5, 5, Rw - 10, O_TEXT_BOX_SIZE);
-	R_RenderText(F_VCR_OSD_MONO, TextboxMsg, 10, 10, Rw - 20, O_TEXT_BOX_SIZE - 10);
+	R_RenderRect(R_T_BLACK, 5, 5, Rw - 10, O_TEXT_BOX_SIZE);
+	R_RenderText(R_F_VCR_OSD_MONO, T_ActiveMsg, 10, 10, Rw - 20, O_TEXT_BOX_SIZE - 10);
 }

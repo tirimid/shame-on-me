@@ -53,8 +53,7 @@ main(int Argc, char *Argv[])
 	}
 	atexit(TTF_Quit);
 	
-	if (R_Init())
-		return 1;
+	if (R_Init()) {return 1;}
 	
 	G_Loop();
 	

@@ -1,49 +1,120 @@
-#define WALK_DST_THRESHOLD2 0.015f
-#define LOOK_THRESHOLD 0.005f
+#define C_WALK_DST_THRESHOLD2 0.015f
+#define C_LOOK_THRESHOLD 0.005f
 
-enum ActionType
+typedef enum C_ActionType
 {
-	AT_TELEPORT = 0,
-	AT_TELEPORT_TO,
-	AT_WALK,
-	AT_WALK_TO,
-	AT_LOOK,
-	AT_LOOK_AT,
-	AT_LOOK_WALK_TO,
-	AT_SET_TEXTURE,
-	AT_WAIT,
-	AT_SPEAK,
-	AT_SWAP_MODEL
-};
+	C_AT_TELEPORT = 0,
+	C_AT_TELEPORT_TO,
+	C_AT_WALK,
+	C_AT_WALK_TO,
+	C_AT_LOOK,
+	C_AT_LOOK_AT,
+	C_AT_LOOK_WALK_TO,
+	C_AT_SET_TEXTURE,
+	C_AT_WAIT,
+	C_AT_SPEAK,
+	C_AT_SWAP_MODEL
+} C_ActionType;
 
-struct Action
+typedef union C_Action
 {
+	u8 Type;
+	
 	union
 	{
-		vec2 Dst;
-		char Point;
-		u8 Type;
-		i64 Ms;
-		char const *Msg;
+		struct
+		{
+			u8 Type;
+			vec2 Dst;
+			u8 Actor;
+		} Teleport;
+		
+		struct
+		{
+			u8 Type;
+			char Point;
+			u8 Actor;
+		} TeleportTo;
+		
+		struct
+		{
+			u8 Type;
+			vec2 Dst;
+			u8 Actor;
+		} Walk;
+		
+		struct
+		{
+			u8 Type;
+			char Point;
+			u8 Actor;
+		} WalkTo;
+		
+		struct
+		{
+			u8 Type;
+			f32 Pitch, Yaw;
+			u8 Actor;
+		} Look;
+		
+		struct
+		{
+			u8 Type;
+			char Point;
+			u8 Actor;
+		} LookAt;
+		
+		struct
+		{
+			u8 Type;
+			char Point;
+			u8 Actor;
+		} LookWalkTo;
+		
+		struct
+		{
+			u8 Type;
+			u8 Tex;
+			u8 Actor;
+		} SetTexture;
+		
+		struct
+		{
+			u8 Type;
+			i64 MS;
+		} Wait;
+		
+		struct
+		{
+			u8 Type;
+			char const *Msg;
+			u8 TextSprite;
+		} Speak;
+		
+		struct
+		{
+			u8 Type;
+			usize PropIdx;
+			u8 NewModel;
+		} SwapModel;
 	} Data;
-	u8 Type, Actor;
-};
+} C_Action;
 
-struct ActorData
+typedef struct C_ActorData
 {
 	vec2 Pos;
 	f32 Pitch, Yaw;
-	u8 ActiveTex;
 	f32 BobTime;
-};
+	u8 ActiveTex;
+} C_ActorData;
 
-struct Map g_Map;
-struct Prop g_Props[O_MAX_CHOREO_PROPS];
-usize g_PropCnt;
+C_MapData C_Map;
+C_Prop C_Props[O_MAX_CHOREO_PROPS];
+usize C_PropCnt;
 
-static void GetPointPos(char Point, vec2 Out);
+static void C_GetPointPos(char Point, vec2 Out);
 
-static struct ActorData ActorData[A_END__] =
+static C_ActorData C_Actors[C_A_END__] =
 {
 	// arkady (player).
 	{
@@ -52,215 +123,233 @@ static struct ActorData ActorData[A_END__] =
 	
 	// peter.
 	{
-		.ActiveTex = T_C_HEARTS_J
+		.ActiveTex = R_T_C_HEARTS_J
 	},
 	
 	// matthew.
 	{
-		.ActiveTex = T_GLASSES_DUMMY
+		.ActiveTex = R_T_GLASSES_DUMMY
 	},
 	
 	// gerasim.
 	{
-		.ActiveTex = T_DUMMY
+		.ActiveTex = R_T_DUMMY
 	}
 };
 
-static struct Action Actions[O_MAX_CHOREO_ACTIONS];
-static usize ActionCnt;
+static C_Action C_Actions[O_MAX_CHOREO_ACTIONS];
+static usize C_ActionCnt;
 
 void
-C_Teleport(enum Actor a, vec2 Pos)
+C_Teleport(C_Actor a, vec2 Pos)
 {
-	if (ActionCnt < O_MAX_CHOREO_ACTIONS)
+	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS) {return;}
+	C_Actions[C_ActionCnt++] = (C_Action)
 	{
-		Actions[ActionCnt++] = (struct Action)
+		.Data.Teleport =
 		{
-			.Data.Dst = {Pos[0], Pos[1]},
-			.Type = AT_TELEPORT,
+			.Type = C_AT_TELEPORT,
+			.Dst = {Pos[0], Pos[1]},
 			.Actor = a
-		};
-	}
+		}
+	};
 }
 
 void
-C_TeleportTo(enum Actor a, char Point)
+C_TeleportTo(C_Actor a, char Point)
 {
-	if (ActionCnt < O_MAX_CHOREO_ACTIONS)
+	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS) {return;}
+	C_Actions[C_ActionCnt++] = (C_Action)
 	{
-		Actions[ActionCnt++] = (struct Action)
+		.Data.TeleportTo =
 		{
-			.Data.Point = Point,
-			.Type = AT_TELEPORT_TO,
+			.Type = C_AT_TELEPORT_TO,
+			.Point = Point,
 			.Actor = a
-		};
-	}
+		}
+	};
 }
 
 void
-C_Walk(enum Actor a, vec2 Pos)
+C_Walk(C_Actor a, vec2 Pos)
 {
-	if (ActionCnt < O_MAX_CHOREO_ACTIONS)
+	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS) {return;}
+	C_Actions[C_ActionCnt++] = (C_Action)
 	{
-		Actions[ActionCnt++] = (struct Action)
+		.Data.Walk =
 		{
-			.Data.Dst = {Pos[0], Pos[1]},
-			.Type = AT_WALK,
+			.Type = C_AT_WALK,
+			.Dst = {Pos[0], Pos[1]},
 			.Actor = a
-		};
-	}
+		}
+	};
 }
 
 void
-C_WalkTo(enum Actor a, char Point)
+C_WalkTo(C_Actor a, char Point)
 {
-	if (ActionCnt < O_MAX_CHOREO_ACTIONS)
+	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS) {return;}
+	C_Actions[C_ActionCnt++] = (C_Action)
 	{
-		Actions[ActionCnt++] = (struct Action)
+		.Data.WalkTo =
 		{
-			.Data.Point = Point,
-			.Type = AT_WALK_TO,
+			.Type = C_AT_WALK_TO,
+			.Point = Point,
 			.Actor = a
-		};
-	}
+		}
+	};
 }
 
 void
-C_Look(enum Actor a, f32 PitchDeg, f32 YawDeg)
+C_Look(C_Actor a, f32 PitchDeg, f32 YawDeg)
 {
-	if (ActionCnt < O_MAX_CHOREO_ACTIONS)
+	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS) {return;}
+	C_Actions[C_ActionCnt++] = (C_Action)
 	{
-		Actions[ActionCnt++] = (struct Action)
+		.Data.Look =
 		{
-			.Data.Dst = {glm_rad(PitchDeg), glm_rad(YawDeg)},
-			.Type = AT_LOOK,
+			.Type = C_AT_LOOK,
+			.Pitch = glm_rad(PitchDeg),
+			.Yaw = glm_rad(YawDeg),
 			.Actor = a
-		};
-	}
+		}
+	};
 }
 
 void
-C_LookAt(enum Actor a, char Point)
+C_LookAt(C_Actor a, char Point)
 {
-	if (ActionCnt < O_MAX_CHOREO_ACTIONS)
+	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS) {return;}
+	C_Actions[C_ActionCnt++] = (C_Action)
 	{
-		Actions[ActionCnt++] = (struct Action)
+		.Data.LookAt =
 		{
-			.Data.Point = Point,
-			.Type = AT_LOOK_AT,
+			.Type = C_AT_LOOK_AT,
+			.Point = Point,
 			.Actor = a
-		};
-	}
+		}
+	};
 }
 
 void
-C_LookWalkTo(enum Actor a, char Point)
+C_LookWalkTo(C_Actor a, char Point)
 {
-	if (ActionCnt < O_MAX_CHOREO_ACTIONS)
+	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS) {return;}
+	C_Actions[C_ActionCnt++] = (C_Action)
 	{
-		Actions[ActionCnt++] = (struct Action)
+		.Data.LookWalkTo =
 		{
-			.Data.Point = Point,
-			.Type = AT_LOOK_WALK_TO,
+			.Type = C_AT_LOOK_WALK_TO,
+			.Point = Point,
 			.Actor = a
-		};
-	}
+		}
+	};
 }
 
 void
-C_SetTexture(enum Actor a, enum Texture t)
+C_SetTexture(C_Actor a, R_Texture t)
 {
-	if (ActionCnt < O_MAX_CHOREO_ACTIONS)
+	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS) {return;}
+	C_Actions[C_ActionCnt++] = (C_Action)
 	{
-		Actions[ActionCnt++] = (struct Action)
+		.Data.SetTexture =
 		{
-			.Data.Type = t,
-			.Type = AT_SET_TEXTURE,
+			.Type = C_AT_SET_TEXTURE,
+			.Tex = t,
 			.Actor = a
-		};
-	}
+		}
+	};
 }
 
 void
-C_Wait(u32 Ms)
+C_Wait(u64 MS)
 {
-	if (ActionCnt < O_MAX_CHOREO_ACTIONS)
+	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS) {return;}
+	C_Actions[C_ActionCnt++] = (C_Action)
 	{
-		Actions[ActionCnt++] = (struct Action)
+		.Data.Wait =
 		{
-			.Data.Ms = Ms,
-			.Type = AT_WAIT
-		};
-	}
+			.Type = C_AT_WAIT,
+			.MS = MS
+		}
+	};
 }
 
 void
-C_Speak(enum TextboxSprite Ts, char const *Msg)
+C_Speak(T_TextboxSprite t, char const *Msg)
 {
-	if (ActionCnt < O_MAX_CHOREO_ACTIONS)
+	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS) {return;}
+	C_Actions[C_ActionCnt++] = (C_Action)
 	{
-		Actions[ActionCnt++] = (struct Action)
+		.Data.Speak =
 		{
-			.Data.Msg = Msg,
-			.Actor = Ts,
-			.Type = AT_SPEAK
-		};
-	}
+			.Type = C_AT_SPEAK,
+			.Msg = Msg,
+			.TextSprite = t
+		}
+	};
 }
 
 void
-C_SwapModel(i32 Idx, enum Model NewModel)
+C_SwapModel(usize Idx, R_Model NewModel)
 {
-	if (ActionCnt < O_MAX_CHOREO_ACTIONS)
+	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS) {return;}
+	C_Actions[C_ActionCnt++] = (C_Action)
 	{
-		Actions[ActionCnt++] = (struct Action)
+		.Data.SwapModel =
 		{
-			.Data.Type = NewModel,
-			.Actor = Idx,
-			.Type = AT_SWAP_MODEL
-		};
-	}
+			.Type = C_AT_SWAP_MODEL,
+			.PropIdx = Idx,
+			.NewModel = NewModel
+		}
+	};
 }
 
 void
 C_Update(void)
 {
 	// update render camera.
-	f32 VBob = fabs(sin(ActorData[A_ARKADY].BobTime));
-	f32 HBob = fabs(cos(ActorData[A_ARKADY].BobTime));
+	f32 VBob = fabs(sin(C_Actors[C_A_ARKADY].BobTime));
+	f32 HBob = fabs(cos(C_Actors[C_A_ARKADY].BobTime));
 	
-	g_Camera.Pos[0] = ActorData[A_ARKADY].Pos[0] + O_HORIZ_BOB_INTENSITY * HBob;
-	g_Camera.Pos[1] = O_VERT_BOB_INTENSITY * VBob;
-	g_Camera.Pos[2] = ActorData[A_ARKADY].Pos[1] + O_HORIZ_BOB_INTENSITY * HBob;
-	g_Camera.Pitch = ActorData[A_ARKADY].Pitch;
-	g_Camera.Yaw = ActorData[A_ARKADY].Yaw;
+	R_Cam.Pos[0] = C_Actors[C_A_ARKADY].Pos[0] + O_HORIZ_BOB_INTENSITY * HBob;
+	R_Cam.Pos[1] = O_VERT_BOB_INTENSITY * VBob;
+	R_Cam.Pos[2] = C_Actors[C_A_ARKADY].Pos[1] + O_HORIZ_BOB_INTENSITY * HBob;
+	R_Cam.Pitch = C_Actors[C_A_ARKADY].Pitch;
+	R_Cam.Yaw = C_Actors[C_A_ARKADY].Yaw;
 	
 	// update choreography actions.
-	if (ActionCnt == 0)
-		return;
+	if (C_ActionCnt == 0) {return;}
 	
-	struct Action *Action = &Actions[0];
-	struct ActorData *Actor = &ActorData[Action->Actor];
+	C_Action *Action = &C_Actions[0];
 	
 	switch (Action->Type)
 	{
-	case AT_TELEPORT:
-		Actor->Pos[0] = Action->Data.Dst[0];
-		Actor->Pos[1] = Action->Data.Dst[1];
-		break;
-	case AT_TELEPORT_TO:
-		GetPointPos(Action->Data.Point, Actor->Pos);
-		break;
-	case AT_WALK:
+	case C_AT_TELEPORT:
 	{
-		if (glm_vec2_distance2(Actor->Pos, Action->Data.Dst) < WALK_DST_THRESHOLD2)
+		C_ActorData *Actor = &C_Actors[Action->Data.Teleport.Actor];
+		Actor->Pos[0] = Action->Data.Teleport.Dst[0];
+		Actor->Pos[1] = Action->Data.Teleport.Dst[1];
+		break;
+	}
+	case C_AT_TELEPORT_TO:
+	{
+		C_ActorData *Actor = &C_Actors[Action->Data.TeleportTo.Actor];
+		C_GetPointPos(Action->Data.TeleportTo.Point, Actor->Pos);
+		break;
+	}
+	case C_AT_WALK:
+	{
+		C_ActorData *Actor = &C_Actors[Action->Data.Walk.Actor];
+		
+		if (glm_vec2_distance2(Actor->Pos, Action->Data.Walk.Dst) < C_WALK_DST_THRESHOLD2)
 		{
-			glm_vec2_copy(Action->Data.Dst, Actor->Pos);
+			glm_vec2_copy(Action->Data.Walk.Dst, Actor->Pos);
 			break;
 		}
 		
 		vec2 Move = {0};
-		glm_vec2_sub(Action->Data.Dst, Actor->Pos, Move);
+		glm_vec2_sub(Action->Data.Walk.Dst, Actor->Pos, Move);
 		glm_vec2_normalize(Move);
 		glm_vec2_scale(Move, O_WALK_SPEED, Move);
 		
@@ -269,12 +358,14 @@ C_Update(void)
 		
 		return;
 	}
-	case AT_WALK_TO:
+	case C_AT_WALK_TO:
 	{
-		vec2 Dst = {0};
-		GetPointPos(Action->Data.Point, Dst);
+		C_ActorData *Actor = &C_Actors[Action->Data.WalkTo.Actor];
 		
-		if (glm_vec2_distance2(Actor->Pos, Dst) < WALK_DST_THRESHOLD2)
+		vec2 Dst = {0};
+		C_GetPointPos(Action->Data.WalkTo.Point, Dst);
+		
+		if (glm_vec2_distance2(Actor->Pos, Dst) < C_WALK_DST_THRESHOLD2)
 		{
 			glm_vec2_copy(Dst, Actor->Pos);
 			break;
@@ -290,32 +381,36 @@ C_Update(void)
 		
 		return;
 	}
-	case AT_LOOK:
+	case C_AT_LOOK:
 	{
-		if (fabs(ShortestAngle(Action->Data.Dst[0], Actor->Pitch)) < LOOK_THRESHOLD
-			&& fabs(ShortestAngle(Action->Data.Dst[1], Actor->Yaw)) < LOOK_THRESHOLD)
+		C_ActorData *Actor = &C_Actors[Action->Data.Look.Actor];
+		
+		if (fabs(ShortestAngle(Action->Data.Look.Pitch, Actor->Pitch)) < C_LOOK_THRESHOLD
+			&& fabs(ShortestAngle(Action->Data.Look.Yaw, Actor->Yaw)) < C_LOOK_THRESHOLD)
 		{
-			Actor->Pitch = Action->Data.Dst[0];
-			Actor->Yaw = Action->Data.Dst[1];
+			Actor->Pitch = Action->Data.Look.Pitch;
+			Actor->Yaw = Action->Data.Look.Yaw;
 			break;
 		}
 		
-		Actor->Pitch = InterpolateAngle(Actor->Pitch, Action->Data.Dst[0], O_LOOK_SPEED);
-		Actor->Yaw = InterpolateAngle(Actor->Yaw, Action->Data.Dst[1], O_LOOK_SPEED);
+		Actor->Pitch = InterpolateAngle(Actor->Pitch, Action->Data.Look.Pitch, O_LOOK_SPEED);
+		Actor->Yaw = InterpolateAngle(Actor->Yaw, Action->Data.Look.Yaw, O_LOOK_SPEED);
 		
 		return;
 	}
-	case AT_LOOK_AT:
+	case C_AT_LOOK_AT:
 	{
+		C_ActorData *Actor = &C_Actors[Action->Data.LookAt.Actor];
+		
 		vec2 Dir = {0};
-		GetPointPos(Action->Data.Point, Dir);
+		C_GetPointPos(Action->Data.LookAt.Point, Dir);
 		glm_vec2_sub(Dir, Actor->Pos, Dir);
 		
 		f32 DstPitch = 0.0f;
 		f32 DstYaw = atan2f(Dir[1], Dir[0]);
 		
-		if (fabs(ShortestAngle(Actor->Pitch, DstPitch)) < LOOK_THRESHOLD
-			&& fabs(ShortestAngle(Actor->Yaw, DstYaw)) < LOOK_THRESHOLD)
+		if (fabs(ShortestAngle(Actor->Pitch, DstPitch)) < C_LOOK_THRESHOLD
+			&& fabs(ShortestAngle(Actor->Yaw, DstYaw)) < C_LOOK_THRESHOLD)
 		{
 			Actor->Pitch = DstPitch;
 			Actor->Yaw = DstYaw;
@@ -327,75 +422,87 @@ C_Update(void)
 		
 		return;
 	}
-	case AT_LOOK_WALK_TO:
+	case C_AT_LOOK_WALK_TO:
 	{
+		C_ActorData *Actor = &C_Actors[Action->Data.LookWalkTo.Actor];
+		
 		vec2 Dst = {0}, Dir = {0};
-		GetPointPos(Action->Data.Point, Dst);
+		C_GetPointPos(Action->Data.LookWalkTo.Point, Dst);
 		glm_vec2_sub(Dst, Actor->Pos, Dir);
 		
 		f32 DstPitch = 0.0f;
 		f32 DstYaw = atan2f(Dir[1], Dir[0]);
 		
-		if (ShortestAngle(DstPitch, Actor->Pitch) < LOOK_THRESHOLD
-			&& ShortestAngle(DstYaw, Actor->Yaw) < LOOK_THRESHOLD
-			&& glm_vec2_distance2(Actor->Pos, Dst) < WALK_DST_THRESHOLD2)
+		bool RotDone = false;
+		if (fabs(ShortestAngle(DstPitch, Actor->Pitch)) < C_LOOK_THRESHOLD
+			&& fabs(ShortestAngle(DstYaw, Actor->Yaw)) < C_LOOK_THRESHOLD)
 		{
-			glm_vec2_copy(Dst, Actor->Pos);
 			Actor->Pitch = DstPitch;
 			Actor->Yaw = DstYaw;
-			break;
+			RotDone = true;
 		}
 		
-		Actor->Pitch = InterpolateAngle(Actor->Pitch, DstPitch, O_LOOK_SPEED);
-		Actor->Yaw = InterpolateAngle(Actor->Yaw, DstYaw, O_LOOK_SPEED);
+		bool MoveDone = false;
+		if (glm_vec2_distance2(Actor->Pos, Dst) < C_WALK_DST_THRESHOLD2)
+		{
+			glm_vec2_copy(Dst, Actor->Pos);
+			MoveDone = true;
+		}
 		
-		vec2 Move = {0};
-		glm_vec2_sub(Dst, Actor->Pos, Move);
-		glm_vec2_normalize(Move);
-		glm_vec2_scale(Move, O_WALK_SPEED, Move);
+		if (!RotDone)
+		{
+			Actor->Pitch = InterpolateAngle(Actor->Pitch, DstPitch, O_LOOK_SPEED);
+			Actor->Yaw = InterpolateAngle(Actor->Yaw, DstYaw, O_LOOK_SPEED);
+		}
 		
-		glm_vec2_add(Actor->Pos, Move, Actor->Pos);
-		Actor->BobTime += O_BOB_FREQUENCY;
+		if (!MoveDone)
+		{
+			vec2 Move = {0};
+			glm_vec2_sub(Dst, Actor->Pos, Move);
+			glm_vec2_normalize(Move);
+			glm_vec2_scale(Move, O_WALK_SPEED, Move);
+			
+			glm_vec2_add(Actor->Pos, Move, Actor->Pos);
+			Actor->BobTime += O_BOB_FREQUENCY;
+		}
+		
+		if (RotDone && MoveDone) {break;}
 		
 		return;
 	}
-	case AT_SET_TEXTURE:
-		Actor->ActiveTex = Action->Data.Type;
+	case C_AT_SET_TEXTURE:
+	{
+		C_ActorData *Actor = &C_Actors[Action->Data.SetTexture.Actor];
+		Actor->ActiveTex = Action->Data.SetTexture.Tex;
 		break;
-	case AT_WAIT:
-		if (Action->Data.Ms <= 0)
-			break;
-		
-		Action->Data.Ms -= O_TICK_MS;
-		
+	}
+	case C_AT_WAIT:
+		if (Action->Data.Wait.MS <= 0) {break;}
+		Action->Data.Wait.MS -= O_TICK_MS;
 		return;
-	case AT_SPEAK:
-		if (!T_IsActive())
-			T_Show(Action->Actor, Action->Data.Msg);
-		
-		if (I_KeyPressed(O_KEY_NEXT))
-			break;
-		
+	case C_AT_SPEAK:
+		if (!T_IsActive()) {T_Show(Action->Data.Speak.TextSprite, Action->Data.Speak.Msg);}
+		if (I_KeyPressed(O_KEY_NEXT)) {break;}
 		return;
-	case AT_SWAP_MODEL:
-		g_Props[Action->Actor].m = Action->Data.Type;
+	case C_AT_SWAP_MODEL:
+		C_Props[Action->Data.SwapModel.PropIdx].Model = Action->Data.SwapModel.NewModel;
 		break;
 	}
 	
 	// dequeue completed action.
-	memmove(&Actions[0], &Actions[1], sizeof(struct Action) * --ActionCnt);
+	memmove(&C_Actions[0], &C_Actions[1], sizeof(C_Action) * --C_ActionCnt);
 }
 
 void
 C_Render(void)
 {
 	// draw floor.
-	R_SetTexture(T_FLOOR);
-	for (u32 x = 0; x < g_Map.w; ++x)
+	R_SetTexture(R_T_FLOOR);
+	for (u32 x = 0; x < C_Map.w; ++x)
 	{
-		for (u32 y = 0; y < g_Map.h; ++y)
+		for (u32 y = 0; y < C_Map.h; ++y)
 		{
-			if (g_Map.Data[g_Map.w * y + x] != '#')
+			if (C_Map.Data[C_Map.w * y + x] != '#')
 			{
 				R_BatchRenderPlane(
 					(vec3){x, -1.5f, y},
@@ -409,12 +516,12 @@ C_Render(void)
 	R_FlushPlaneBatch();
 	
 	// draw ceiling.
-	R_SetTexture(T_CEILING);
-	for (u32 x = 0; x < g_Map.w; ++x)
+	R_SetTexture(R_T_CEILING);
+	for (u32 x = 0; x < C_Map.w; ++x)
 	{
-		for (u32 y = 0; y < g_Map.h; ++y)
+		for (u32 y = 0; y < C_Map.h; ++y)
 		{
-			if (g_Map.Data[g_Map.w * y + x] != '#')
+			if (C_Map.Data[C_Map.w * y + x] != '#')
 			{
 				R_BatchRenderPlane(
 					(vec3){x, 0.5f, y},
@@ -428,13 +535,13 @@ C_Render(void)
 	R_FlushPlaneBatch();
 	
 	// draw walls.
-	R_SetTexture(T_WALL);
+	R_SetTexture(R_T_WALL);
 	
-	for (u32 x = 0; x < g_Map.w; ++x)
+	for (u32 x = 0; x < C_Map.w; ++x)
 	{
-		for (u32 y = 0; y < g_Map.h; ++y)
+		for (u32 y = 0; y < C_Map.h; ++y)
 		{
-			if (g_Map.Data[g_Map.w * y + x] == '#')
+			if (C_Map.Data[C_Map.w * y + x] == '#')
 			{
 				R_BatchRenderPlane(
 					(vec3){x + 0.5f, -0.5f, y},
@@ -460,7 +567,7 @@ C_Render(void)
 		}
 	}
 	
-	for (u32 x = 0; x < g_Map.w; ++x)
+	for (u32 x = 0; x < C_Map.w; ++x)
 	{
 		R_BatchRenderPlane(
 			(vec3){x, -0.5f, -0.5f},
@@ -468,13 +575,13 @@ C_Render(void)
 			(vec3){0.5f, 1.0f, 1.0f}
 		);
 		R_BatchRenderPlane(
-			(vec3){x, -0.5f, g_Map.h - 0.5f},
+			(vec3){x, -0.5f, C_Map.h - 0.5f},
 			(vec3){GLM_PI / 2.0f, GLM_PI, 0.0f},
 			(vec3){0.5f, 1.0f, 1.0f}
 		);
 	}
 	
-	for (u32 y = 0; y < g_Map.h; ++y)
+	for (u32 y = 0; y < C_Map.h; ++y)
 	{
 		R_BatchRenderPlane(
 			(vec3){-0.5f, -0.5f, y},
@@ -482,7 +589,7 @@ C_Render(void)
 			(vec3){0.5f, 0.5f, 1.0f}
 		);
 		R_BatchRenderPlane(
-			(vec3){g_Map.w - 0.5f, -0.5f, y},
+			(vec3){C_Map.w - 0.5f, -0.5f, y},
 			(vec3){GLM_PI / 2.0f, GLM_PI, GLM_PI / 2.0f},
 			(vec3){0.5f, 0.5f, 1.0f}
 		);
@@ -491,10 +598,10 @@ C_Render(void)
 	R_FlushPlaneBatch();
 	
 	// draw all non-player characters.
-	for (usize i = A_ARKADY + 1; i < A_END__; ++i)
+	for (usize i = C_A_ARKADY + 1; i < C_A_END__; ++i)
 	{
-		struct ActorData *Player = &ActorData[A_ARKADY];
-		struct ActorData *a = &ActorData[i];
+		C_ActorData *Player = &C_Actors[C_A_ARKADY];
+		C_ActorData *a = &C_Actors[i];
 		
 		vec2 Dir;
 		glm_vec2_sub(Player->Pos, a->Pos, Dir);
@@ -505,7 +612,7 @@ C_Render(void)
 		
 		R_SetTexture(a->ActiveTex);
 		R_RenderModel(
-			M_PLANE,
+			R_M_PLANE,
 			(vec3){a->Pos[0], Bob - 0.65f, a->Pos[1]},
 			(vec3){GLM_PI / 2.0f, GLM_PI, 2.0f * GLM_PI - Yaw},
 			(vec3){0.5f, 1.0f, 0.875f}
@@ -513,40 +620,36 @@ C_Render(void)
 	}
 	
 	// draw all props.
-	for (usize i = 0; i < g_PropCnt; ++i)
+	for (usize i = 0; i < C_PropCnt; ++i)
 	{
-		R_SetTexture(g_Props[i].t);
-		R_RenderModel(g_Props[i].m, g_Props[i].Pos, g_Props[i].Rot, g_Props[i].Scale);
+		R_SetTexture(C_Props[i].Tex);
+		R_RenderModel(C_Props[i].Model, C_Props[i].Pos, C_Props[i].Rot, C_Props[i].Scale);
 	}
 }
 
-i32
-C_PutProp(enum Model m, enum Texture t, vec3 Pos, vec3 Rot, vec3 Scale)
+i64
+C_PutProp(R_Model m, R_Texture t, vec3 Pos, vec3 Rot, vec3 Scale)
 {
-	if (g_PropCnt < O_MAX_CHOREO_PROPS)
+	if (C_PropCnt >= O_MAX_CHOREO_PROPS) {return -1;}
+	C_Props[C_PropCnt] = (C_Prop)
 	{
-		g_Props[g_PropCnt] = (struct Prop)
-		{
-			.m = m,
-			.t = t,
-			.Pos = {Pos[0], Pos[1], Pos[2]},
-			.Rot = {Rot[0], Rot[1], Rot[2]},
-			.Scale = {Scale[0], Scale[1], Scale[2]}
-		};
-		return g_PropCnt++;
-	}
-	
-	return -1;
+		.Model = m,
+		.Tex = t,
+		.Pos = {Pos[0], Pos[1], Pos[2]},
+		.Rot = {Rot[0], Rot[1], Rot[2]},
+		.Scale = {Scale[0], Scale[1], Scale[2]}
+	};
+	return C_PropCnt++;
 }
 
 static void
-GetPointPos(char Point, vec2 Out)
+C_GetPointPos(char Point, vec2 Out)
 {
-	for (u32 x = 0; x < g_Map.w; ++x)
+	for (u32 x = 0; x < C_Map.w; ++x)
 	{
-		for (u32 y = 0; y < g_Map.h; ++y)
+		for (u32 y = 0; y < C_Map.h; ++y)
 		{
-			if (g_Map.Data[y * g_Map.w + x] == Point)
+			if (C_Map.Data[y * C_Map.w + x] == Point)
 			{
 				Out[0] = x;
 				Out[1] = y;

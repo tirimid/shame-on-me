@@ -1,98 +1,98 @@
 #ifndef RENDER_H
 #define RENDER_H
 
-enum Model
+typedef enum R_Model
 {
-	M_PLANE = 0,
-	M_CUBE,
-	M_DOOR_OPEN,
-	M_DOOR_CLOSED,
+	R_M_PLANE = 0,
+	R_M_CUBE,
+	R_M_DOOR_OPEN,
+	R_M_DOOR_CLOSED,
 	
-	M_END__
-};
+	R_M_END__
+} R_Model;
 
-enum ShaderProgram
+typedef enum R_Shader
 {
-	SP_BASE = 0,
-	SP_OVERLAY,
-	SP_SHADOW,
+	R_S_BASE = 0,
+	R_S_OVERLAY,
+	R_S_SHADOW,
 	
-	SP_END__
-};
+	R_S_END__
+} R_Shader;
 
-enum Texture
+typedef enum R_Texture
 {
-	T_SOMETHING = 0,
-	T_FLOOR,
-	T_CEILING,
-	T_WALL,
-	T_DUMMY,
-	T_BLACK,
-	T_DUMMY_FACE,
-	T_BLACK50,
-	T_GLASSES_DUMMY,
-	T_GLASSES_DUMMY_FACE,
-	T_C_SPADES_6,
-	T_C_SPADES_7,
-	T_C_SPADES_8,
-	T_C_SPADES_9,
-	T_C_SPADES_10,
-	T_C_SPADES_J,
-	T_C_SPADES_Q,
-	T_C_SPADES_K,
-	T_C_SPADES_A,
-	T_C_DIAMONDS_6,
-	T_C_DIAMONDS_7,
-	T_C_DIAMONDS_8,
-	T_C_DIAMONDS_9,
-	T_C_DIAMONDS_10,
-	T_C_DIAMONDS_J,
-	T_C_DIAMONDS_Q,
-	T_C_DIAMONDS_K,
-	T_C_DIAMONDS_A,
-	T_C_CLUBS_6,
-	T_C_CLUBS_7,
-	T_C_CLUBS_8,
-	T_C_CLUBS_9,
-	T_C_CLUBS_10,
-	T_C_CLUBS_J,
-	T_C_CLUBS_Q,
-	T_C_CLUBS_K,
-	T_C_CLUBS_A,
-	T_C_HEARTS_6,
-	T_C_HEARTS_7,
-	T_C_HEARTS_8,
-	T_C_HEARTS_9,
-	T_C_HEARTS_10,
-	T_C_HEARTS_J,
-	T_C_HEARTS_Q,
-	T_C_HEARTS_K,
-	T_C_HEARTS_A,
-	T_DOOR,
+	R_T_SOMETHING = 0,
+	R_T_FLOOR,
+	R_T_CEILING,
+	R_T_WALL,
+	R_T_DUMMY,
+	R_T_BLACK,
+	R_T_DUMMY_FACE,
+	R_T_BLACK50,
+	R_T_GLASSES_DUMMY,
+	R_T_GLASSES_DUMMY_FACE,
+	R_T_C_SPADES_6,
+	R_T_C_SPADES_7,
+	R_T_C_SPADES_8,
+	R_T_C_SPADES_9,
+	R_T_C_SPADES_10,
+	R_T_C_SPADES_J,
+	R_T_C_SPADES_Q,
+	R_T_C_SPADES_K,
+	R_T_C_SPADES_A,
+	R_T_C_DIAMONDS_6,
+	R_T_C_DIAMONDS_7,
+	R_T_C_DIAMONDS_8,
+	R_T_C_DIAMONDS_9,
+	R_T_C_DIAMONDS_10,
+	R_T_C_DIAMONDS_J,
+	R_T_C_DIAMONDS_Q,
+	R_T_C_DIAMONDS_K,
+	R_T_C_DIAMONDS_A,
+	R_T_C_CLUBS_6,
+	R_T_C_CLUBS_7,
+	R_T_C_CLUBS_8,
+	R_T_C_CLUBS_9,
+	R_T_C_CLUBS_10,
+	R_T_C_CLUBS_J,
+	R_T_C_CLUBS_Q,
+	R_T_C_CLUBS_K,
+	R_T_C_CLUBS_A,
+	R_T_C_HEARTS_6,
+	R_T_C_HEARTS_7,
+	R_T_C_HEARTS_8,
+	R_T_C_HEARTS_9,
+	R_T_C_HEARTS_10,
+	R_T_C_HEARTS_J,
+	R_T_C_HEARTS_Q,
+	R_T_C_HEARTS_K,
+	R_T_C_HEARTS_A,
+	R_T_DOOR,
 	
-	T_END__
-};
+	R_T_END__
+} R_Texture;
 
-enum Font
+typedef enum R_Font
 {
-	F_VCR_OSD_MONO = 0,
+	R_F_VCR_OSD_MONO = 0,
 	
-	F_END__
-};
+	R_F_END__
+} R_Font;
 
-enum FadeStatus
+typedef enum R_FadeStatus
 {
-	FS_FADE_OUT = 0,
-	FS_FADE_IN
-};
+	R_FS_FADE_OUT = 0,
+	R_FS_FADE_IN
+} R_FadeStatus;
 
-struct Camera
+typedef struct R_Camera
 {
 	vec3 Pos;
 	f32 Pitch, Yaw;
-};
+} R_Camera;
 
-extern struct Camera g_Camera;
+extern R_Camera R_Cam;
 
 i32 R_Init(void);
 usize R_GetLightCnt(void);
@@ -102,15 +102,15 @@ void R_BeginBase(void);
 void R_BeginOverlay(void);
 void R_Present(void);
 void R_HandleResize(i32 x, i32 y);
-void R_SetShaderProgram(enum ShaderProgram Prog);
-void R_SetTexture(enum Texture t);
-void R_RenderModel(enum Model m, vec3 Pos, vec3 Rot, vec3 Scale);
+void R_SetShader(R_Shader s);
+void R_SetTexture(R_Texture t);
+void R_RenderModel(R_Model m, vec3 Pos, vec3 Rot, vec3 Scale);
 i32 R_PutLight(vec3 Pos, f32 Intensity);
-void R_RenderRect(enum Texture t, i32 x, i32 y, i32 w, i32 h);
-void R_RenderText(enum Font f, char const *Text, i32 x, i32 y, i32 w, i32 h);
+void R_RenderRect(R_Texture t, i32 x, i32 y, i32 w, i32 h);
+void R_RenderText(R_Font f, char const *Text, i32 x, i32 y, i32 w, i32 h);
 void R_BatchRenderPlane(vec3 Pos, vec3 Rot, vec3 Scale);
 void R_FlushPlaneBatch(void);
 void R_Update(void);
-void R_Fade(enum FadeStatus Fs);
+void R_Fade(R_FadeStatus FS);
 
 #endif
