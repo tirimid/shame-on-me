@@ -41,6 +41,6 @@
 #define O_FONT_PT 14
 #define O_FONT_COLOR {255, 255, 255, 255}
 #define O_SHADOW_MAP_SIZE 1024
-#define O_MAX_TILE_BATCH 128
+#define O_MAX_TILE_BATCH 64
 
 #endif

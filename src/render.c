@@ -136,6 +136,30 @@ typedef struct R_FontData
 	TTF_Font *Font;
 } R_FontData;
 
+typedef struct R_UniformData
+{
+	u32 ModelMats, NormalMats;
+	u32 ViewMat, ProjMat;
+	u32 Tex;
+	u32 Lights, ShadowMaps;
+	u32 LightPos, ShadowViewMats;
+	u32 FadeBrightness;
+} R_UniformData;
+
+typedef struct R_RenderState
+{
+	u32 FrameBuffer, ColorBuffer, DepthBuffer;
+	vec4 Lights[O_MAX_LIGHTS];
+	u32 ShadowMaps[O_MAX_LIGHTS];
+	u32 ShadowFBOs[O_MAX_LIGHTS];
+	usize LightCnt;
+	f32 FadeBrightness;
+	R_FadeStatus FadeStatus;
+	mat4 BatchModelMats[O_MAX_TILE_BATCH];
+	mat3 BatchNormalMats[O_MAX_TILE_BATCH];
+	usize BatchSize;
+} R_RenderState;
+
 R_Camera R_Cam;
 
 static void R_PreprocShader(char *Src, usize Len);
@@ -143,21 +167,8 @@ static void R_DeleteGlContext(void);
 
 static SDL_Window *R_Wnd;
 static SDL_GLContext R_GlContext;
-static u32 R_IModelMats, R_INormalMats, R_IViewMat, R_IProjMat;
-static u32 R_RFrameBuffer, R_RColorBuffer, R_RDepthBuffer;
-static u32 R_ITex;
-static vec4 R_Lights[O_MAX_LIGHTS];
-static u32 R_ShadowMaps[O_MAX_LIGHTS];
-static u32 R_ShadowFbos[O_MAX_LIGHTS];
-static usize R_LightCnt;
-static u32 R_ILights, R_IShadowMaps;
-static u32 R_ILightPos, R_IShadowViewMats;
-static f32 R_FadeBrightness = 0.0f;
-static R_FadeStatus R_FS;
-static u32 R_IFadeBrightness;
-static mat4 R_BatchModelMats[O_MAX_TILE_BATCH];
-static mat3 R_BatchNormalMats[O_MAX_TILE_BATCH];
-static usize R_BatchSize;
+static R_RenderState R_State;
+static R_UniformData R_Uniforms;
 
 // data tables.
 static R_ModelData R_Models[R_M_END__] =
@@ -451,16 +462,16 @@ R_Init(void)
 	}
 	
 	// create initial framebuffer data.
-	glGenFramebuffers(1, &R_RFrameBuffer);
-	glGenRenderbuffers(1, &R_RColorBuffer);
-	glGenRenderbuffers(1, &R_RDepthBuffer);
+	glGenFramebuffers(1, &R_State.FrameBuffer);
+	glGenRenderbuffers(1, &R_State.ColorBuffer);
+	glGenRenderbuffers(1, &R_State.DepthBuffer);
 	
 	// create initial shadowmap data.
-	glGenTextures(O_MAX_LIGHTS, R_ShadowMaps);
-	glGenFramebuffers(O_MAX_LIGHTS, R_ShadowFbos);
+	glGenTextures(O_MAX_LIGHTS, R_State.ShadowMaps);
+	glGenFramebuffers(O_MAX_LIGHTS, R_State.ShadowFBOs);
 	for (usize i = 0; i < O_MAX_LIGHTS; ++i)
 	{
-		glBindTexture(GL_TEXTURE_CUBE_MAP, R_ShadowMaps[i]);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, R_State.ShadowMaps[i]);
 		for (i32 j = 0; j < 6; ++j)
 		{
 			glTexImage2D(
@@ -481,8 +492,8 @@ R_Init(void)
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 		
-		glBindFramebuffer(GL_FRAMEBUFFER, R_ShadowFbos[i]);
-		glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, R_ShadowMaps[i], 0);
+		glBindFramebuffer(GL_FRAMEBUFFER, R_State.ShadowFBOs[i]);
+		glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, R_State.ShadowMaps[i], 0);
 		glDrawBuffer(GL_NONE);
 		glReadBuffer(GL_NONE);
 	}
@@ -493,7 +504,7 @@ R_Init(void)
 	glCullFace(GL_BACK);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	R_SetShader(R_S_BASE);
+	//R_SetShader(R_S_BASE);
 	
 	return 0;
 }
@@ -501,7 +512,7 @@ R_Init(void)
 bool
 R_LightEnabled(usize Idx)
 {
-	return R_Lights[Idx][3] > 0.0f;
+	return R_State.Lights[Idx][3] > 0.0f;
 }
 
 void
@@ -517,11 +528,11 @@ R_GetRenderBounds(i32 *OutW, i32 *OutH)
 void
 R_BeginShadow(usize Idx)
 {
-	vec3 LightPos = {R_Lights[Idx][0], R_Lights[Idx][1], R_Lights[Idx][2]};
+	vec3 LightPos = {R_State.Lights[Idx][0], R_State.Lights[Idx][1], R_State.Lights[Idx][2]};
 	f32 Aspect = (f32)O_SHADOW_MAP_SIZE / (f32)O_SHADOW_MAP_SIZE;
 	
 	glViewport(0, 0, O_SHADOW_MAP_SIZE, O_SHADOW_MAP_SIZE);
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, R_ShadowFbos[Idx]);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, R_State.ShadowFBOs[Idx]);
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
 	glClear(GL_DEPTH_BUFFER_BIT);
@@ -542,11 +553,11 @@ R_BeginShadow(usize Idx)
 	glm_perspective(GLM_PI / 2.0f, Aspect, O_CAM_CLIP_NEAR, O_CAM_CLIP_FAR, ProjMat);
 	
 	// upload uniforms.
-	glUniform3fv(R_ILightPos, 1, (f32 *)LightPos);
-	glUniformMatrix4fv(R_IModelMats, 1, GL_FALSE, (f32 *)ModelMat);
-	glUniformMatrix4fv(R_IShadowViewMats, 6, GL_FALSE, (f32 *)ShadowViewMats);
-	glUniformMatrix4fv(R_IProjMat, 1, GL_FALSE, (f32 *)ProjMat);
-	glUniform4fv(R_ILights, O_MAX_LIGHTS, (f32 *)&R_Lights[0]);
+	glUniform3fv(R_Uniforms.LightPos, 1, (f32 *)LightPos);
+	glUniformMatrix4fv(R_Uniforms.ModelMats, 1, GL_FALSE, (f32 *)ModelMat);
+	glUniformMatrix4fv(R_Uniforms.ShadowViewMats, 6, GL_FALSE, (f32 *)ShadowViewMats);
+	glUniformMatrix4fv(R_Uniforms.ProjMat, 1, GL_FALSE, (f32 *)ProjMat);
+	glUniform4fv(R_Uniforms.Lights, O_MAX_LIGHTS, (f32 *)&R_State.Lights[0]);
 }
 
 void
@@ -557,7 +568,7 @@ R_BeginBase(void)
 	f32 Aspect = (f32)w / (f32)h;
 	
 	glViewport(0, 0, w / O_PIXELATION, h / O_PIXELATION);
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, R_RFrameBuffer);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, R_State.FrameBuffer);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -576,19 +587,19 @@ R_BeginBase(void)
 	glm_perspective(O_CAM_FOV, Aspect, O_CAM_CLIP_NEAR, O_CAM_CLIP_FAR, ProjMat);
 	
 	// upload uniforms.
-	glUniformMatrix4fv(R_IViewMat, 1, GL_FALSE, (f32 *)ViewMat);
-	glUniformMatrix4fv(R_IProjMat, 1, GL_FALSE, (f32 *)ProjMat);
-	glUniform4fv(R_ILights, O_MAX_LIGHTS, (f32 *)&R_Lights[0]);
-	glUniform1f(R_IFadeBrightness, R_FadeBrightness);
+	glUniformMatrix4fv(R_Uniforms.ViewMat, 1, GL_FALSE, (f32 *)ViewMat);
+	glUniformMatrix4fv(R_Uniforms.ProjMat, 1, GL_FALSE, (f32 *)ProjMat);
+	glUniform4fv(R_Uniforms.Lights, O_MAX_LIGHTS, (f32 *)&R_State.Lights[0]);
+	glUniform1f(R_Uniforms.FadeBrightness, R_State.FadeBrightness);
 	
 	u32 ShadowMapSamplers[O_MAX_LIGHTS] = {0};
 	for (usize i = 0; i < O_MAX_LIGHTS; ++i)
 	{
 		glActiveTexture(GL_TEXTURE1 + i);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, R_ShadowMaps[i]);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, R_State.ShadowMaps[i]);
 		ShadowMapSamplers[i] = 1 + i;
 	}
-	glUniform1iv(R_IShadowMaps, O_MAX_LIGHTS, (i32 *)ShadowMapSamplers);
+	glUniform1iv(R_Uniforms.ShadowMaps, O_MAX_LIGHTS, (i32 *)ShadowMapSamplers);
 }
 
 void
@@ -598,7 +609,7 @@ R_BeginOverlay(void)
 	SDL_GetWindowSize(R_Wnd, &w, &h);
 	
 	glViewport(0, 0, w / O_PIXELATION, h / O_PIXELATION);
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, R_RFrameBuffer);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, R_State.FrameBuffer);
 	glDisable(GL_DEPTH_TEST);
 	
 	// compute matrices.
@@ -606,7 +617,7 @@ R_BeginOverlay(void)
 	glm_ortho(0.0f, w / O_PIXELATION, 0.0f, h / O_PIXELATION, -1.0f, 1.0f, ProjMat);
 	
 	// upload uniforms.
-	glUniformMatrix4fv(R_IProjMat, 1, GL_FALSE, (f32 *)ProjMat);
+	glUniformMatrix4fv(R_Uniforms.ProjMat, 1, GL_FALSE, (f32 *)ProjMat);
 }
 
 void
@@ -615,7 +626,7 @@ R_Present(void)
 	i32 w, h;
 	SDL_GetWindowSize(R_Wnd, &w, &h);
 	
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, R_RFrameBuffer);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, R_State.FrameBuffer);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	glBlitFramebuffer(
 		0,
@@ -636,20 +647,20 @@ void
 R_HandleResize(i32 x, i32 y)
 {
 	// regenerate frame buffer.
-	glDeleteBuffers(1, &R_RColorBuffer);
-	glGenRenderbuffers(1, &R_RColorBuffer);
-	glDeleteBuffers(1, &R_RDepthBuffer);
-	glGenRenderbuffers(1, &R_RDepthBuffer);
+	glDeleteBuffers(1, &R_State.ColorBuffer);
+	glGenRenderbuffers(1, &R_State.ColorBuffer);
+	glDeleteBuffers(1, &R_State.DepthBuffer);
+	glGenRenderbuffers(1, &R_State.DepthBuffer);
 	
-	glBindFramebuffer(GL_FRAMEBUFFER, R_RFrameBuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, R_State.FrameBuffer);
 	
-	glBindRenderbuffer(GL_RENDERBUFFER, R_RColorBuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, R_State.ColorBuffer);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB, x / O_PIXELATION, y / O_PIXELATION);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, R_RColorBuffer);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, R_State.ColorBuffer);
 	
-	glBindRenderbuffer(GL_RENDERBUFFER, R_RDepthBuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, R_State.DepthBuffer);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, x / O_PIXELATION, y / O_PIXELATION);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, R_RDepthBuffer);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, R_State.DepthBuffer);
 }
 
 void
@@ -660,16 +671,16 @@ R_SetShader(R_Shader s)
 	glUseProgram(p);
 	
 	// set uniforms.
-	R_IModelMats = glGetUniformLocation(p, "i_ModelMats");
-	R_INormalMats = glGetUniformLocation(p, "i_NormalMats");
-	R_IViewMat = glGetUniformLocation(p, "i_ViewMat");
-	R_IProjMat = glGetUniformLocation(p, "i_ProjMat");
-	R_ITex = glGetUniformLocation(p, "i_Tex");
-	R_ILights = glGetUniformLocation(p, "i_Lights");
-	R_IShadowMaps = glGetUniformLocation(p, "i_ShadowMaps");
-	R_ILightPos = glGetUniformLocation(p, "i_LightPos");
-	R_IShadowViewMats = glGetUniformLocation(p, "i_ShadowViewMats");
-	R_IFadeBrightness = glGetUniformLocation(p, "i_FadeBrightness");
+	R_Uniforms.ModelMats = glGetUniformLocation(p, "i_ModelMats");
+	R_Uniforms.NormalMats = glGetUniformLocation(p, "i_NormalMats");
+	R_Uniforms.ViewMat = glGetUniformLocation(p, "i_ViewMat");
+	R_Uniforms.ProjMat = glGetUniformLocation(p, "i_ProjMat");
+	R_Uniforms.Tex = glGetUniformLocation(p, "i_Tex");
+	R_Uniforms.Lights = glGetUniformLocation(p, "i_Lights");
+	R_Uniforms.ShadowMaps = glGetUniformLocation(p, "i_ShadowMaps");
+	R_Uniforms.LightPos = glGetUniformLocation(p, "i_LightPos");
+	R_Uniforms.ShadowViewMats = glGetUniformLocation(p, "i_ShadowViewMats");
+	R_Uniforms.FadeBrightness = glGetUniformLocation(p, "i_FadeBrightness");
 }
 
 void
@@ -677,7 +688,7 @@ R_SetTexture(R_Texture t)
 {
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, R_Textures[t].Tex);
-	glUniform1i(R_ITex, 0);
+	glUniform1i(R_Uniforms.Tex, 0);
 }
 
 void
@@ -691,8 +702,8 @@ R_RenderModel(R_Model m, vec3 Pos, vec3 Rot, vec3 Scale)
 	MakeNormalMat(ModelMat, NormalMat);
 	
 	// render model.
-	glUniformMatrix4fv(R_IModelMats, 1, GL_FALSE, (f32 *)ModelMat);
-	glUniformMatrix3fv(R_INormalMats, 1, GL_FALSE, (f32 *)NormalMat);
+	glUniformMatrix4fv(R_Uniforms.ModelMats, 1, GL_FALSE, (f32 *)ModelMat);
+	glUniformMatrix3fv(R_Uniforms.NormalMats, 1, GL_FALSE, (f32 *)NormalMat);
 	glBindVertexArray(R_Models[m].VAO);
 	glDrawElements(GL_TRIANGLES, R_Models[m].IdxCnt, GL_UNSIGNED_INT, 0);
 }
@@ -700,17 +711,17 @@ R_RenderModel(R_Model m, vec3 Pos, vec3 Rot, vec3 Scale)
 i32
 R_PutLight(vec3 Pos, f32 Intensity)
 {
-	if (R_LightCnt >= O_MAX_LIGHTS) {return -1;}
+	if (R_State.LightCnt >= O_MAX_LIGHTS) {return -1;}
 	
 	vec4 NewLight = {Pos[0], Pos[1], Pos[2], Intensity};
-	glm_vec4_copy(NewLight, R_Lights[R_LightCnt]);
-	return R_LightCnt++;
+	glm_vec4_copy(NewLight, R_State.Lights[R_State.LightCnt]);
+	return R_State.LightCnt++;
 }
 
 void
 R_SetLightIntensity(usize Idx, f32 Intensity)
 {
-	R_Lights[Idx][3] = Intensity;
+	R_State.Lights[Idx][3] = Intensity;
 }
 
 void
@@ -736,7 +747,7 @@ R_RenderText(R_Font f, char const *Text, i32 x, i32 y, i32 w, i32 h)
 	);
 	SolidSurf->h = SolidSurf->h < h ? SolidSurf->h : h;
 	
-	SDL_Surface *RgbaSurf = SDL_ConvertSurfaceFormat(SolidSurf, SDL_PIXELFORMAT_RGBA8888, 0);
+	SDL_Surface *RGBASurf = SDL_ConvertSurfaceFormat(SolidSurf, SDL_PIXELFORMAT_RGBA8888, 0);
 	SDL_FreeSurface(SolidSurf);
 	
 	u32 Tex;
@@ -751,29 +762,29 @@ R_RenderText(R_Font f, char const *Text, i32 x, i32 y, i32 w, i32 h)
 		GL_TEXTURE_2D,
 		0,
 		GL_RGBA,
-		RgbaSurf->w,
-		RgbaSurf->h,
+		RGBASurf->w,
+		RGBASurf->h,
 		0,
 		GL_RGBA,
 		GL_UNSIGNED_BYTE,
-		RgbaSurf->pixels
+		RGBASurf->pixels
 	);
 	
-	y += h - RgbaSurf->h;
+	y += h - RGBASurf->h;
 	
 	// create transformation matrix.
 	vec3 Pos =
 	{
-		x + RgbaSurf->w / 2.0f,
-		y + RgbaSurf->h / 2.0f,
+		x + RGBASurf->w / 2.0f,
+		y + RGBASurf->h / 2.0f,
 		0.0f
 	};
 	
 	vec3 Scale =
 	{
-		RgbaSurf->w / 2.0f,
+		RGBASurf->w / 2.0f,
 		1.0f,
-		RgbaSurf->h / 2.0f
+		RGBASurf->h / 2.0f
 	};
 	
 	mat4 TransMat, RotMat, ScaleMat;
@@ -787,57 +798,57 @@ R_RenderText(R_Font f, char const *Text, i32 x, i32 y, i32 w, i32 h)
 	glm_mat4_mul(ModelMat, ScaleMat, ModelMat);
 	
 	// render model.
-	glUniformMatrix4fv(R_IModelMats, 1, GL_FALSE, (f32 *)ModelMat);
-	glUniform1i(R_ITex, GL_TEXTURE0);
+	glUniformMatrix4fv(R_Uniforms.ModelMats, 1, GL_FALSE, (f32 *)ModelMat);
+	glUniform1i(R_Uniforms.Tex, GL_TEXTURE0);
 	glBindVertexArray(R_Models[R_M_PLANE].VAO);
 	glDrawElements(GL_TRIANGLES, R_Models[R_M_PLANE].IdxCnt, GL_UNSIGNED_INT, NULL);
 	
 	glDeleteTextures(1, &Tex);
-	SDL_FreeSurface(RgbaSurf);
+	SDL_FreeSurface(RGBASurf);
 }
 
 void
 R_BatchRenderTile(vec3 Pos, vec3 Rot, vec3 Scale)
 {
-	if (R_BatchSize >= O_MAX_TILE_BATCH) {R_FlushTileBatch();}
+	if (R_State.BatchSize >= O_MAX_TILE_BATCH) {R_FlushTileBatch();}
 	
-	MakeXformMat(Pos, Rot, Scale, R_BatchModelMats[R_BatchSize]);
-	MakeNormalMat(R_BatchModelMats[R_BatchSize], R_BatchNormalMats[R_BatchSize]);
-	++R_BatchSize;
+	MakeXformMat(Pos, Rot, Scale, R_State.BatchModelMats[R_State.BatchSize]);
+	MakeNormalMat(R_State.BatchModelMats[R_State.BatchSize], R_State.BatchNormalMats[R_State.BatchSize]);
+	++R_State.BatchSize;
 }
 
 void
 R_FlushTileBatch(void)
 {
-	if (R_BatchSize == 0) {return;}
+	if (R_State.BatchSize == 0) {return;}
 	
-	glUniformMatrix4fv(R_IModelMats, R_BatchSize, GL_FALSE, (f32 *)R_BatchModelMats);
-	glUniformMatrix3fv(R_INormalMats, R_BatchSize, GL_FALSE, (f32 *)R_BatchNormalMats);
+	glUniformMatrix4fv(R_Uniforms.ModelMats, R_State.BatchSize, GL_FALSE, (f32 *)R_State.BatchModelMats);
+	glUniformMatrix3fv(R_Uniforms.NormalMats, R_State.BatchSize, GL_FALSE, (f32 *)R_State.BatchNormalMats);
 	glBindVertexArray(R_Models[R_M_PLANE].VAO);
-	glDrawElementsInstanced(GL_TRIANGLES, R_Models[R_M_PLANE].IdxCnt, GL_UNSIGNED_INT, NULL, R_BatchSize);
-	R_BatchSize = 0;
+	glDrawElementsInstanced(GL_TRIANGLES, R_Models[R_M_PLANE].IdxCnt, GL_UNSIGNED_INT, NULL, R_State.BatchSize);
+	R_State.BatchSize = 0;
 }
 
 void
 R_Update(void)
 {
 	// update fade brightness.
-	if (R_FS)
+	if (R_State.FadeStatus)
 	{
-		R_FadeBrightness += O_FADE_SPEED;
-		R_FadeBrightness = R_FadeBrightness > 1.0f ? 1.0f : R_FadeBrightness;
+		R_State.FadeBrightness += O_FADE_SPEED;
+		R_State.FadeBrightness = R_State.FadeBrightness > 1.0f ? 1.0f : R_State.FadeBrightness;
 	}
 	else
 	{
-		R_FadeBrightness -= O_FADE_SPEED;
-		R_FadeBrightness = R_FadeBrightness < 0.0f ? 0.0f : R_FadeBrightness;
+		R_State.FadeBrightness -= O_FADE_SPEED;
+		R_State.FadeBrightness = R_State.FadeBrightness < 0.0f ? 0.0f : R_State.FadeBrightness;
 	}
 }
 
 void
 R_Fade(R_FadeStatus FS)
 {
-	R_FS = FS;
+	R_State.FadeStatus = FS;
 }
 
 static void
