@@ -14,6 +14,6 @@ typedef enum T_TextboxSprite
 bool T_IsActive(void);
 void T_Show(T_TextboxSprite Sprite, char const *Msg);
 void T_Update(void);
-void T_Render(void);
+void T_RenderOverlay(void);
 
 #endif

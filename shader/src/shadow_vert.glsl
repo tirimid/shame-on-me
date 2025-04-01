@@ -1,10 +1,10 @@
 #version 430 core
 
-#define MAX_PLANE_BATCH $O_MAX_PLANE_BATCH
+#define MAX_TILE_BATCH $O_MAX_TILE_BATCH
 
 layout (location = 0) in vec3 i_Pos;
 
-uniform mat4 i_ModelMats[MAX_PLANE_BATCH];
+uniform mat4 i_ModelMats[MAX_TILE_BATCH];
 
 void
 main()

@@ -39,8 +39,10 @@ void C_SetTexture(C_Actor a, R_Texture t);
 void C_Wait(u64 MS);
 void C_Speak(T_TextboxSprite t, char const *Msg);
 void C_SwapModel(usize Idx, R_Model NewModel);
+void C_SetLightIntensity(usize Idx, f32 Intensity);
 void C_Update(void);
-void C_Render(void);
+void C_RenderTiles(void);
+void C_RenderModels(void);
 i64 C_PutProp(R_Model m, R_Texture t, vec3 Pos, vec3 Rot, vec3 Scale);
 
 #endif

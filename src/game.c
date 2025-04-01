@@ -21,11 +21,13 @@ static void G_SetupEnvironment(void);
 static void G_IntroSeq(void);
 
 static usize G_MainDoorProp, G_RoomDoorProp;
+static usize G_HallwayLight, G_EntryLight, G_RoomLight;
 
 void
 G_Loop(void)
 {
-	NEW_MICRO_TIMER(Timer);
+	NEW_MICRO_TIMER(LargeTimer);
+	NEW_MICRO_TIMER(StageTimer);
 	
 	G_SetupEnvironment();
 	
@@ -66,26 +68,33 @@ G_Loop(void)
 		R_Update();
 		
 		// render.
-		BEGIN_MICRO_TIMER(&Timer);
+		BEGIN_MICRO_TIMER(&LargeTimer);
+		
+		BEGIN_MICRO_TIMER(&StageTimer);
 		R_SetShader(R_S_SHADOW);
 		for (usize i = 0; i < O_MAX_LIGHTS; ++i)
 		{
+			if (!R_LightEnabled(i)) {continue;}
 			R_BeginShadow(i);
-			C_Render();
+			C_RenderTiles();
+			C_RenderModels();
 		}
-		END_MICRO_TIMER(Timer, "game: render shadows");
+		END_MICRO_TIMER(StageTimer, "game: render shadow");
 		
-		BEGIN_MICRO_TIMER(&Timer);
+		BEGIN_MICRO_TIMER(&StageTimer);
 		R_SetShader(R_S_BASE);
 		R_BeginBase();
-		C_Render();
-		END_MICRO_TIMER(Timer, "game: render base");
+		C_RenderTiles();
+		C_RenderModels();
+		END_MICRO_TIMER(StageTimer, "game: render base");
 		
-		BEGIN_MICRO_TIMER(&Timer);
+		BEGIN_MICRO_TIMER(&StageTimer);
 		R_SetShader(R_S_OVERLAY);
 		R_BeginOverlay();
-		if (T_IsActive()) {T_Render();}
-		END_MICRO_TIMER(Timer, "game: render overlay");
+		if (T_IsActive()) {T_RenderOverlay();}
+		END_MICRO_TIMER(StageTimer, "game: render overlay");
+		
+		END_MICRO_TIMER(LargeTimer, "game: render");
 		
 		R_Present();
 		
@@ -109,9 +118,9 @@ G_SetupEnvironment(void)
 	};
 	
 	// place lights.
-	R_PutLight((vec3){14.0f, 0.0f, 7.0f}, 1.5f);
-	R_PutLight((vec3){9.0f, 0.0f, 8.0f}, 1.5f);
-	R_PutLight((vec3){6.0f, 0.0f, 12.0f}, 1.5f);
+	G_HallwayLight = R_PutLight((vec3){14.0f, 0.0f, 7.0f}, 1.5f);
+	G_EntryLight = R_PutLight((vec3){9.0f, 0.0f, 8.0f}, 0.0f);
+	G_RoomLight = R_PutLight((vec3){6.0f, 0.0f, 12.0f}, 0.0f);
 	
 	// place props.
 	G_MainDoorProp = C_PutProp(
@@ -257,6 +266,7 @@ G_IntroSeq(void)
 	C_Speak(T_TS_ARKADY, "...");
 	C_Wait(2500);
 	C_TeleportTo(C_A_GERASIM, 'D');
+	C_SetLightIntensity(G_EntryLight, 1.5f);
 	C_SwapModel(G_MainDoorProp, R_M_DOOR_OPEN);
 	C_Wait(400);
 	C_Speak(T_TS_GERASIM, "...");
@@ -267,6 +277,7 @@ G_IntroSeq(void)
 	C_WalkTo(C_A_GERASIM, 'E');
 	C_WalkTo(C_A_ARKADY, 'D');
 	C_SwapModel(G_MainDoorProp, R_M_DOOR_CLOSED);
+	C_SetLightIntensity(G_HallwayLight, 0.0f);
 	C_LookAt(C_A_ARKADY, 'E');
 	C_Speak(T_TS_ARKADY, "Are the others already here?");
 	C_Speak(T_TS_GERASIM, "*He nods weightfully*");
@@ -277,9 +288,12 @@ G_IntroSeq(void)
 	C_Wait(800);
 	C_TeleportTo(C_A_MATTHEW, 'I');
 	C_TeleportTo(C_A_PETER, 'J');
+	C_SetLightIntensity(G_RoomLight, 1.5f);
 	C_SwapModel(G_RoomDoorProp, R_M_DOOR_OPEN);
 	C_Wait(200);
 	C_WalkTo(C_A_ARKADY, 'H');
+	C_SwapModel(G_RoomDoorProp, R_M_DOOR_CLOSED);
+	C_SetLightIntensity(G_EntryLight, 0.0f);
 	C_LookAt(C_A_ARKADY, 'J');
 	C_Wait(400);
 	C_LookAt(C_A_ARKADY, 'I');

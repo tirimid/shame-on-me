@@ -6,7 +6,7 @@ static char const *T_ActiveMsg;
 static u8 T_SpriteTextures[T_TS_END__] =
 {
 	R_T_SOMETHING, // arkady.
-	R_T_C_HEARTS_J, // peter.
+	R_T_EYES_DUMMY_FACE, // peter.
 	R_T_GLASSES_DUMMY_FACE, // matthew.
 	R_T_DUMMY_FACE // gerasim.
 };
@@ -33,7 +33,7 @@ T_Update(void)
 }
 
 void
-T_Render(void)
+T_RenderOverlay(void)
 {
 	i32 Rw, Rh;
 	R_GetRenderBounds(&Rw, &Rh);

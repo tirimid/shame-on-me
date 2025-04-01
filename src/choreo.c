@@ -13,7 +13,8 @@ typedef enum C_ActionType
 	C_AT_SET_TEXTURE,
 	C_AT_WAIT,
 	C_AT_SPEAK,
-	C_AT_SWAP_MODEL
+	C_AT_SWAP_MODEL,
+	C_AT_SET_LIGHT_INTENSITY
 } C_ActionType;
 
 typedef union C_Action
@@ -97,6 +98,13 @@ typedef union C_Action
 			usize PropIdx;
 			u8 NewModel;
 		} SwapModel;
+		
+		struct
+		{
+			u8 Type;
+			usize LightIdx;
+			f32 NewIntensity;
+		} SetLightIntensity;
 	} Data;
 } C_Action;
 
@@ -123,7 +131,7 @@ static C_ActorData C_Actors[C_A_END__] =
 	
 	// peter.
 	{
-		.ActiveTex = R_T_C_HEARTS_J
+		.ActiveTex = R_T_EYES_DUMMY
 	},
 	
 	// matthew.
@@ -301,6 +309,21 @@ C_SwapModel(usize Idx, R_Model NewModel)
 			.Type = C_AT_SWAP_MODEL,
 			.PropIdx = Idx,
 			.NewModel = NewModel
+		}
+	};
+}
+
+void
+C_SetLightIntensity(usize Idx, f32 Intensity)
+{
+	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS) {return;}
+	C_Actions[C_ActionCnt++] = (C_Action)
+	{
+		.Data.SetLightIntensity =
+		{
+			.Type = C_AT_SET_LIGHT_INTENSITY,
+			.LightIdx = Idx,
+			.NewIntensity = Intensity
 		}
 	};
 }
@@ -487,6 +510,12 @@ C_Update(void)
 	case C_AT_SWAP_MODEL:
 		C_Props[Action->Data.SwapModel.PropIdx].Model = Action->Data.SwapModel.NewModel;
 		break;
+	case C_AT_SET_LIGHT_INTENSITY:
+		R_SetLightIntensity(
+			Action->Data.SetLightIntensity.LightIdx,
+			Action->Data.SetLightIntensity.NewIntensity
+		);
+		break;
 	}
 	
 	// dequeue completed action.
@@ -494,7 +523,7 @@ C_Update(void)
 }
 
 void
-C_Render(void)
+C_RenderTiles(void)
 {
 	// draw floor.
 	R_SetTexture(R_T_FLOOR);
@@ -504,7 +533,7 @@ C_Render(void)
 		{
 			if (C_Map.Data[C_Map.w * y + x] != '#')
 			{
-				R_BatchRenderPlane(
+				R_BatchRenderTile(
 					(vec3){x, -1.5f, y},
 					(vec3){GLM_PI, 0.0f, 0.0f},
 					(vec3){0.5f, 1.0f, 0.5f}
@@ -513,7 +542,7 @@ C_Render(void)
 		}
 	}
 	
-	R_FlushPlaneBatch();
+	R_FlushTileBatch();
 	
 	// draw ceiling.
 	R_SetTexture(R_T_CEILING);
@@ -523,7 +552,7 @@ C_Render(void)
 		{
 			if (C_Map.Data[C_Map.w * y + x] != '#')
 			{
-				R_BatchRenderPlane(
+				R_BatchRenderTile(
 					(vec3){x, 0.5f, y},
 					(vec3){0.0f, 0.0f, 0.0f},
 					(vec3){0.5f, 1.0f, 0.5f}
@@ -532,7 +561,7 @@ C_Render(void)
 		}
 	}
 	
-	R_FlushPlaneBatch();
+	R_FlushTileBatch();
 	
 	// draw walls.
 	R_SetTexture(R_T_WALL);
@@ -543,22 +572,22 @@ C_Render(void)
 		{
 			if (C_Map.Data[C_Map.w * y + x] == '#')
 			{
-				R_BatchRenderPlane(
+				R_BatchRenderTile(
 					(vec3){x + 0.5f, -0.5f, y},
 					(vec3){-GLM_PI / 2.0f, 0.0f, GLM_PI / 2.0f},
 					(vec3){0.5f, 0.5f, 1.0f}
 				);
-				R_BatchRenderPlane(
+				R_BatchRenderTile(
 					(vec3){x - 0.5f, -0.5f, y},
 					(vec3){GLM_PI / 2.0f, GLM_PI, GLM_PI / 2.0f},
 					(vec3){0.5f, 0.5f, 1.0f}
 				);
-				R_BatchRenderPlane(
+				R_BatchRenderTile(
 					(vec3){x, -0.5f, y + 0.5f},
 					(vec3){-GLM_PI / 2.0f, 0.0f, 0.0f},
 					(vec3){0.5f, 1.0f, 1.0f}
 				);
-				R_BatchRenderPlane(
+				R_BatchRenderTile(
 					(vec3){x, -0.5f, y - 0.5f},
 					(vec3){GLM_PI / 2.0f, GLM_PI, 0.0f},
 					(vec3){0.5f, 1.0f, 1.0f}
@@ -569,12 +598,12 @@ C_Render(void)
 	
 	for (u32 x = 0; x < C_Map.w; ++x)
 	{
-		R_BatchRenderPlane(
+		R_BatchRenderTile(
 			(vec3){x, -0.5f, -0.5f},
 			(vec3){-GLM_PI / 2.0f, 0.0f, 0.0f},
 			(vec3){0.5f, 1.0f, 1.0f}
 		);
-		R_BatchRenderPlane(
+		R_BatchRenderTile(
 			(vec3){x, -0.5f, C_Map.h - 0.5f},
 			(vec3){GLM_PI / 2.0f, GLM_PI, 0.0f},
 			(vec3){0.5f, 1.0f, 1.0f}
@@ -583,20 +612,24 @@ C_Render(void)
 	
 	for (u32 y = 0; y < C_Map.h; ++y)
 	{
-		R_BatchRenderPlane(
+		R_BatchRenderTile(
 			(vec3){-0.5f, -0.5f, y},
 			(vec3){-GLM_PI / 2.0f, 0.0f, GLM_PI / 2.0f},
 			(vec3){0.5f, 0.5f, 1.0f}
 		);
-		R_BatchRenderPlane(
+		R_BatchRenderTile(
 			(vec3){C_Map.w - 0.5f, -0.5f, y},
 			(vec3){GLM_PI / 2.0f, GLM_PI, GLM_PI / 2.0f},
 			(vec3){0.5f, 0.5f, 1.0f}
 		);
 	}
 	
-	R_FlushPlaneBatch();
-	
+	R_FlushTileBatch();
+}
+
+void
+C_RenderModels(void)
+{
 	// draw all non-player characters.
 	for (usize i = C_A_ARKADY + 1; i < C_A_END__; ++i)
 	{

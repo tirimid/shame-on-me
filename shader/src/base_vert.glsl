@@ -1,13 +1,13 @@
 #version 430 core
 
-#define MAX_PLANE_BATCH $O_MAX_PLANE_BATCH
+#define MAX_TILE_BATCH $O_MAX_TILE_BATCH
 
 layout (location = 0) in vec3 i_Pos;
 layout (location = 1) in vec2 i_Texcoord;
 layout (location = 2) in vec3 i_Normal;
 
-uniform mat4 i_ModelMats[MAX_PLANE_BATCH];
-uniform mat3 i_NormalMats[MAX_PLANE_BATCH];
+uniform mat4 i_ModelMats[MAX_TILE_BATCH];
+uniform mat3 i_NormalMats[MAX_TILE_BATCH];
 uniform mat4 i_ViewMat;
 uniform mat4 i_ProjMat;
 

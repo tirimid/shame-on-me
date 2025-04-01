@@ -42,6 +42,8 @@
 #include "img/door_png.h"
 #include "img/dummy_png.h"
 #include "img/dummy_face_png.h"
+#include "img/eyes_dummy_png.h"
+#include "img/eyes_dummy_face_png.h"
 #include "img/floor_png.h"
 #include "img/glasses_dummy_png.h"
 #include "img/glasses_dummy_face_png.h"
@@ -153,8 +155,8 @@ static u32 R_ILightPos, R_IShadowViewMats;
 static f32 R_FadeBrightness = 0.0f;
 static R_FadeStatus R_FS;
 static u32 R_IFadeBrightness;
-static mat4 R_BatchModelMats[O_MAX_PLANE_BATCH];
-static mat3 R_BatchNormalMats[O_MAX_PLANE_BATCH];
+static mat4 R_BatchModelMats[O_MAX_TILE_BATCH];
+static mat3 R_BatchNormalMats[O_MAX_TILE_BATCH];
 static usize R_BatchSize;
 
 // data tables.
@@ -227,7 +229,9 @@ static R_TextureData R_Textures[R_T_END__] =
 	R_INCLUDE_TEXTURE(door),
 	R_INCLUDE_TEXTURE(table),
 	R_INCLUDE_TEXTURE(window),
-	R_INCLUDE_TEXTURE(lightbulb)
+	R_INCLUDE_TEXTURE(lightbulb),
+	R_INCLUDE_TEXTURE(eyes_dummy),
+	R_INCLUDE_TEXTURE(eyes_dummy_face)
 };
 
 static R_FontData R_Fonts[R_F_END__] =
@@ -330,7 +334,7 @@ R_Init(void)
 			if (!Rc)
 			{
 				glGetShaderInfoLog(Geo, O_MAX_LOG_LEN, NULL, ShaderLog);
-				ShowError("render: failed to compile geometry shader - %s!", ShaderLog);
+				ShowError("render: failed to compile geometry shader %zu - %s!", i, ShaderLog);
 				return 1;
 			}
 		}
@@ -349,7 +353,7 @@ R_Init(void)
 		if (!Rc)
 		{
 			glGetShaderInfoLog(Vert, O_MAX_LOG_LEN, NULL, ShaderLog);
-			ShowError("render: failed to compile vertex shader - %s!", ShaderLog);
+			ShowError("render: failed to compile vertex shader %zu - %s!", i, ShaderLog);
 			return 1;
 		}
 		
@@ -367,7 +371,7 @@ R_Init(void)
 		if (!Rc)
 		{
 			glGetShaderInfoLog(Frag, O_MAX_LOG_LEN, NULL, ShaderLog);
-			ShowError("render: failed to compile fragment shader - %s!", ShaderLog);
+			ShowError("render: failed to compile fragment shader %zu - %s!", i, ShaderLog);
 			return 1;
 		}
 		
@@ -381,7 +385,7 @@ R_Init(void)
 		if (!Rc)
 		{
 			glGetProgramInfoLog(Prog, O_MAX_LOG_LEN, NULL, ShaderLog);
-			ShowError("render: failed to link shader program - %s!", ShaderLog);
+			ShowError("render: failed to link shader program %zu - %s!", i, ShaderLog);
 			return 1;
 		}
 		
@@ -494,10 +498,10 @@ R_Init(void)
 	return 0;
 }
 
-usize
-R_GetLightCnt(void)
+bool
+R_LightEnabled(usize Idx)
 {
-	return R_LightCnt;
+	return R_Lights[Idx][3] > 0.0f;
 }
 
 void
@@ -542,6 +546,7 @@ R_BeginShadow(usize Idx)
 	glUniformMatrix4fv(R_IModelMats, 1, GL_FALSE, (f32 *)ModelMat);
 	glUniformMatrix4fv(R_IShadowViewMats, 6, GL_FALSE, (f32 *)ShadowViewMats);
 	glUniformMatrix4fv(R_IProjMat, 1, GL_FALSE, (f32 *)ProjMat);
+	glUniform4fv(R_ILights, O_MAX_LIGHTS, (f32 *)&R_Lights[0]);
 }
 
 void
@@ -573,7 +578,7 @@ R_BeginBase(void)
 	// upload uniforms.
 	glUniformMatrix4fv(R_IViewMat, 1, GL_FALSE, (f32 *)ViewMat);
 	glUniformMatrix4fv(R_IProjMat, 1, GL_FALSE, (f32 *)ProjMat);
-	
+	glUniform4fv(R_ILights, O_MAX_LIGHTS, (f32 *)&R_Lights[0]);
 	glUniform1f(R_IFadeBrightness, R_FadeBrightness);
 	
 	u32 ShadowMapSamplers[O_MAX_LIGHTS] = {0};
@@ -699,8 +704,13 @@ R_PutLight(vec3 Pos, f32 Intensity)
 	
 	vec4 NewLight = {Pos[0], Pos[1], Pos[2], Intensity};
 	glm_vec4_copy(NewLight, R_Lights[R_LightCnt]);
-	glUniform4fv(R_ILights, O_MAX_LIGHTS, (f32 *)&R_Lights[0]);
 	return R_LightCnt++;
+}
+
+void
+R_SetLightIntensity(usize Idx, f32 Intensity)
+{
+	R_Lights[Idx][3] = Intensity;
 }
 
 void
@@ -787,9 +797,9 @@ R_RenderText(R_Font f, char const *Text, i32 x, i32 y, i32 w, i32 h)
 }
 
 void
-R_BatchRenderPlane(vec3 Pos, vec3 Rot, vec3 Scale)
+R_BatchRenderTile(vec3 Pos, vec3 Rot, vec3 Scale)
 {
-	if (R_BatchSize >= O_MAX_PLANE_BATCH) {R_FlushPlaneBatch();}
+	if (R_BatchSize >= O_MAX_TILE_BATCH) {R_FlushTileBatch();}
 	
 	MakeXformMat(Pos, Rot, Scale, R_BatchModelMats[R_BatchSize]);
 	MakeNormalMat(R_BatchModelMats[R_BatchSize], R_BatchNormalMats[R_BatchSize]);
@@ -797,7 +807,7 @@ R_BatchRenderPlane(vec3 Pos, vec3 Rot, vec3 Scale)
 }
 
 void
-R_FlushPlaneBatch(void)
+R_FlushTileBatch(void)
 {
 	if (R_BatchSize == 0) {return;}
 	
@@ -861,10 +871,10 @@ R_PreprocShader(char *Src, usize Len)
 			usize CL = snprintf(&Src[i], 15, "%f", O_CAM_CLIP_FAR);
 			memset(&Src[i + CL], ' ', 15 - CL);
 		}
-		else if (Len - i >= 18 && !strncmp(&Src[i], "$O_MAX_PLANE_BATCH", 18))
+		else if (Len - i >= 17 && !strncmp(&Src[i], "$O_MAX_TILE_BATCH", 17))
 		{
-			usize CL = snprintf(&Src[i], 18, "%u", O_MAX_PLANE_BATCH);
-			memset(&Src[i + CL], ' ', 18 - CL);
+			usize CL = snprintf(&Src[i], 17, "%u", O_MAX_TILE_BATCH);
+			memset(&Src[i + CL], ' ', 17 - CL);
 		}
 	}
 }

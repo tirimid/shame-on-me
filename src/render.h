@@ -75,6 +75,8 @@ typedef enum R_Texture
 	R_T_TABLE,
 	R_T_WINDOW,
 	R_T_LIGHTBULB,
+	R_T_EYES_DUMMY,
+	R_T_EYES_DUMMY_FACE,
 	
 	R_T_END__
 } R_Texture;
@@ -101,7 +103,7 @@ typedef struct R_Camera
 extern R_Camera R_Cam;
 
 i32 R_Init(void);
-usize R_GetLightCnt(void);
+bool R_LightEnabled(usize Idx);
 void R_GetRenderBounds(i32 *OutW, i32 *OutH);
 void R_BeginShadow(usize Idx);
 void R_BeginBase(void);
@@ -112,10 +114,11 @@ void R_SetShader(R_Shader s);
 void R_SetTexture(R_Texture t);
 void R_RenderModel(R_Model m, vec3 Pos, vec3 Rot, vec3 Scale);
 i32 R_PutLight(vec3 Pos, f32 Intensity);
+void R_SetLightIntensity(usize Idx, f32 Intensity);
 void R_RenderRect(R_Texture t, i32 x, i32 y, i32 w, i32 h);
 void R_RenderText(R_Font f, char const *Text, i32 x, i32 y, i32 w, i32 h);
-void R_BatchRenderPlane(vec3 Pos, vec3 Rot, vec3 Scale);
-void R_FlushPlaneBatch(void);
+void R_BatchRenderTile(vec3 Pos, vec3 Rot, vec3 Scale);
+void R_FlushTileBatch(void);
 void R_Update(void);
 void R_Fade(R_FadeStatus FS);
 
