@@ -7,6 +7,9 @@ typedef enum R_Model
 	R_M_CUBE,
 	R_M_DOOR_OPEN,
 	R_M_DOOR_CLOSED,
+	R_M_TABLE,
+	R_M_WINDOW,
+	R_M_LIGHTBULB,
 	
 	R_M_END__
 } R_Model;
@@ -69,6 +72,9 @@ typedef enum R_Texture
 	R_T_C_HEARTS_K,
 	R_T_C_HEARTS_A,
 	R_T_DOOR,
+	R_T_TABLE,
+	R_T_WINDOW,
+	R_T_LIGHTBULB,
 	
 	R_T_END__
 } R_Texture;

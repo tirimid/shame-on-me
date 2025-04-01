@@ -45,12 +45,18 @@
 #include "img/floor_png.h"
 #include "img/glasses_dummy_png.h"
 #include "img/glasses_dummy_face_png.h"
+#include "img/lightbulb_png.h"
 #include "img/something_png.h"
+#include "img/table_png.h"
 #include "img/wall_png.h"
+#include "img/window_png.h"
 #include "model/cube_obj.h"
 #include "model/door_closed_obj.h"
 #include "model/door_open_obj.h"
+#include "model/lightbulb_obj.h"
 #include "model/plane_obj.h"
+#include "model/table_obj.h"
+#include "model/window_obj.h"
 #include "shader/base_frag_glsl.h"
 #include "shader/base_vert_glsl.h"
 #include "shader/overlay_frag_glsl.h"
@@ -157,14 +163,17 @@ static R_ModelData R_Models[R_M_END__] =
 	R_INCLUDE_MODEL(plane),
 	R_INCLUDE_MODEL(cube),
 	R_INCLUDE_MODEL(door_open),
-	R_INCLUDE_MODEL(door_closed)
+	R_INCLUDE_MODEL(door_closed),
+	R_INCLUDE_MODEL(table),
+	R_INCLUDE_MODEL(window),
+	R_INCLUDE_MODEL(lightbulb)
 };
 
 static R_ShaderData R_Shaders[R_S_END__] =
 {
 	R_INCLUDE_SHADER(base),
 	R_INCLUDE_SHADER(overlay),
-	R_INCLUDE_GEO_SHADER(shadow),
+	R_INCLUDE_GEO_SHADER(shadow)
 };
 
 static R_TextureData R_Textures[R_T_END__] =
@@ -215,7 +224,10 @@ static R_TextureData R_Textures[R_T_END__] =
 	R_INCLUDE_TEXTURE(c_hearts_q),
 	R_INCLUDE_TEXTURE(c_hearts_k),
 	R_INCLUDE_TEXTURE(c_hearts_a),
-	R_INCLUDE_TEXTURE(door)
+	R_INCLUDE_TEXTURE(door),
+	R_INCLUDE_TEXTURE(table),
+	R_INCLUDE_TEXTURE(window),
+	R_INCLUDE_TEXTURE(lightbulb)
 };
 
 static R_FontData R_Fonts[R_F_END__] =

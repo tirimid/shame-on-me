@@ -33,14 +33,14 @@
 #define O_MAX_LIGHTS 4
 #define O_AMBIENT_LIGHT 0.05f
 #define O_LIGHT_STEP 0.1f
-#define O_SHADOW_BIAS 0.4f
+#define O_SHADOW_BIAS 0.15f
 #define O_PIXELATION 6.0f
 #define O_CAM_FOV (GLM_PI / 2.5f)
 #define O_CAM_CLIP_NEAR 0.1f
 #define O_CAM_CLIP_FAR 500.0f
 #define O_FONT_PT 14
 #define O_FONT_COLOR {255, 255, 255, 255}
-#define O_SHADOW_MAP_SIZE 512
+#define O_SHADOW_MAP_SIZE 1024
 #define O_MAX_PLANE_BATCH 128
 
 #endif
