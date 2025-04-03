@@ -38,7 +38,9 @@ main()
 {
 	vec4 Pix = texture(i_Tex, v_Texcoord);
 	if (Pix.a == 0.0)
+	{
 		discard;
+	}
 
 	float Brightness = 0.0;
 

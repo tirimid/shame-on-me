@@ -573,10 +573,7 @@ C_Update(void)
 		Action->Wait.MS -= O_TICK_MS;
 		return;
 	case C_AT_SPEAK:
-		if (!T_IsActive())
-		{
-			T_Show(Action->Speak.TextSprite, Action->Speak.Msg);
-		}
+		T_Show(Action->Speak.TextSprite, Action->Speak.Msg);
 		if (I_KeyPressed(O_KEY_NEXT))
 		{
 			break;
@@ -711,11 +708,14 @@ C_RenderModels(void)
 	// draw all non-player characters.
 	for (usize i = C_A_ARKADY + 1; i < C_A_END__; ++i)
 	{
-		C_ActorData *Player = &C_Actors[C_A_ARKADY];
+		vec3 CamPos;
+		R_EffectiveCameraState(CamPos, NULL, NULL);
+		
+		vec2 LookPos = {CamPos[0], CamPos[2]};
 		C_ActorData *a = &C_Actors[i];
 		
 		vec2 Dir;
-		glm_vec2_sub(Player->Pos, a->Pos, Dir);
+		glm_vec2_sub(LookPos, a->Pos, Dir);
 		glm_vec2_normalize(Dir);
 		f32 Yaw = atan2f(Dir[0], -Dir[1]);
 		

@@ -512,7 +512,6 @@ R_Init(void)
 	glCullFace(GL_BACK);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	//R_SetShader(R_S_BASE);
 	
 	return 0;
 }
@@ -887,10 +886,19 @@ R_PanCamera(vec3 Pos, f32 Pitch, f32 Yaw)
 void
 R_EffectiveCameraState(vec3 OutPos, f32 *OutPitch, f32 *OutYaw)
 {
-	glm_vec3_copy(R_Cam.Base.Pos, OutPos);
-	glm_vec3_add(R_Cam.Pan.Pos, OutPos, OutPos);
-	*OutPitch = R_Cam.Base.Pitch + R_Cam.Pan.Pitch;
-	*OutYaw = R_Cam.Base.Yaw + R_Cam.Pan.Yaw;
+	if (OutPos)
+	{
+		glm_vec3_copy(R_Cam.Base.Pos, OutPos);
+		glm_vec3_add(R_Cam.Pan.Pos, OutPos, OutPos);
+	}
+	if (OutPitch)
+	{
+		*OutPitch = R_Cam.Base.Pitch + R_Cam.Pan.Pitch;
+	}
+	if (OutYaw)
+	{
+		*OutYaw = R_Cam.Base.Yaw + R_Cam.Pan.Yaw;
+	}
 }
 
 static void

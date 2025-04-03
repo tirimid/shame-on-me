@@ -20,6 +20,11 @@ T_IsActive(void)
 void
 T_Show(T_TextboxSprite Sprite, char const *Msg)
 {
+	if (T_Active)
+	{
+		return;
+	}
+	
 	T_Active = true;
 	T_ActiveSprite = Sprite;
 	T_ActiveMsg = Msg;
@@ -42,6 +47,11 @@ T_Update(void)
 void
 T_RenderOverlay(void)
 {
+	if (!T_Active)
+	{
+		return;
+	}
+	
 	i32 Rw, Rh;
 	R_GetRenderBounds(&Rw, &Rh);
 	

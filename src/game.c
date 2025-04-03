@@ -81,6 +81,7 @@ G_Loop(void)
 			R_BeginShadow(i);
 			C_RenderTiles();
 			C_RenderModels();
+			D_RenderCards();
 		}
 		END_MICRO_TIMER(StageTimer, "game: render shadow");
 		
@@ -89,15 +90,14 @@ G_Loop(void)
 		R_BeginBase();
 		C_RenderTiles();
 		C_RenderModels();
+		D_RenderCards();
 		END_MICRO_TIMER(StageTimer, "game: render base");
 		
 		BEGIN_MICRO_TIMER(&StageTimer);
 		R_SetShader(R_S_OVERLAY);
 		R_BeginOverlay();
-		if (T_IsActive())
-		{
-			T_RenderOverlay();
-		}
+		T_RenderOverlay();
+		D_RenderOverlay();
 		END_MICRO_TIMER(StageTimer, "game: render overlay");
 		
 		END_MICRO_TIMER(LargeTimer, "game: render");
@@ -392,5 +392,6 @@ G_FastIntroSeq(void)
 	C_SetLightIntensity(G_RoomLight, 1.5f);
 	C_Wait(500);
 	C_Speak(T_TS_MATTHEW, "Well then, shall we start?");
-	C_PanCamera((vec3){0.0f, 0.4f, 0.6f}, -50.0f, 0.0f);
+	C_PanCamera((vec3){0.0f, 0.8f, 1.4f}, -75.0f, 0.0f);
+	C_Wait(1000);
 }
