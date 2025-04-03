@@ -5,7 +5,7 @@ DEFINES="-DPROFILE"
 #DEFINES=""
 WARNINGS="-Wall -Wextra"
 LIBRARIES="$(pkg-config --cflags --libs sdl2 gl SDL2_mixer SDL2_ttf SDL2_image cglm glew) -lm"
-CFLAGS="-std=c99 -pedantic -march=native -O3"
+CFLAGS="-std=c99 -pedantic -O3"
 
 CC=gcc
 CFLAGS_FULL="$INCLUDE $DEFINES $WARNINGS $CFLAGS $LIBRARIES"

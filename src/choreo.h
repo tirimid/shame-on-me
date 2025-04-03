@@ -40,6 +40,7 @@ void C_Wait(u64 MS);
 void C_Speak(T_TextboxSprite t, char const *Msg);
 void C_SwapModel(usize Idx, R_Model NewModel);
 void C_SetLightIntensity(usize Idx, f32 Intensity);
+void C_PanCamera(vec3 Pos, f32 PitchDeg, f32 YawDeg);
 void C_Update(void);
 void C_RenderTiles(void);
 void C_RenderModels(void);

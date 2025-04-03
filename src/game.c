@@ -19,6 +19,7 @@
 
 static void G_SetupEnvironment(void);
 static void G_IntroSeq(void);
+static void G_FastIntroSeq(void);
 
 static usize G_MainDoorProp, G_RoomDoorProp;
 static usize G_HallwayLight, G_EntryLight, G_RoomLight;
@@ -30,8 +31,7 @@ G_Loop(void)
 	NEW_MICRO_TIMER(StageTimer);
 	
 	G_SetupEnvironment();
-	
-	G_IntroSeq();
+	G_FastIntroSeq();
 	
 	for (;;)
 	{
@@ -74,7 +74,10 @@ G_Loop(void)
 		R_SetShader(R_S_SHADOW);
 		for (usize i = 0; i < O_MAX_LIGHTS; ++i)
 		{
-			if (!R_LightEnabled(i)) {continue;}
+			if (!R_LightEnabled(i))
+			{
+				continue;
+			}
 			R_BeginShadow(i);
 			C_RenderTiles();
 			C_RenderModels();
@@ -91,7 +94,10 @@ G_Loop(void)
 		BEGIN_MICRO_TIMER(&StageTimer);
 		R_SetShader(R_S_OVERLAY);
 		R_BeginOverlay();
-		if (T_IsActive()) {T_RenderOverlay();}
+		if (T_IsActive())
+		{
+			T_RenderOverlay();
+		}
 		END_MICRO_TIMER(StageTimer, "game: render overlay");
 		
 		END_MICRO_TIMER(LargeTimer, "game: render");
@@ -358,4 +364,33 @@ G_IntroSeq(void)
 	C_Speak(T_TS_MATTHEW, "Do you know how to play Fool?");
 	C_Speak(T_TS_ARKADY, "No, I can't say I do...");
 	C_Speak(T_TS_MATTHEW, "That's alright, we'll show you how to play");
+	C_Wait(800);
+	C_Speak(T_TS_MATTHEW, "Well then, shall we start?");
+	
+	// TODO: work on normal intro sequence.
+}
+
+static void
+G_FastIntroSeq(void)
+{
+	R_Fade(R_FS_FADE_IN);
+	
+	C_SetLightIntensity(G_HallwayLight, 0.0f);
+	C_SetLightIntensity(G_EntryLight, 0.0f);
+	C_TeleportTo(C_A_ARKADY, 'K');
+	C_TeleportTo(C_A_PETER, 'J');
+	C_TeleportTo(C_A_MATTHEW, 'I');
+	C_TeleportTo(C_A_GERASIM, 'L');
+	C_LookAt(C_A_ARKADY, 'I');
+	C_Wait(2000);
+	C_SetLightIntensity(G_RoomLight, 1.5f);
+	C_Wait(80);
+	C_SetLightIntensity(G_RoomLight, 0.6f);
+	C_Wait(100);
+	C_SetLightIntensity(G_RoomLight, 1.1f);
+	C_Wait(600);
+	C_SetLightIntensity(G_RoomLight, 1.5f);
+	C_Wait(500);
+	C_Speak(T_TS_MATTHEW, "Well then, shall we start?");
+	C_PanCamera((vec3){0.0f, 0.4f, 0.6f}, -50.0f, 0.0f);
 }

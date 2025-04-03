@@ -14,98 +14,103 @@ typedef enum C_ActionType
 	C_AT_WAIT,
 	C_AT_SPEAK,
 	C_AT_SWAP_MODEL,
-	C_AT_SET_LIGHT_INTENSITY
+	C_AT_SET_LIGHT_INTENSITY,
+	C_AT_PAN_CAMERA
 } C_ActionType;
 
 typedef union C_Action
 {
 	u8 Type;
 	
-	union
+	struct
 	{
-		struct
-		{
-			u8 Type;
-			vec2 Dst;
-			u8 Actor;
-		} Teleport;
-		
-		struct
-		{
-			u8 Type;
-			char Point;
-			u8 Actor;
-		} TeleportTo;
-		
-		struct
-		{
-			u8 Type;
-			vec2 Dst;
-			u8 Actor;
-		} Walk;
-		
-		struct
-		{
-			u8 Type;
-			char Point;
-			u8 Actor;
-		} WalkTo;
-		
-		struct
-		{
-			u8 Type;
-			f32 Pitch, Yaw;
-			u8 Actor;
-		} Look;
-		
-		struct
-		{
-			u8 Type;
-			char Point;
-			u8 Actor;
-		} LookAt;
-		
-		struct
-		{
-			u8 Type;
-			char Point;
-			u8 Actor;
-		} LookWalkTo;
-		
-		struct
-		{
-			u8 Type;
-			u8 Tex;
-			u8 Actor;
-		} SetTexture;
-		
-		struct
-		{
-			u8 Type;
-			i64 MS;
-		} Wait;
-		
-		struct
-		{
-			u8 Type;
-			char const *Msg;
-			u8 TextSprite;
-		} Speak;
-		
-		struct
-		{
-			u8 Type;
-			usize PropIdx;
-			u8 NewModel;
-		} SwapModel;
-		
-		struct
-		{
-			u8 Type;
-			usize LightIdx;
-			f32 NewIntensity;
-		} SetLightIntensity;
-	} Data;
+		u8 Type;
+		u8 Actor;
+		vec2 Dst;
+	} Teleport;
+	
+	struct
+	{
+		u8 Type;
+		char Point;
+		u8 Actor;
+	} TeleportTo;
+	
+	struct
+	{
+		u8 Type;
+		u8 Actor;
+		vec2 Dst;
+	} Walk;
+	
+	struct
+	{
+		u8 Type;
+		char Point;
+		u8 Actor;
+	} WalkTo;
+	
+	struct
+	{
+		u8 Type;
+		u8 Actor;
+		f32 Pitch, Yaw;
+	} Look;
+	
+	struct
+	{
+		u8 Type;
+		char Point;
+		u8 Actor;
+	} LookAt;
+	
+	struct
+	{
+		u8 Type;
+		char Point;
+		u8 Actor;
+	} LookWalkTo;
+	
+	struct
+	{
+		u8 Type;
+		u8 Tex;
+		u8 Actor;
+	} SetTexture;
+	
+	struct
+	{
+		u8 Type;
+		i64 MS;
+	} Wait;
+	
+	struct
+	{
+		u8 Type;
+		u8 TextSprite;
+		char const *Msg;
+	} Speak;
+	
+	struct
+	{
+		u8 Type;
+		u8 NewModel;
+		usize PropIdx;
+	} SwapModel;
+	
+	struct
+	{
+		u8 Type;
+		f32 NewIntensity;
+		usize LightIdx;
+	} SetLightIntensity;
+	
+	struct
+	{
+		u8 Type;
+		f32 Pitch, Yaw;
+		vec3 Pos;
+	} PanCamera;
 } C_Action;
 
 typedef struct C_ActorData
@@ -151,10 +156,13 @@ static usize C_ActionCnt;
 void
 C_Teleport(C_Actor a, vec2 Pos)
 {
-	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS) {return;}
+	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS)
+	{
+		return;
+	}
 	C_Actions[C_ActionCnt++] = (C_Action)
 	{
-		.Data.Teleport =
+		.Teleport =
 		{
 			.Type = C_AT_TELEPORT,
 			.Dst = {Pos[0], Pos[1]},
@@ -166,10 +174,13 @@ C_Teleport(C_Actor a, vec2 Pos)
 void
 C_TeleportTo(C_Actor a, char Point)
 {
-	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS) {return;}
+	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS)
+	{
+		return;
+	}
 	C_Actions[C_ActionCnt++] = (C_Action)
 	{
-		.Data.TeleportTo =
+		.TeleportTo =
 		{
 			.Type = C_AT_TELEPORT_TO,
 			.Point = Point,
@@ -181,10 +192,13 @@ C_TeleportTo(C_Actor a, char Point)
 void
 C_Walk(C_Actor a, vec2 Pos)
 {
-	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS) {return;}
+	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS)
+	{
+		return;
+	}
 	C_Actions[C_ActionCnt++] = (C_Action)
 	{
-		.Data.Walk =
+		.Walk =
 		{
 			.Type = C_AT_WALK,
 			.Dst = {Pos[0], Pos[1]},
@@ -196,10 +210,13 @@ C_Walk(C_Actor a, vec2 Pos)
 void
 C_WalkTo(C_Actor a, char Point)
 {
-	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS) {return;}
+	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS)
+	{
+		return;
+	}
 	C_Actions[C_ActionCnt++] = (C_Action)
 	{
-		.Data.WalkTo =
+		.WalkTo =
 		{
 			.Type = C_AT_WALK_TO,
 			.Point = Point,
@@ -211,10 +228,13 @@ C_WalkTo(C_Actor a, char Point)
 void
 C_Look(C_Actor a, f32 PitchDeg, f32 YawDeg)
 {
-	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS) {return;}
+	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS)
+	{
+		return;
+	}
 	C_Actions[C_ActionCnt++] = (C_Action)
 	{
-		.Data.Look =
+		.Look =
 		{
 			.Type = C_AT_LOOK,
 			.Pitch = glm_rad(PitchDeg),
@@ -227,10 +247,13 @@ C_Look(C_Actor a, f32 PitchDeg, f32 YawDeg)
 void
 C_LookAt(C_Actor a, char Point)
 {
-	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS) {return;}
+	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS)
+	{
+		return;
+	}
 	C_Actions[C_ActionCnt++] = (C_Action)
 	{
-		.Data.LookAt =
+		.LookAt =
 		{
 			.Type = C_AT_LOOK_AT,
 			.Point = Point,
@@ -242,10 +265,13 @@ C_LookAt(C_Actor a, char Point)
 void
 C_LookWalkTo(C_Actor a, char Point)
 {
-	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS) {return;}
+	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS)
+	{
+		return;
+	}
 	C_Actions[C_ActionCnt++] = (C_Action)
 	{
-		.Data.LookWalkTo =
+		.LookWalkTo =
 		{
 			.Type = C_AT_LOOK_WALK_TO,
 			.Point = Point,
@@ -257,10 +283,13 @@ C_LookWalkTo(C_Actor a, char Point)
 void
 C_SetTexture(C_Actor a, R_Texture t)
 {
-	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS) {return;}
+	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS)
+	{
+		return;
+	}
 	C_Actions[C_ActionCnt++] = (C_Action)
 	{
-		.Data.SetTexture =
+		.SetTexture =
 		{
 			.Type = C_AT_SET_TEXTURE,
 			.Tex = t,
@@ -272,10 +301,13 @@ C_SetTexture(C_Actor a, R_Texture t)
 void
 C_Wait(u64 MS)
 {
-	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS) {return;}
+	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS)
+	{
+		return;
+	}
 	C_Actions[C_ActionCnt++] = (C_Action)
 	{
-		.Data.Wait =
+		.Wait =
 		{
 			.Type = C_AT_WAIT,
 			.MS = MS
@@ -286,10 +318,13 @@ C_Wait(u64 MS)
 void
 C_Speak(T_TextboxSprite t, char const *Msg)
 {
-	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS) {return;}
+	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS)
+	{
+		return;
+	}
 	C_Actions[C_ActionCnt++] = (C_Action)
 	{
-		.Data.Speak =
+		.Speak =
 		{
 			.Type = C_AT_SPEAK,
 			.Msg = Msg,
@@ -301,10 +336,13 @@ C_Speak(T_TextboxSprite t, char const *Msg)
 void
 C_SwapModel(usize Idx, R_Model NewModel)
 {
-	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS) {return;}
+	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS)
+	{
+		return;
+	}
 	C_Actions[C_ActionCnt++] = (C_Action)
 	{
-		.Data.SwapModel =
+		.SwapModel =
 		{
 			.Type = C_AT_SWAP_MODEL,
 			.PropIdx = Idx,
@@ -316,14 +354,36 @@ C_SwapModel(usize Idx, R_Model NewModel)
 void
 C_SetLightIntensity(usize Idx, f32 Intensity)
 {
-	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS) {return;}
+	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS)
+	{
+		return;
+	}
 	C_Actions[C_ActionCnt++] = (C_Action)
 	{
-		.Data.SetLightIntensity =
+		.SetLightIntensity =
 		{
 			.Type = C_AT_SET_LIGHT_INTENSITY,
 			.LightIdx = Idx,
 			.NewIntensity = Intensity
+		}
+	};
+}
+
+void
+C_PanCamera(vec3 Pos, f32 PitchDeg, f32 YawDeg)
+{
+	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS)
+	{
+		return;
+	}
+	C_Actions[C_ActionCnt++] = (C_Action)
+	{
+		.PanCamera =
+		{
+			.Type = C_AT_PAN_CAMERA,
+			.Pos = {Pos[0], Pos[1], Pos[2]},
+			.Pitch = glm_rad(PitchDeg),
+			.Yaw = glm_rad(YawDeg)
 		}
 	};
 }
@@ -335,14 +395,17 @@ C_Update(void)
 	f32 VBob = fabs(sin(C_Actors[C_A_ARKADY].BobTime));
 	f32 HBob = fabs(cos(C_Actors[C_A_ARKADY].BobTime));
 	
-	R_Cam.Pos[0] = C_Actors[C_A_ARKADY].Pos[0] + O_HORIZ_BOB_INTENSITY * HBob;
-	R_Cam.Pos[1] = O_VERT_BOB_INTENSITY * VBob;
-	R_Cam.Pos[2] = C_Actors[C_A_ARKADY].Pos[1] + O_HORIZ_BOB_INTENSITY * HBob;
-	R_Cam.Pitch = C_Actors[C_A_ARKADY].Pitch;
-	R_Cam.Yaw = C_Actors[C_A_ARKADY].Yaw;
+	R_Cam.Base.Pos[0] = C_Actors[C_A_ARKADY].Pos[0] + O_HORIZ_BOB_INTENSITY * HBob;
+	R_Cam.Base.Pos[1] = O_VERT_BOB_INTENSITY * VBob;
+	R_Cam.Base.Pos[2] = C_Actors[C_A_ARKADY].Pos[1] + O_HORIZ_BOB_INTENSITY * HBob;
+	R_Cam.Base.Pitch = C_Actors[C_A_ARKADY].Pitch;
+	R_Cam.Base.Yaw = C_Actors[C_A_ARKADY].Yaw;
 	
 	// update choreography actions.
-	if (C_ActionCnt == 0) {return;}
+	if (C_ActionCnt == 0)
+	{
+		return;
+	}
 	
 	C_Action *Action = &C_Actions[0];
 	
@@ -350,29 +413,29 @@ C_Update(void)
 	{
 	case C_AT_TELEPORT:
 	{
-		C_ActorData *Actor = &C_Actors[Action->Data.Teleport.Actor];
-		Actor->Pos[0] = Action->Data.Teleport.Dst[0];
-		Actor->Pos[1] = Action->Data.Teleport.Dst[1];
+		C_ActorData *Actor = &C_Actors[Action->Teleport.Actor];
+		Actor->Pos[0] = Action->Teleport.Dst[0];
+		Actor->Pos[1] = Action->Teleport.Dst[1];
 		break;
 	}
 	case C_AT_TELEPORT_TO:
 	{
-		C_ActorData *Actor = &C_Actors[Action->Data.TeleportTo.Actor];
-		C_GetPointPos(Action->Data.TeleportTo.Point, Actor->Pos);
+		C_ActorData *Actor = &C_Actors[Action->TeleportTo.Actor];
+		C_GetPointPos(Action->TeleportTo.Point, Actor->Pos);
 		break;
 	}
 	case C_AT_WALK:
 	{
-		C_ActorData *Actor = &C_Actors[Action->Data.Walk.Actor];
+		C_ActorData *Actor = &C_Actors[Action->Walk.Actor];
 		
-		if (glm_vec2_distance2(Actor->Pos, Action->Data.Walk.Dst) < C_WALK_DST_THRESHOLD2)
+		if (glm_vec2_distance2(Actor->Pos, Action->Walk.Dst) < C_WALK_DST_THRESHOLD2)
 		{
-			glm_vec2_copy(Action->Data.Walk.Dst, Actor->Pos);
+			glm_vec2_copy(Action->Walk.Dst, Actor->Pos);
 			break;
 		}
 		
 		vec2 Move = {0};
-		glm_vec2_sub(Action->Data.Walk.Dst, Actor->Pos, Move);
+		glm_vec2_sub(Action->Walk.Dst, Actor->Pos, Move);
 		glm_vec2_normalize(Move);
 		glm_vec2_scale(Move, O_WALK_SPEED, Move);
 		
@@ -383,10 +446,10 @@ C_Update(void)
 	}
 	case C_AT_WALK_TO:
 	{
-		C_ActorData *Actor = &C_Actors[Action->Data.WalkTo.Actor];
+		C_ActorData *Actor = &C_Actors[Action->WalkTo.Actor];
 		
 		vec2 Dst = {0};
-		C_GetPointPos(Action->Data.WalkTo.Point, Dst);
+		C_GetPointPos(Action->WalkTo.Point, Dst);
 		
 		if (glm_vec2_distance2(Actor->Pos, Dst) < C_WALK_DST_THRESHOLD2)
 		{
@@ -406,27 +469,27 @@ C_Update(void)
 	}
 	case C_AT_LOOK:
 	{
-		C_ActorData *Actor = &C_Actors[Action->Data.Look.Actor];
+		C_ActorData *Actor = &C_Actors[Action->Look.Actor];
 		
-		if (fabs(ShortestAngle(Action->Data.Look.Pitch, Actor->Pitch)) < C_LOOK_THRESHOLD
-			&& fabs(ShortestAngle(Action->Data.Look.Yaw, Actor->Yaw)) < C_LOOK_THRESHOLD)
+		if (fabs(ShortestAngle(Action->Look.Pitch, Actor->Pitch)) < C_LOOK_THRESHOLD
+			&& fabs(ShortestAngle(Action->Look.Yaw, Actor->Yaw)) < C_LOOK_THRESHOLD)
 		{
-			Actor->Pitch = Action->Data.Look.Pitch;
-			Actor->Yaw = Action->Data.Look.Yaw;
+			Actor->Pitch = Action->Look.Pitch;
+			Actor->Yaw = Action->Look.Yaw;
 			break;
 		}
 		
-		Actor->Pitch = InterpolateAngle(Actor->Pitch, Action->Data.Look.Pitch, O_LOOK_SPEED);
-		Actor->Yaw = InterpolateAngle(Actor->Yaw, Action->Data.Look.Yaw, O_LOOK_SPEED);
+		Actor->Pitch = InterpolateAngle(Actor->Pitch, Action->Look.Pitch, O_LOOK_SPEED);
+		Actor->Yaw = InterpolateAngle(Actor->Yaw, Action->Look.Yaw, O_LOOK_SPEED);
 		
 		return;
 	}
 	case C_AT_LOOK_AT:
 	{
-		C_ActorData *Actor = &C_Actors[Action->Data.LookAt.Actor];
+		C_ActorData *Actor = &C_Actors[Action->LookAt.Actor];
 		
 		vec2 Dir = {0};
-		C_GetPointPos(Action->Data.LookAt.Point, Dir);
+		C_GetPointPos(Action->LookAt.Point, Dir);
 		glm_vec2_sub(Dir, Actor->Pos, Dir);
 		
 		f32 DstPitch = 0.0f;
@@ -447,10 +510,10 @@ C_Update(void)
 	}
 	case C_AT_LOOK_WALK_TO:
 	{
-		C_ActorData *Actor = &C_Actors[Action->Data.LookWalkTo.Actor];
+		C_ActorData *Actor = &C_Actors[Action->LookWalkTo.Actor];
 		
 		vec2 Dst = {0}, Dir = {0};
-		C_GetPointPos(Action->Data.LookWalkTo.Point, Dst);
+		C_GetPointPos(Action->LookWalkTo.Point, Dst);
 		glm_vec2_sub(Dst, Actor->Pos, Dir);
 		
 		f32 DstPitch = 0.0f;
@@ -489,32 +552,47 @@ C_Update(void)
 			Actor->BobTime += O_BOB_FREQUENCY;
 		}
 		
-		if (RotDone && MoveDone) {break;}
+		if (RotDone && MoveDone)
+		{
+			break;
+		}
 		
 		return;
 	}
 	case C_AT_SET_TEXTURE:
 	{
-		C_ActorData *Actor = &C_Actors[Action->Data.SetTexture.Actor];
-		Actor->ActiveTex = Action->Data.SetTexture.Tex;
+		C_ActorData *Actor = &C_Actors[Action->SetTexture.Actor];
+		Actor->ActiveTex = Action->SetTexture.Tex;
 		break;
 	}
 	case C_AT_WAIT:
-		if (Action->Data.Wait.MS <= 0) {break;}
-		Action->Data.Wait.MS -= O_TICK_MS;
+		if (Action->Wait.MS <= 0)
+		{
+			break;
+		}
+		Action->Wait.MS -= O_TICK_MS;
 		return;
 	case C_AT_SPEAK:
-		if (!T_IsActive()) {T_Show(Action->Data.Speak.TextSprite, Action->Data.Speak.Msg);}
-		if (I_KeyPressed(O_KEY_NEXT)) {break;}
+		if (!T_IsActive())
+		{
+			T_Show(Action->Speak.TextSprite, Action->Speak.Msg);
+		}
+		if (I_KeyPressed(O_KEY_NEXT))
+		{
+			break;
+		}
 		return;
 	case C_AT_SWAP_MODEL:
-		C_Props[Action->Data.SwapModel.PropIdx].Model = Action->Data.SwapModel.NewModel;
+		C_Props[Action->SwapModel.PropIdx].Model = Action->SwapModel.NewModel;
 		break;
 	case C_AT_SET_LIGHT_INTENSITY:
 		R_SetLightIntensity(
-			Action->Data.SetLightIntensity.LightIdx,
-			Action->Data.SetLightIntensity.NewIntensity
+			Action->SetLightIntensity.LightIdx,
+			Action->SetLightIntensity.NewIntensity
 		);
+		break;
+	case C_AT_PAN_CAMERA:
+		R_PanCamera(Action->PanCamera.Pos, Action->PanCamera.Pitch, Action->PanCamera.Yaw);
 		break;
 	}
 	
@@ -663,7 +741,10 @@ C_RenderModels(void)
 i64
 C_PutProp(R_Model m, R_Texture t, vec3 Pos, vec3 Rot, vec3 Scale)
 {
-	if (C_PropCnt >= O_MAX_CHOREO_PROPS) {return -1;}
+	if (C_PropCnt >= O_MAX_CHOREO_PROPS)
+	{
+		return -1;
+	}
 	C_Props[C_PropCnt] = (C_Prop)
 	{
 		.Model = m,

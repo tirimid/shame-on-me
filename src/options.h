@@ -28,6 +28,8 @@
 #define O_TEXT_BOX_SIZE 70
 #define O_TEXT_SPRITE_SIZE 60
 #define O_FADE_SPEED 0.005f
+#define O_PAN_POS_SPEED 0.06f
+#define O_PAN_ROT_SPEED 0.3f
 
 // render options.
 #define O_MAX_LIGHTS 4

@@ -28,8 +28,15 @@ T_Show(T_TextboxSprite Sprite, char const *Msg)
 void
 T_Update(void)
 {
-	if (!T_Active) {return;}
-	if (I_KeyPressed(O_KEY_NEXT)) {T_Active = false;}
+	if (!T_Active)
+	{
+		return;
+	}
+	
+	if (I_KeyPressed(O_KEY_NEXT))
+	{
+		T_Active = false;
+	}
 }
 
 void

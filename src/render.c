@@ -52,6 +52,7 @@
 #include "img/table_png.h"
 #include "img/wall_png.h"
 #include "img/window_png.h"
+#include "model/card_stack_obj.h"
 #include "model/cube_obj.h"
 #include "model/door_closed_obj.h"
 #include "model/door_open_obj.h"
@@ -179,7 +180,8 @@ static R_ModelData R_Models[R_M_END__] =
 	R_INCLUDE_MODEL(door_closed),
 	R_INCLUDE_MODEL(table),
 	R_INCLUDE_MODEL(window),
-	R_INCLUDE_MODEL(lightbulb)
+	R_INCLUDE_MODEL(lightbulb),
+	R_INCLUDE_MODEL(card_stack)
 };
 
 static R_ShaderData R_Shaders[R_S_END__] =
@@ -388,7 +390,10 @@ R_Init(void)
 		
 		// create program.
 		u32 Prog = glCreateProgram();
-		if (R_Shaders[i].GeoSrc) {glAttachShader(Prog, Geo);}
+		if (R_Shaders[i].GeoSrc)
+		{
+			glAttachShader(Prog, Geo);
+		}
 		glAttachShader(Prog, Vert);
 		glAttachShader(Prog, Frag);
 		glLinkProgram(Prog);
@@ -400,7 +405,10 @@ R_Init(void)
 			return 1;
 		}
 		
-		if (Geo) {glDeleteShader(Geo);}
+		if (Geo)
+		{
+			glDeleteShader(Geo);
+		}
 		glDeleteShader(Vert);
 		glDeleteShader(Frag);
 		
@@ -574,16 +582,19 @@ R_BeginBase(void)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 	// compute matrices.
+	vec3 Pos;
+	f32 Pitch, Yaw;
+	R_EffectiveCameraState(Pos, &Pitch, &Yaw);
 	vec3 CamDir =
 	{
-		cos(R_Cam.Yaw) * cos(R_Cam.Pitch),
-		sin(R_Cam.Pitch),
-		sin(R_Cam.Yaw) * cos(R_Cam.Pitch)
+		cos(Yaw) * cos(Pitch),
+		sin(Pitch),
+		sin(Yaw) * cos(Pitch)
 	};
 	glm_normalize(CamDir);
 	
 	mat4 ViewMat, ProjMat;
-	glm_look(R_Cam.Pos, CamDir, (vec3){0.0f, 1.0f, 0.0f}, ViewMat);
+	glm_look(Pos, CamDir, (vec3){0.0f, 1.0f, 0.0f}, ViewMat);
 	glm_perspective(O_CAM_FOV, Aspect, O_CAM_CLIP_NEAR, O_CAM_CLIP_FAR, ProjMat);
 	
 	// upload uniforms.
@@ -711,7 +722,10 @@ R_RenderModel(R_Model m, vec3 Pos, vec3 Rot, vec3 Scale)
 i32
 R_PutLight(vec3 Pos, f32 Intensity)
 {
-	if (R_State.LightCnt >= O_MAX_LIGHTS) {return -1;}
+	if (R_State.LightCnt >= O_MAX_LIGHTS)
+	{
+		return -1;
+	}
 	
 	vec4 NewLight = {Pos[0], Pos[1], Pos[2], Intensity};
 	glm_vec4_copy(NewLight, R_State.Lights[R_State.LightCnt]);
@@ -810,7 +824,10 @@ R_RenderText(R_Font f, char const *Text, i32 x, i32 y, i32 w, i32 h)
 void
 R_BatchRenderTile(vec3 Pos, vec3 Rot, vec3 Scale)
 {
-	if (R_State.BatchSize >= O_MAX_TILE_BATCH) {R_FlushTileBatch();}
+	if (R_State.BatchSize >= O_MAX_TILE_BATCH)
+	{
+		R_FlushTileBatch();
+	}
 	
 	MakeXformMat(Pos, Rot, Scale, R_State.BatchModelMats[R_State.BatchSize]);
 	MakeNormalMat(R_State.BatchModelMats[R_State.BatchSize], R_State.BatchNormalMats[R_State.BatchSize]);
@@ -820,7 +837,10 @@ R_BatchRenderTile(vec3 Pos, vec3 Rot, vec3 Scale)
 void
 R_FlushTileBatch(void)
 {
-	if (R_State.BatchSize == 0) {return;}
+	if (R_State.BatchSize == 0)
+	{
+		return;
+	}
 	
 	glUniformMatrix4fv(R_Uniforms.ModelMats, R_State.BatchSize, GL_FALSE, (f32 *)R_State.BatchModelMats);
 	glUniformMatrix3fv(R_Uniforms.NormalMats, R_State.BatchSize, GL_FALSE, (f32 *)R_State.BatchNormalMats);
@@ -843,12 +863,34 @@ R_Update(void)
 		R_State.FadeBrightness -= O_FADE_SPEED;
 		R_State.FadeBrightness = R_State.FadeBrightness < 0.0f ? 0.0f : R_State.FadeBrightness;
 	}
+	
+	// update camera pan.
+	R_Cam.Pan.Pitch = InterpolateAngle(R_Cam.Pan.Pitch, R_Cam.Pan.DstPitch, O_PAN_ROT_SPEED);
+	R_Cam.Pan.Yaw = InterpolateAngle(R_Cam.Pan.Yaw, R_Cam.Pan.Yaw, O_PAN_ROT_SPEED);
+	glm_vec3_lerp(R_Cam.Pan.Pos, R_Cam.Pan.DstPos, O_PAN_POS_SPEED, R_Cam.Pan.Pos);
 }
 
 void
 R_Fade(R_FadeStatus FS)
 {
 	R_State.FadeStatus = FS;
+}
+
+void
+R_PanCamera(vec3 Pos, f32 Pitch, f32 Yaw)
+{
+	R_Cam.Pan.DstPitch = Pitch;
+	R_Cam.Pan.DstYaw = Yaw;
+	glm_vec3_copy(Pos, R_Cam.Pan.DstPos);
+}
+
+void
+R_EffectiveCameraState(vec3 OutPos, f32 *OutPitch, f32 *OutYaw)
+{
+	glm_vec3_copy(R_Cam.Base.Pos, OutPos);
+	glm_vec3_add(R_Cam.Pan.Pos, OutPos, OutPos);
+	*OutPitch = R_Cam.Base.Pitch + R_Cam.Pan.Pitch;
+	*OutYaw = R_Cam.Base.Yaw + R_Cam.Pan.Yaw;
 }
 
 static void

@@ -10,6 +10,7 @@ typedef enum R_Model
 	R_M_TABLE,
 	R_M_WINDOW,
 	R_M_LIGHTBULB,
+	R_M_CARD_STACK,
 	
 	R_M_END__
 } R_Model;
@@ -96,8 +97,21 @@ typedef enum R_FadeStatus
 
 typedef struct R_Camera
 {
-	vec3 Pos;
-	f32 Pitch, Yaw;
+	// handled by other modules.
+	struct
+	{
+		vec3 Pos;
+		f32 Pitch, Yaw;
+	} Base;
+	
+	// handled by render.
+	struct
+	{
+		vec3 Pos;
+		f32 Pitch, Yaw;
+		vec3 DstPos;
+		f32 DstPitch, DstYaw;
+	} Pan;
 } R_Camera;
 
 extern R_Camera R_Cam;
@@ -121,5 +135,7 @@ void R_BatchRenderTile(vec3 Pos, vec3 Rot, vec3 Scale);
 void R_FlushTileBatch(void);
 void R_Update(void);
 void R_Fade(R_FadeStatus FS);
+void R_PanCamera(vec3 Pos, f32 Pitch, f32 Yaw);
+void R_EffectiveCameraState(vec3 OutPos, f32 *OutPitch, f32 *OutYaw);
 
 #endif
