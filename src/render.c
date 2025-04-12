@@ -2,6 +2,7 @@
 #include "font/vcr_osd_mono_ttf.h"
 #include "img/black_png.h"
 #include "img/black50_png.h"
+#include "img/c_back_png.h"
 #include "img/c_clubs_6_png.h"
 #include "img/c_clubs_7_png.h"
 #include "img/c_clubs_8_png.h"
@@ -68,192 +69,193 @@
 #include "shader/shadow_geo_glsl.h"
 #include "shader/shadow_vert_glsl.h"
 
-#define R_INCLUDE_MODEL(Name) \
+#define R_INCMODEL(name) \
 	{ \
-		.VertData = Name##_obj_VertData, \
-		.IdxData = Name##_obj_IdxData, \
-		.VertCnt = Name##_obj_VERT_CNT, \
-		.IdxCnt = Name##_obj_IDX_CNT \
+		.verts = name##_obj_VertData, \
+		.idxs = name##_obj_IdxData, \
+		.nverts = name##_obj_VERT_CNT, \
+		.nidxs = name##_obj_IDX_CNT \
 	}
 
-#define R_INCLUDE_SHADER(Name) \
+#define R_INCSHADER(name) \
 	{ \
-		.VertSrc = (char *)Name##_vert_glsl, \
-		.FragSrc = (char *)Name##_frag_glsl, \
-		.VertSrcLen = sizeof(Name##_vert_glsl), \
-		.FragSrcLen = sizeof(Name##_frag_glsl) \
+		.vertsrc = (char *)name##_vert_glsl, \
+		.fragsrc = (char *)name##_frag_glsl, \
+		.vertlen = sizeof(name##_vert_glsl), \
+		.fraglen = sizeof(name##_frag_glsl) \
 	}
 
-#define R_INCLUDE_GEO_SHADER(Name) \
+#define R_INCGEOSHADER(name) \
 	{ \
-		.GeoSrc = (char *)Name##_geo_glsl, \
-		.VertSrc = (char *)Name##_vert_glsl, \
-		.FragSrc = (char *)Name##_frag_glsl, \
-		.GeoSrcLen = sizeof(Name##_geo_glsl), \
-		.VertSrcLen = sizeof(Name##_vert_glsl), \
-		.FragSrcLen = sizeof(Name##_frag_glsl) \
+		.geosrc = (char *)name##_geo_glsl, \
+		.vertsrc = (char *)name##_vert_glsl, \
+		.fragsrc = (char *)name##_frag_glsl, \
+		.geolen = sizeof(name##_geo_glsl), \
+		.vertlen = sizeof(name##_vert_glsl), \
+		.fraglen = sizeof(name##_frag_glsl) \
 	}
 
-#define R_INCLUDE_TEXTURE(Name) \
+#define R_INCTEX(name) \
 	{ \
-		.Data = Name##_png, \
-		.Size = sizeof(Name##_png) \
+		.data = name##_png, \
+		.size = sizeof(name##_png) \
 	}
 
-#define R_INCLUDE_FONT(Name) \
+#define R_INCFONT(name) \
 	{ \
-		.Data = Name##_ttf, \
-		.Size = sizeof(Name##_ttf) \
+		.data = name##_ttf, \
+		.size = sizeof(name##_ttf) \
 	}
 
-typedef struct R_ModelData
+typedef struct r_modeldata
 {
-	f32 const *VertData;
-	usize VertCnt;
-	u32 const *IdxData;
-	usize IdxCnt;
-	u32 VBO, IBO, VAO;
-} R_ModelData;
+	f32 const *verts;
+	usize nverts;
+	u32 const *idxs;
+	usize nidxs;
+	u32 vbo, ibo, vao;
+} r_modeldata;
 
-typedef struct R_ShaderData
+typedef struct r_shaderdata
 {
-	char *GeoSrc, *VertSrc, *FragSrc;
-	i32 GeoSrcLen, VertSrcLen, FragSrcLen;
-	u32 Prog;
-} R_ShaderData;
+	char *geosrc, *vertsrc, *fragsrc;
+	i32 geolen, vertlen, fraglen;
+	u32 prog;
+} r_shaderdata;
 
-typedef struct R_TextureData
+typedef struct r_texdata
 {
-	u8 const *Data;
-	usize Size;
-	SDL_Surface *Surf;
-	u32 Tex;
-} R_TextureData;
+	u8 const *data;
+	usize size;
+	SDL_Surface *surf;
+	u32 tex;
+} r_texdata;
 
-typedef struct R_FontData
+typedef struct r_fontdata
 {
-	u8 const *Data;
-	usize Size;
-	TTF_Font *Font;
-} R_FontData;
+	u8 const *data;
+	usize size;
+	TTF_Font *font;
+} r_fontdata;
 
-typedef struct R_UniformData
+typedef struct r_uniformdata
 {
-	u32 ModelMats, NormalMats;
-	u32 ViewMat, ProjMat;
-	u32 Tex;
-	u32 Lights, ShadowMaps;
-	u32 LightPos, ShadowViewMats;
-	u32 FadeBrightness;
-} R_UniformData;
+	u32 modelmats, normalmats;
+	u32 viewmat, projmat;
+	u32 tex;
+	u32 lights, shadowmaps;
+	u32 lightpos, shadowviewmats;
+	u32 fadebrightness;
+} r_uniformdata;
 
-typedef struct R_RenderState
+typedef struct r_renderstate
 {
-	u32 FrameBuffer, ColorBuffer, DepthBuffer;
-	vec4 Lights[O_MAX_LIGHTS];
-	u32 ShadowMaps[O_MAX_LIGHTS];
-	u32 ShadowFBOs[O_MAX_LIGHTS];
-	usize LightCnt;
-	f32 FadeBrightness;
-	R_FadeStatus FadeStatus;
-	mat4 BatchModelMats[O_MAX_TILE_BATCH];
-	mat3 BatchNormalMats[O_MAX_TILE_BATCH];
-	usize BatchSize;
-} R_RenderState;
+	u32 framebuf, colorbuf, depthbuf;
+	vec4 lights[O_MAXLIGHTS];
+	u32 shadowmaps[O_MAXLIGHTS];
+	u32 shadowfbos[O_MAXLIGHTS];
+	usize nlights;
+	f32 fadebrightness;
+	r_fadestatus fadestatus;
+	mat4 batchmodelmats[O_MAXTILEBATCH];
+	mat3 batchnormmats[O_MAXTILEBATCH];
+	usize batchsize;
+} r_renderstate;
 
-R_Camera R_Cam;
+r_camera r_cam;
 
-static void R_PreprocShader(char *Src, usize Len);
-static void R_DeleteGlContext(void);
+static void r_preproc(char *src, usize len);
+static void r_deleteglctx(void);
 
-static SDL_Window *R_Wnd;
-static SDL_GLContext R_GlContext;
-static R_RenderState R_State;
-static R_UniformData R_Uniforms;
+static SDL_Window *r_wnd;
+static SDL_GLContext r_glctx;
+static r_renderstate r_state;
+static r_uniformdata r_uniforms;
 
 // data tables.
-static R_ModelData R_Models[R_M_END__] =
+static r_modeldata r_models[R_MODEL_END__] =
 {
-	R_INCLUDE_MODEL(plane),
-	R_INCLUDE_MODEL(cube),
-	R_INCLUDE_MODEL(door_open),
-	R_INCLUDE_MODEL(door_closed),
-	R_INCLUDE_MODEL(table),
-	R_INCLUDE_MODEL(window),
-	R_INCLUDE_MODEL(lightbulb),
-	R_INCLUDE_MODEL(card_stack)
+	R_INCMODEL(plane),
+	R_INCMODEL(cube),
+	R_INCMODEL(door_open),
+	R_INCMODEL(door_closed),
+	R_INCMODEL(table),
+	R_INCMODEL(window),
+	R_INCMODEL(lightbulb),
+	R_INCMODEL(card_stack)
 };
 
-static R_ShaderData R_Shaders[R_S_END__] =
+static r_shaderdata r_shaders[R_SHADER_END__] =
 {
-	R_INCLUDE_SHADER(base),
-	R_INCLUDE_SHADER(overlay),
-	R_INCLUDE_GEO_SHADER(shadow)
+	R_INCSHADER(base),
+	R_INCSHADER(overlay),
+	R_INCGEOSHADER(shadow)
 };
 
-static R_TextureData R_Textures[R_T_END__] =
+static r_texdata r_texs[R_TEX_END__] =
 {
-	R_INCLUDE_TEXTURE(something),
-	R_INCLUDE_TEXTURE(floor),
-	R_INCLUDE_TEXTURE(ceiling),
-	R_INCLUDE_TEXTURE(wall),
-	R_INCLUDE_TEXTURE(dummy),
-	R_INCLUDE_TEXTURE(black),
-	R_INCLUDE_TEXTURE(dummy_face),
-	R_INCLUDE_TEXTURE(black50),
-	R_INCLUDE_TEXTURE(glasses_dummy),
-	R_INCLUDE_TEXTURE(glasses_dummy_face),
-	R_INCLUDE_TEXTURE(c_spades_6),
-	R_INCLUDE_TEXTURE(c_spades_7),
-	R_INCLUDE_TEXTURE(c_spades_8),
-	R_INCLUDE_TEXTURE(c_spades_9),
-	R_INCLUDE_TEXTURE(c_spades_10),
-	R_INCLUDE_TEXTURE(c_spades_j),
-	R_INCLUDE_TEXTURE(c_spades_q),
-	R_INCLUDE_TEXTURE(c_spades_k),
-	R_INCLUDE_TEXTURE(c_spades_a),
-	R_INCLUDE_TEXTURE(c_diamonds_6),
-	R_INCLUDE_TEXTURE(c_diamonds_7),
-	R_INCLUDE_TEXTURE(c_diamonds_8),
-	R_INCLUDE_TEXTURE(c_diamonds_9),
-	R_INCLUDE_TEXTURE(c_diamonds_10),
-	R_INCLUDE_TEXTURE(c_diamonds_j),
-	R_INCLUDE_TEXTURE(c_diamonds_q),
-	R_INCLUDE_TEXTURE(c_diamonds_k),
-	R_INCLUDE_TEXTURE(c_diamonds_a),
-	R_INCLUDE_TEXTURE(c_clubs_6),
-	R_INCLUDE_TEXTURE(c_clubs_7),
-	R_INCLUDE_TEXTURE(c_clubs_8),
-	R_INCLUDE_TEXTURE(c_clubs_9),
-	R_INCLUDE_TEXTURE(c_clubs_10),
-	R_INCLUDE_TEXTURE(c_clubs_j),
-	R_INCLUDE_TEXTURE(c_clubs_q),
-	R_INCLUDE_TEXTURE(c_clubs_k),
-	R_INCLUDE_TEXTURE(c_clubs_a),
-	R_INCLUDE_TEXTURE(c_hearts_6),
-	R_INCLUDE_TEXTURE(c_hearts_7),
-	R_INCLUDE_TEXTURE(c_hearts_8),
-	R_INCLUDE_TEXTURE(c_hearts_9),
-	R_INCLUDE_TEXTURE(c_hearts_10),
-	R_INCLUDE_TEXTURE(c_hearts_j),
-	R_INCLUDE_TEXTURE(c_hearts_q),
-	R_INCLUDE_TEXTURE(c_hearts_k),
-	R_INCLUDE_TEXTURE(c_hearts_a),
-	R_INCLUDE_TEXTURE(door),
-	R_INCLUDE_TEXTURE(table),
-	R_INCLUDE_TEXTURE(window),
-	R_INCLUDE_TEXTURE(lightbulb),
-	R_INCLUDE_TEXTURE(eyes_dummy),
-	R_INCLUDE_TEXTURE(eyes_dummy_face)
+	R_INCTEX(something),
+	R_INCTEX(floor),
+	R_INCTEX(ceiling),
+	R_INCTEX(wall),
+	R_INCTEX(dummy),
+	R_INCTEX(black),
+	R_INCTEX(dummy_face),
+	R_INCTEX(black50),
+	R_INCTEX(glasses_dummy),
+	R_INCTEX(glasses_dummy_face),
+	R_INCTEX(c_back),
+	R_INCTEX(c_spades_6),
+	R_INCTEX(c_spades_7),
+	R_INCTEX(c_spades_8),
+	R_INCTEX(c_spades_9),
+	R_INCTEX(c_spades_10),
+	R_INCTEX(c_spades_j),
+	R_INCTEX(c_spades_q),
+	R_INCTEX(c_spades_k),
+	R_INCTEX(c_spades_a),
+	R_INCTEX(c_diamonds_6),
+	R_INCTEX(c_diamonds_7),
+	R_INCTEX(c_diamonds_8),
+	R_INCTEX(c_diamonds_9),
+	R_INCTEX(c_diamonds_10),
+	R_INCTEX(c_diamonds_j),
+	R_INCTEX(c_diamonds_q),
+	R_INCTEX(c_diamonds_k),
+	R_INCTEX(c_diamonds_a),
+	R_INCTEX(c_clubs_6),
+	R_INCTEX(c_clubs_7),
+	R_INCTEX(c_clubs_8),
+	R_INCTEX(c_clubs_9),
+	R_INCTEX(c_clubs_10),
+	R_INCTEX(c_clubs_j),
+	R_INCTEX(c_clubs_q),
+	R_INCTEX(c_clubs_k),
+	R_INCTEX(c_clubs_a),
+	R_INCTEX(c_hearts_6),
+	R_INCTEX(c_hearts_7),
+	R_INCTEX(c_hearts_8),
+	R_INCTEX(c_hearts_9),
+	R_INCTEX(c_hearts_10),
+	R_INCTEX(c_hearts_j),
+	R_INCTEX(c_hearts_q),
+	R_INCTEX(c_hearts_k),
+	R_INCTEX(c_hearts_a),
+	R_INCTEX(door),
+	R_INCTEX(table),
+	R_INCTEX(window),
+	R_INCTEX(lightbulb),
+	R_INCTEX(eyes_dummy),
+	R_INCTEX(eyes_dummy_face)
 };
 
-static R_FontData R_Fonts[R_F_END__] =
+static r_fontdata r_fonts[R_FONT_END__] =
 {
-	R_INCLUDE_FONT(vcr_osd_mono)
+	R_INCFONT(vcr_osd_mono)
 };
 
 i32
-R_Init(void)
+r_init(void)
 {
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
@@ -261,58 +263,58 @@ R_Init(void)
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 0);
 	
 	// set up rendering data and structures.
-	R_Wnd = SDL_CreateWindow(
-		O_WND_TITLE,
+	r_wnd = SDL_CreateWindow(
+		O_WNDTITLE,
 		SDL_WINDOWPOS_UNDEFINED,
 		SDL_WINDOWPOS_UNDEFINED,
-		O_WND_WIDTH,
-		O_WND_HEIGHT,
-		O_WND_FLAGS
+		O_WNDWIDTH,
+		O_WNDHEIGHT,
+		O_WNDFLAGS
 	);
-	if (!R_Wnd)
+	if (!r_wnd)
 	{
-		ShowError("render: failed to create window - %s!", SDL_GetError());
+		showerr("render: failed to create window - %s!", SDL_GetError());
 		return 1;
 	}
 	
-	R_GlContext = SDL_GL_CreateContext(R_Wnd);
-	if (!R_GlContext)
+	r_glctx = SDL_GL_CreateContext(r_wnd);
+	if (!r_glctx)
 	{
-		ShowError("render: failed to create GL context - %s!", SDL_GetError());
+		showerr("render: failed to create GL context - %s!", SDL_GetError());
 		return 1;
 	}
-	atexit(R_DeleteGlContext);
+	atexit(r_deleteglctx);
 	
 	glewExperimental = GL_TRUE;
-	GLenum Rc = glewInit();
-	if (Rc != GLEW_OK)
+	GLenum rc = glewInit();
+	if (rc != GLEW_OK)
 	{
-		ShowError("render: failed to init GLEW - %s!", glewGetErrorString(Rc));
+		showerr("render: failed to init GLEW - %s!", glewGetErrorString(rc));
 		return 1;
 	}
 	
 	// set up models.
-	for (usize i = 0; i < R_M_END__; ++i)
+	for (usize i = 0; i < R_MODEL_END__; ++i)
 	{
 		// generate GL state.
-		glGenVertexArrays(1, &R_Models[i].VAO);
-		glGenBuffers(1, &R_Models[i].VBO);
-		glGenBuffers(1, &R_Models[i].IBO);
+		glGenVertexArrays(1, &r_models[i].vao);
+		glGenBuffers(1, &r_models[i].vbo);
+		glGenBuffers(1, &r_models[i].ibo);
 		
-		glBindVertexArray(R_Models[i].VAO);
-		glBindBuffer(GL_ARRAY_BUFFER, R_Models[i].VBO);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, R_Models[i].IBO);
+		glBindVertexArray(r_models[i].vao);
+		glBindBuffer(GL_ARRAY_BUFFER, r_models[i].vbo);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_models[i].ibo);
 		
 		glBufferData(
 			GL_ARRAY_BUFFER,
-			8 * sizeof(f32) * R_Models[i].VertCnt,
-			R_Models[i].VertData,
+			8 * sizeof(f32) * r_models[i].nverts,
+			r_models[i].verts,
 			GL_STATIC_DRAW
 		);
 		glBufferData(
 			GL_ELEMENT_ARRAY_BUFFER,
-			sizeof(u32) * R_Models[i].IdxCnt,
-			R_Models[i].IdxData,
+			sizeof(u32) * r_models[i].nidxs,
+			r_models[i].idxs,
 			GL_STATIC_DRAW
 		);
 		
@@ -325,169 +327,169 @@ R_Init(void)
 	}
 	
 	// set up shader programs.
-	char ShaderLog[O_MAX_LOG_LEN];
-	for (usize i = 0; i < R_S_END__; ++i)
+	char shaderlog[O_MAXLOGLEN];
+	for (usize i = 0; i < R_SHADER_END__; ++i)
 	{
-		i32 Rc;
+		i32 rc;
 		
 		// create geometry shader if present.
-		u32 Geo = 0;
-		if (R_Shaders[i].GeoSrc)
+		u32 geo = 0;
+		if (r_shaders[i].geosrc)
 		{
-			R_PreprocShader(R_Shaders[i].GeoSrc, R_Shaders[i].GeoSrcLen);
-			Geo = glCreateShader(GL_GEOMETRY_SHADER);
+			r_preproc(r_shaders[i].geosrc, r_shaders[i].geolen);
+			geo = glCreateShader(GL_GEOMETRY_SHADER);
 			glShaderSource(
-				Geo,
+				geo,
 				1,
-				(char const *const *)&R_Shaders[i].GeoSrc,
-				&R_Shaders[i].GeoSrcLen
+				(char const *const *)&r_shaders[i].geosrc,
+				&r_shaders[i].geolen
 			);
-			glCompileShader(Geo);
-			glGetShaderiv(Geo, GL_COMPILE_STATUS, &Rc);
-			if (!Rc)
+			glCompileShader(geo);
+			glGetShaderiv(geo, GL_COMPILE_STATUS, &rc);
+			if (!rc)
 			{
-				glGetShaderInfoLog(Geo, O_MAX_LOG_LEN, NULL, ShaderLog);
-				ShowError("render: failed to compile geometry shader %zu - %s!", i, ShaderLog);
+				glGetShaderInfoLog(geo, O_MAXLOGLEN, NULL, shaderlog);
+				showerr("render: failed to compile geometry shader %zu - %s!", i, shaderlog);
 				return 1;
 			}
 		}
 
 		// create vertex shader.
-		R_PreprocShader(R_Shaders[i].VertSrc, R_Shaders[i].VertSrcLen);
-		u32 Vert = glCreateShader(GL_VERTEX_SHADER);
+		r_preproc(r_shaders[i].vertsrc, r_shaders[i].vertlen);
+		u32 vert = glCreateShader(GL_VERTEX_SHADER);
 		glShaderSource(
-			Vert,
+			vert,
 			1,
-			(char const *const *)&R_Shaders[i].VertSrc,
-			&R_Shaders[i].VertSrcLen
+			(char const *const *)&r_shaders[i].vertsrc,
+			&r_shaders[i].vertlen
 		);
-		glCompileShader(Vert);
-		glGetShaderiv(Vert, GL_COMPILE_STATUS, &Rc);
-		if (!Rc)
+		glCompileShader(vert);
+		glGetShaderiv(vert, GL_COMPILE_STATUS, &rc);
+		if (!rc)
 		{
-			glGetShaderInfoLog(Vert, O_MAX_LOG_LEN, NULL, ShaderLog);
-			ShowError("render: failed to compile vertex shader %zu - %s!", i, ShaderLog);
+			glGetShaderInfoLog(vert, O_MAXLOGLEN, NULL, shaderlog);
+			showerr("render: failed to compile vertex shader %zu - %s!", i, shaderlog);
 			return 1;
 		}
 		
 		// create fragment shader.
-		R_PreprocShader(R_Shaders[i].FragSrc, R_Shaders[i].FragSrcLen);
-		u32 Frag = glCreateShader(GL_FRAGMENT_SHADER);
+		r_preproc(r_shaders[i].fragsrc, r_shaders[i].fraglen);
+		u32 frag = glCreateShader(GL_FRAGMENT_SHADER);
 		glShaderSource(
-			Frag,
+			frag,
 			1,
-			(char const *const *)&R_Shaders[i].FragSrc,
-			&R_Shaders[i].FragSrcLen
+			(char const *const *)&r_shaders[i].fragsrc,
+			&r_shaders[i].fraglen
 		);
-		glCompileShader(Frag);
-		glGetShaderiv(Frag, GL_COMPILE_STATUS, &Rc);
-		if (!Rc)
+		glCompileShader(frag);
+		glGetShaderiv(frag, GL_COMPILE_STATUS, &rc);
+		if (!rc)
 		{
-			glGetShaderInfoLog(Frag, O_MAX_LOG_LEN, NULL, ShaderLog);
-			ShowError("render: failed to compile fragment shader %zu - %s!", i, ShaderLog);
+			glGetShaderInfoLog(frag, O_MAXLOGLEN, NULL, shaderlog);
+			showerr("render: failed to compile fragment shader %zu - %s!", i, shaderlog);
 			return 1;
 		}
 		
 		// create program.
-		u32 Prog = glCreateProgram();
-		if (R_Shaders[i].GeoSrc)
+		u32 prog = glCreateProgram();
+		if (r_shaders[i].geosrc)
 		{
-			glAttachShader(Prog, Geo);
+			glAttachShader(prog, geo);
 		}
-		glAttachShader(Prog, Vert);
-		glAttachShader(Prog, Frag);
-		glLinkProgram(Prog);
-		glGetProgramiv(Prog, GL_LINK_STATUS, &Rc);
-		if (!Rc)
+		glAttachShader(prog, vert);
+		glAttachShader(prog, frag);
+		glLinkProgram(prog);
+		glGetProgramiv(prog, GL_LINK_STATUS, &rc);
+		if (!rc)
 		{
-			glGetProgramInfoLog(Prog, O_MAX_LOG_LEN, NULL, ShaderLog);
-			ShowError("render: failed to link shader program %zu - %s!", i, ShaderLog);
+			glGetProgramInfoLog(prog, O_MAXLOGLEN, NULL, shaderlog);
+			showerr("render: failed to link shader program %zu - %s!", i, shaderlog);
 			return 1;
 		}
 		
-		if (Geo)
+		if (geo)
 		{
-			glDeleteShader(Geo);
+			glDeleteShader(geo);
 		}
-		glDeleteShader(Vert);
-		glDeleteShader(Frag);
+		glDeleteShader(vert);
+		glDeleteShader(frag);
 		
-		R_Shaders[i].Prog = Prog;
+		r_shaders[i].prog = prog;
 	}
 	
 	// set up all textures.
-	for (usize i = 0; i < R_T_END__; ++i)
+	for (usize i = 0; i < R_TEX_END__; ++i)
 	{
 		// load texture.
-		SDL_RWops *RWOps = SDL_RWFromConstMem(R_Textures[i].Data, R_Textures[i].Size);
-		if (!RWOps)
+		SDL_RWops *rwops = SDL_RWFromConstMem(r_texs[i].data, r_texs[i].size);
+		if (!rwops)
 		{
-			ShowError("render: failed to create image texture RWOps - %s!", SDL_GetError());
+			showerr("render: failed to create image texture RWops - %s!", SDL_GetError());
 			return 1;
 		}
 		
-		R_Textures[i].Surf = IMG_Load_RW(RWOps, 1);
-		if (!R_Textures[i].Surf)
+		r_texs[i].surf = IMG_Load_RW(rwops, 1);
+		if (!r_texs[i].surf)
 		{
-			ShowError("render: failed to create SDL surface - %s!", IMG_GetError());
+			showerr("render: failed to create SDL surface - %s!", IMG_GetError());
 			return 1;
 		}
 		
 		// generate GL state.
-		glGenTextures(1, &R_Textures[i].Tex);
-		glBindTexture(GL_TEXTURE_2D, R_Textures[i].Tex);
+		glGenTextures(1, &r_texs[i].tex);
+		glBindTexture(GL_TEXTURE_2D, r_texs[i].tex);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexImage2D(
 			GL_TEXTURE_2D,
 			0,
 			GL_RGBA,
-			R_Textures[i].Surf->w,
-			R_Textures[i].Surf->h,
+			r_texs[i].surf->w,
+			r_texs[i].surf->h,
 			0,
 			GL_RGBA,
 			GL_UNSIGNED_BYTE,
-			R_Textures[i].Surf->pixels
+			r_texs[i].surf->pixels
 		);
 	}
 	
 	// set up all fonts.
-	for (usize i = 0; i < R_F_END__; ++i)
+	for (usize i = 0; i < R_FONT_END__; ++i)
 	{
-		SDL_RWops *RWOps = SDL_RWFromConstMem(R_Fonts[i].Data, R_Fonts[i].Size);
-		if (!RWOps)
+		SDL_RWops *rwops = SDL_RWFromConstMem(r_fonts[i].data, r_fonts[i].size);
+		if (!rwops)
 		{
-			ShowError("render: failed to create font RWOps - %s!", SDL_GetError());
+			showerr("render: failed to create font RWops - %s!", SDL_GetError());
 			return 1;
 		}
 		
-		R_Fonts[i].Font = TTF_OpenFontRW(RWOps, 1, O_FONT_PT);
-		if (!R_Fonts[i].Font)
+		r_fonts[i].font = TTF_OpenFontRW(rwops, 1, O_FONTSIZE);
+		if (!r_fonts[i].font)
 		{
-			ShowError("render: failed to open font - %s!", TTF_GetError());
+			showerr("render: failed to open font - %s!", TTF_GetError());
 			return 1;
 		}
 	}
 	
 	// create initial framebuffer data.
-	glGenFramebuffers(1, &R_State.FrameBuffer);
-	glGenRenderbuffers(1, &R_State.ColorBuffer);
-	glGenRenderbuffers(1, &R_State.DepthBuffer);
+	glGenFramebuffers(1, &r_state.framebuf);
+	glGenRenderbuffers(1, &r_state.colorbuf);
+	glGenRenderbuffers(1, &r_state.depthbuf);
 	
 	// create initial shadowmap data.
-	glGenTextures(O_MAX_LIGHTS, R_State.ShadowMaps);
-	glGenFramebuffers(O_MAX_LIGHTS, R_State.ShadowFBOs);
-	for (usize i = 0; i < O_MAX_LIGHTS; ++i)
+	glGenTextures(O_MAXLIGHTS, r_state.shadowmaps);
+	glGenFramebuffers(O_MAXLIGHTS, r_state.shadowfbos);
+	for (usize i = 0; i < O_MAXLIGHTS; ++i)
 	{
-		glBindTexture(GL_TEXTURE_CUBE_MAP, R_State.ShadowMaps[i]);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, r_state.shadowmaps[i]);
 		for (i32 j = 0; j < 6; ++j)
 		{
 			glTexImage2D(
 				GL_TEXTURE_CUBE_MAP_POSITIVE_X + j,
 				0,
 				GL_DEPTH_COMPONENT,
-				O_SHADOW_MAP_SIZE,
-				O_SHADOW_MAP_SIZE,
+				O_SHADOWMAPSIZE,
+				O_SHADOWMAPSIZE,
 				0,
 				GL_DEPTH_COMPONENT,
 				GL_FLOAT,
@@ -500,8 +502,8 @@ R_Init(void)
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 		
-		glBindFramebuffer(GL_FRAMEBUFFER, R_State.ShadowFBOs[i]);
-		glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, R_State.ShadowMaps[i], 0);
+		glBindFramebuffer(GL_FRAMEBUFFER, r_state.shadowfbos[i]);
+		glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, r_state.shadowmaps[i], 0);
 		glDrawBuffer(GL_NONE);
 		glReadBuffer(GL_NONE);
 	}
@@ -517,126 +519,124 @@ R_Init(void)
 }
 
 bool
-R_LightEnabled(usize Idx)
+r_lightenabled(usize idx)
 {
-	return R_State.Lights[Idx][3] > 0.0f;
+	return r_state.lights[idx][3] > 0.0f;
 }
 
 void
-R_GetRenderBounds(i32 *OutW, i32 *OutH)
+r_renderbounds(OUT i32 *w, OUT i32 *h)
 {
-	i32 w, h;
-	SDL_GetWindowSize(R_Wnd, &w, &h);
-	
-	*OutW = w / O_PIXELATION;
-	*OutH = h / O_PIXELATION;
+	SDL_GetWindowSize(r_wnd, w, h);
+	*w /= O_PIXELATION;
+	*h /= O_PIXELATION;
 }
 
 void
-R_BeginShadow(usize Idx)
+r_beginshadow(usize idx)
 {
-	vec3 LightPos = {R_State.Lights[Idx][0], R_State.Lights[Idx][1], R_State.Lights[Idx][2]};
-	f32 Aspect = (f32)O_SHADOW_MAP_SIZE / (f32)O_SHADOW_MAP_SIZE;
+	vec3 lightpos = {r_state.lights[idx][0], r_state.lights[idx][1], r_state.lights[idx][2]};
+	f32 aspect = (f32)O_SHADOWMAPSIZE / (f32)O_SHADOWMAPSIZE;
 	
-	glViewport(0, 0, O_SHADOW_MAP_SIZE, O_SHADOW_MAP_SIZE);
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, R_State.ShadowFBOs[Idx]);
+	glViewport(0, 0, O_SHADOWMAPSIZE, O_SHADOWMAPSIZE);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, r_state.shadowfbos[idx]);
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
 	glClear(GL_DEPTH_BUFFER_BIT);
 	
 	// compute matrices.
-	mat4 ModelMat;
-	glm_translate_make(ModelMat, LightPos);
+	mat4 modelmat;
+	glm_translate_make(modelmat, lightpos);
 	
-	mat4 ShadowViewMats[6];
-	glm_look(LightPos, (vec3){1.0f, 0.0f, 0.0f}, (vec3){0.0f, -1.0f, 0.0f}, ShadowViewMats[0]);
-	glm_look(LightPos, (vec3){-1.0f, 0.0f, 0.0f}, (vec3){0.0f, -1.0f, 0.0f}, ShadowViewMats[1]);
-	glm_look(LightPos, (vec3){0.0f, 1.0f, 0.0f}, (vec3){0.0f, 0.0f, 1.0f}, ShadowViewMats[2]);
-	glm_look(LightPos, (vec3){0.0f, -1.0f, 0.0f}, (vec3){0.0f, 0.0f, -1.0f}, ShadowViewMats[3]);
-	glm_look(LightPos, (vec3){0.0f, 0.0f, 1.0f}, (vec3){0.0f, -1.0f, 0.0f}, ShadowViewMats[4]);
-	glm_look(LightPos, (vec3){0.0f, 0.0f, -1.0f}, (vec3){0.0f, -1.0f, 0.0f}, ShadowViewMats[5]);
+	mat4 shadowviewmats[6];
+	glm_look(lightpos, (vec3){1.0f, 0.0f, 0.0f}, (vec3){0.0f, -1.0f, 0.0f}, shadowviewmats[0]);
+	glm_look(lightpos, (vec3){-1.0f, 0.0f, 0.0f}, (vec3){0.0f, -1.0f, 0.0f}, shadowviewmats[1]);
+	glm_look(lightpos, (vec3){0.0f, 1.0f, 0.0f}, (vec3){0.0f, 0.0f, 1.0f}, shadowviewmats[2]);
+	glm_look(lightpos, (vec3){0.0f, -1.0f, 0.0f}, (vec3){0.0f, 0.0f, -1.0f}, shadowviewmats[3]);
+	glm_look(lightpos, (vec3){0.0f, 0.0f, 1.0f}, (vec3){0.0f, -1.0f, 0.0f}, shadowviewmats[4]);
+	glm_look(lightpos, (vec3){0.0f, 0.0f, -1.0f}, (vec3){0.0f, -1.0f, 0.0f}, shadowviewmats[5]);
 	
-	mat4 ProjMat;
-	glm_perspective(GLM_PI / 2.0f, Aspect, O_CAM_CLIP_NEAR, O_CAM_CLIP_FAR, ProjMat);
+	mat4 projmat;
+	glm_perspective(GLM_PI / 2.0f, aspect, O_CAMCLIPNEAR, O_CAMCLIPFAR, projmat);
 	
 	// upload uniforms.
-	glUniform3fv(R_Uniforms.LightPos, 1, (f32 *)LightPos);
-	glUniformMatrix4fv(R_Uniforms.ModelMats, 1, GL_FALSE, (f32 *)ModelMat);
-	glUniformMatrix4fv(R_Uniforms.ShadowViewMats, 6, GL_FALSE, (f32 *)ShadowViewMats);
-	glUniformMatrix4fv(R_Uniforms.ProjMat, 1, GL_FALSE, (f32 *)ProjMat);
-	glUniform4fv(R_Uniforms.Lights, O_MAX_LIGHTS, (f32 *)&R_State.Lights[0]);
+	glUniform3fv(r_uniforms.lightpos, 1, (f32 *)lightpos);
+	glUniformMatrix4fv(r_uniforms.modelmats, 1, GL_FALSE, (f32 *)modelmat);
+	glUniformMatrix4fv(r_uniforms.shadowviewmats, 6, GL_FALSE, (f32 *)shadowviewmats);
+	glUniformMatrix4fv(r_uniforms.projmat, 1, GL_FALSE, (f32 *)projmat);
+	glUniform4fv(r_uniforms.lights, O_MAXLIGHTS, (f32 *)&r_state.lights[0]);
 }
 
 void
-R_BeginBase(void)
+r_beginbase(void)
 {
 	i32 w, h;
-	SDL_GetWindowSize(R_Wnd, &w, &h);
-	f32 Aspect = (f32)w / (f32)h;
+	SDL_GetWindowSize(r_wnd, &w, &h);
+	f32 aspect = (f32)w / (f32)h;
 	
 	glViewport(0, 0, w / O_PIXELATION, h / O_PIXELATION);
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, R_State.FrameBuffer);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, r_state.framebuf);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 	// compute matrices.
-	vec3 Pos;
-	f32 Pitch, Yaw;
-	R_EffectiveCameraState(Pos, &Pitch, &Yaw);
-	vec3 CamDir =
+	vec3 pos;
+	f32 pitch, yaw;
+	r_effcamstate(pos, &pitch, &yaw);
+	vec3 camdir =
 	{
-		cos(Yaw) * cos(Pitch),
-		sin(Pitch),
-		sin(Yaw) * cos(Pitch)
+		cos(yaw) * cos(pitch),
+		sin(pitch),
+		sin(yaw) * cos(pitch)
 	};
-	glm_normalize(CamDir);
+	glm_normalize(camdir);
 	
-	mat4 ViewMat, ProjMat;
-	glm_look(Pos, CamDir, (vec3){0.0f, 1.0f, 0.0f}, ViewMat);
-	glm_perspective(O_CAM_FOV, Aspect, O_CAM_CLIP_NEAR, O_CAM_CLIP_FAR, ProjMat);
+	mat4 viewmat, projmat;
+	glm_look(pos, camdir, (vec3){0.0f, 1.0f, 0.0f}, viewmat);
+	glm_perspective(O_CAMFOV, aspect, O_CAMCLIPNEAR, O_CAMCLIPFAR, projmat);
 	
 	// upload uniforms.
-	glUniformMatrix4fv(R_Uniforms.ViewMat, 1, GL_FALSE, (f32 *)ViewMat);
-	glUniformMatrix4fv(R_Uniforms.ProjMat, 1, GL_FALSE, (f32 *)ProjMat);
-	glUniform4fv(R_Uniforms.Lights, O_MAX_LIGHTS, (f32 *)&R_State.Lights[0]);
-	glUniform1f(R_Uniforms.FadeBrightness, R_State.FadeBrightness);
+	glUniformMatrix4fv(r_uniforms.viewmat, 1, GL_FALSE, (f32 *)viewmat);
+	glUniformMatrix4fv(r_uniforms.projmat, 1, GL_FALSE, (f32 *)projmat);
+	glUniform4fv(r_uniforms.lights, O_MAXLIGHTS, (f32 *)&r_state.lights[0]);
+	glUniform1f(r_uniforms.fadebrightness, r_state.fadebrightness);
 	
-	u32 ShadowMapSamplers[O_MAX_LIGHTS] = {0};
-	for (usize i = 0; i < O_MAX_LIGHTS; ++i)
+	u32 shadowsamplers[O_MAXLIGHTS] = {0};
+	for (usize i = 0; i < O_MAXLIGHTS; ++i)
 	{
 		glActiveTexture(GL_TEXTURE1 + i);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, R_State.ShadowMaps[i]);
-		ShadowMapSamplers[i] = 1 + i;
+		glBindTexture(GL_TEXTURE_CUBE_MAP, r_state.shadowmaps[i]);
+		shadowsamplers[i] = 1 + i;
 	}
-	glUniform1iv(R_Uniforms.ShadowMaps, O_MAX_LIGHTS, (i32 *)ShadowMapSamplers);
+	glUniform1iv(r_uniforms.shadowmaps, O_MAXLIGHTS, (i32 *)shadowsamplers);
 }
 
 void
-R_BeginOverlay(void)
+r_beginoverlay(void)
 {
 	i32 w, h;
-	SDL_GetWindowSize(R_Wnd, &w, &h);
+	SDL_GetWindowSize(r_wnd, &w, &h);
 	
 	glViewport(0, 0, w / O_PIXELATION, h / O_PIXELATION);
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, R_State.FrameBuffer);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, r_state.framebuf);
 	glDisable(GL_DEPTH_TEST);
 	
 	// compute matrices.
-	mat4 ProjMat;
-	glm_ortho(0.0f, w / O_PIXELATION, 0.0f, h / O_PIXELATION, -1.0f, 1.0f, ProjMat);
+	mat4 projmat;
+	glm_ortho(0.0f, w / O_PIXELATION, 0.0f, h / O_PIXELATION, -1.0f, 1.0f, projmat);
 	
 	// upload uniforms.
-	glUniformMatrix4fv(R_Uniforms.ProjMat, 1, GL_FALSE, (f32 *)ProjMat);
+	glUniformMatrix4fv(r_uniforms.projmat, 1, GL_FALSE, (f32 *)projmat);
 }
 
 void
-R_Present(void)
+r_present(void)
 {
 	i32 w, h;
-	SDL_GetWindowSize(R_Wnd, &w, &h);
+	SDL_GetWindowSize(r_wnd, &w, &h);
 	
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, R_State.FrameBuffer);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, r_state.framebuf);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	glBlitFramebuffer(
 		0,
@@ -650,123 +650,123 @@ R_Present(void)
 		GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT,
 		GL_NEAREST
 	);
-	SDL_GL_SwapWindow(R_Wnd);
+	SDL_GL_SwapWindow(r_wnd);
 }
 
 void
-R_HandleResize(i32 x, i32 y)
+r_resize(i32 x, i32 y)
 {
 	// regenerate frame buffer.
-	glDeleteBuffers(1, &R_State.ColorBuffer);
-	glGenRenderbuffers(1, &R_State.ColorBuffer);
-	glDeleteBuffers(1, &R_State.DepthBuffer);
-	glGenRenderbuffers(1, &R_State.DepthBuffer);
+	glDeleteBuffers(1, &r_state.colorbuf);
+	glGenRenderbuffers(1, &r_state.colorbuf);
+	glDeleteBuffers(1, &r_state.depthbuf);
+	glGenRenderbuffers(1, &r_state.depthbuf);
 	
-	glBindFramebuffer(GL_FRAMEBUFFER, R_State.FrameBuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, r_state.framebuf);
 	
-	glBindRenderbuffer(GL_RENDERBUFFER, R_State.ColorBuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, r_state.colorbuf);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB, x / O_PIXELATION, y / O_PIXELATION);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, R_State.ColorBuffer);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, r_state.colorbuf);
 	
-	glBindRenderbuffer(GL_RENDERBUFFER, R_State.DepthBuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, r_state.depthbuf);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, x / O_PIXELATION, y / O_PIXELATION);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, R_State.DepthBuffer);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, r_state.depthbuf);
 }
 
 void
-R_SetShader(R_Shader s)
+r_setshader(r_shader s)
 {
-	u32 p = R_Shaders[s].Prog;
+	u32 p = r_shaders[s].prog;
 	
 	glUseProgram(p);
 	
 	// set uniforms.
-	R_Uniforms.ModelMats = glGetUniformLocation(p, "i_ModelMats");
-	R_Uniforms.NormalMats = glGetUniformLocation(p, "i_NormalMats");
-	R_Uniforms.ViewMat = glGetUniformLocation(p, "i_ViewMat");
-	R_Uniforms.ProjMat = glGetUniformLocation(p, "i_ProjMat");
-	R_Uniforms.Tex = glGetUniformLocation(p, "i_Tex");
-	R_Uniforms.Lights = glGetUniformLocation(p, "i_Lights");
-	R_Uniforms.ShadowMaps = glGetUniformLocation(p, "i_ShadowMaps");
-	R_Uniforms.LightPos = glGetUniformLocation(p, "i_LightPos");
-	R_Uniforms.ShadowViewMats = glGetUniformLocation(p, "i_ShadowViewMats");
-	R_Uniforms.FadeBrightness = glGetUniformLocation(p, "i_FadeBrightness");
+	r_uniforms.modelmats = glGetUniformLocation(p, "modelmats");
+	r_uniforms.normalmats = glGetUniformLocation(p, "normalmats");
+	r_uniforms.viewmat = glGetUniformLocation(p, "viewmat");
+	r_uniforms.projmat = glGetUniformLocation(p, "projmat");
+	r_uniforms.tex = glGetUniformLocation(p, "tex");
+	r_uniforms.lights = glGetUniformLocation(p, "lights");
+	r_uniforms.shadowmaps = glGetUniformLocation(p, "shadowmaps");
+	r_uniforms.lightpos = glGetUniformLocation(p, "lightpos");
+	r_uniforms.shadowviewmats = glGetUniformLocation(p, "shadowviewmats");
+	r_uniforms.fadebrightness = glGetUniformLocation(p, "fadebrightness");
 }
 
 void
-R_SetTexture(R_Texture t)
+r_settex(r_tex t)
 {
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, R_Textures[t].Tex);
-	glUniform1i(R_Uniforms.Tex, 0);
+	glBindTexture(GL_TEXTURE_2D, r_texs[t].tex);
+	glUniform1i(r_uniforms.tex, 0);
 }
 
 void
-R_RenderModel(R_Model m, vec3 Pos, vec3 Rot, vec3 Scale)
+r_rendermodel(r_model m, vec3 pos, vec3 rot, vec3 scale)
 {
 	// create transformation matrices.
-	mat4 ModelMat;
-	MakeXformMat(Pos, Rot, Scale, ModelMat);
+	mat4 modelmat;
+	makexform(pos, rot, scale, modelmat);
 	
-	mat3 NormalMat;
-	MakeNormalMat(ModelMat, NormalMat);
+	mat3 normmat;
+	makenorm(modelmat, normmat);
 	
 	// render model.
-	glUniformMatrix4fv(R_Uniforms.ModelMats, 1, GL_FALSE, (f32 *)ModelMat);
-	glUniformMatrix3fv(R_Uniforms.NormalMats, 1, GL_FALSE, (f32 *)NormalMat);
-	glBindVertexArray(R_Models[m].VAO);
-	glDrawElements(GL_TRIANGLES, R_Models[m].IdxCnt, GL_UNSIGNED_INT, 0);
+	glUniformMatrix4fv(r_uniforms.modelmats, 1, GL_FALSE, (f32 *)modelmat);
+	glUniformMatrix3fv(r_uniforms.normalmats, 1, GL_FALSE, (f32 *)normmat);
+	glBindVertexArray(r_models[m].vao);
+	glDrawElements(GL_TRIANGLES, r_models[m].nidxs, GL_UNSIGNED_INT, 0);
 }
 
 i32
-R_PutLight(vec3 Pos, f32 Intensity)
+r_putlight(vec3 pos, f32 intensity)
 {
-	if (R_State.LightCnt >= O_MAX_LIGHTS)
+	if (r_state.nlights >= O_MAXLIGHTS)
 	{
 		return -1;
 	}
 	
-	vec4 NewLight = {Pos[0], Pos[1], Pos[2], Intensity};
-	glm_vec4_copy(NewLight, R_State.Lights[R_State.LightCnt]);
-	return R_State.LightCnt++;
+	vec4 new = {pos[0], pos[1], pos[2], intensity};
+	glm_vec4_copy(new, r_state.lights[r_state.nlights]);
+	return r_state.nlights++;
 }
 
 void
-R_SetLightIntensity(usize Idx, f32 Intensity)
+r_setlightintensity(usize idx, f32 intensity)
 {
-	R_State.Lights[Idx][3] = Intensity;
+	r_state.lights[idx][3] = intensity;
 }
 
 void
-R_RenderRect(R_Texture t, i32 x, i32 y, i32 w, i32 h)
+r_renderrect(r_tex t, i32 x, i32 y, i32 w, i32 h)
 {
-	vec3 Pos = {x + w / 2.0f, y + h / 2.0f, 0.0f};
-	vec3 Rot = {GLM_PI / 2.0f, GLM_PI, GLM_PI};
-	vec3 Scale = {w / 2.0f, 1.0f, h / 2.0f};
+	vec3 pos = {x + w / 2.0f, y + h / 2.0f, 0.0f};
+	vec3 rot = {GLM_PI / 2.0f, GLM_PI, GLM_PI};
+	vec3 scale = {w / 2.0f, 1.0f, h / 2.0f};
 	
-	R_SetTexture(t);
-	R_RenderModel(R_M_PLANE, Pos, Rot, Scale);
+	r_settex(t);
+	r_rendermodel(R_PLANE, pos, rot, scale);
 }
 
 void
-R_RenderText(R_Font f, char const *Text, i32 x, i32 y, i32 w, i32 h)
+r_rendertext(r_font f, char const *text, i32 x, i32 y, i32 w, i32 h)
 {
 	// TTF render out text to create texture.
-	SDL_Surface *SolidSurf = TTF_RenderUTF8_Solid_Wrapped(
-		R_Fonts[f].Font,
-		Text,
-		(SDL_Color)O_FONT_COLOR,
+	SDL_Surface *solid = TTF_RenderUTF8_Solid_Wrapped(
+		r_fonts[f].font,
+		text,
+		(SDL_Color)O_FONTCOLOR,
 		w
 	);
-	SolidSurf->h = SolidSurf->h < h ? SolidSurf->h : h;
+	solid->h = solid->h < h ? solid->h : h;
 	
-	SDL_Surface *RGBASurf = SDL_ConvertSurfaceFormat(SolidSurf, SDL_PIXELFORMAT_RGBA8888, 0);
-	SDL_FreeSurface(SolidSurf);
+	SDL_Surface *rgba = SDL_ConvertSurfaceFormat(solid, SDL_PIXELFORMAT_RGBA8888, 0);
+	SDL_FreeSurface(solid);
 	
-	u32 Tex;
-	glGenTextures(1, &Tex);
+	u32 tex;
+	glGenTextures(1, &tex);
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, Tex);
+	glBindTexture(GL_TEXTURE_2D, tex);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -775,173 +775,173 @@ R_RenderText(R_Font f, char const *Text, i32 x, i32 y, i32 w, i32 h)
 		GL_TEXTURE_2D,
 		0,
 		GL_RGBA,
-		RGBASurf->w,
-		RGBASurf->h,
+		rgba->w,
+		rgba->h,
 		0,
 		GL_RGBA,
 		GL_UNSIGNED_BYTE,
-		RGBASurf->pixels
+		rgba->pixels
 	);
 	
-	y += h - RGBASurf->h;
+	y += h - rgba->h;
 	
 	// create transformation matrix.
-	vec3 Pos =
+	vec3 pos =
 	{
-		x + RGBASurf->w / 2.0f,
-		y + RGBASurf->h / 2.0f,
+		x + rgba->w / 2.0f,
+		y + rgba->h / 2.0f,
 		0.0f
 	};
 	
-	vec3 Scale =
+	vec3 scale =
 	{
-		RGBASurf->w / 2.0f,
+		rgba->w / 2.0f,
 		1.0f,
-		RGBASurf->h / 2.0f
+		rgba->h / 2.0f
 	};
 	
-	mat4 TransMat, RotMat, ScaleMat;
-	glm_translate_make(TransMat, Pos);
-	glm_euler((vec3){GLM_PI / 2.0f, GLM_PI, GLM_PI}, RotMat);
-	glm_scale_make(ScaleMat, Scale);
+	mat4 transm, rotm, scalem;
+	glm_translate_make(transm, pos);
+	glm_euler((vec3){GLM_PI / 2.0f, GLM_PI, GLM_PI}, rotm);
+	glm_scale_make(scalem, scale);
 	
-	mat4 ModelMat = GLM_MAT4_IDENTITY_INIT;
-	glm_mat4_mul(ModelMat, TransMat, ModelMat);
-	glm_mat4_mul(ModelMat, RotMat, ModelMat);
-	glm_mat4_mul(ModelMat, ScaleMat, ModelMat);
+	mat4 modelmat = GLM_MAT4_IDENTITY_INIT;
+	glm_mat4_mul(modelmat, transm, modelmat);
+	glm_mat4_mul(modelmat, rotm, modelmat);
+	glm_mat4_mul(modelmat, scalem, modelmat);
 	
 	// render model.
-	glUniformMatrix4fv(R_Uniforms.ModelMats, 1, GL_FALSE, (f32 *)ModelMat);
-	glUniform1i(R_Uniforms.Tex, GL_TEXTURE0);
-	glBindVertexArray(R_Models[R_M_PLANE].VAO);
-	glDrawElements(GL_TRIANGLES, R_Models[R_M_PLANE].IdxCnt, GL_UNSIGNED_INT, NULL);
+	glUniformMatrix4fv(r_uniforms.modelmats, 1, GL_FALSE, (f32 *)modelmat);
+	glUniform1i(r_uniforms.tex, GL_TEXTURE0);
+	glBindVertexArray(r_models[R_PLANE].vao);
+	glDrawElements(GL_TRIANGLES, r_models[R_PLANE].nidxs, GL_UNSIGNED_INT, NULL);
 	
-	glDeleteTextures(1, &Tex);
-	SDL_FreeSurface(RGBASurf);
+	glDeleteTextures(1, &tex);
+	SDL_FreeSurface(rgba);
 }
 
 void
-R_BatchRenderTile(vec3 Pos, vec3 Rot, vec3 Scale)
+r_batchtile(vec3 pos, vec3 rot, vec3 scale)
 {
-	if (R_State.BatchSize >= O_MAX_TILE_BATCH)
+	if (r_state.batchsize >= O_MAXTILEBATCH)
 	{
-		R_FlushTileBatch();
+		r_flushtiles();
 	}
 	
-	MakeXformMat(Pos, Rot, Scale, R_State.BatchModelMats[R_State.BatchSize]);
-	MakeNormalMat(R_State.BatchModelMats[R_State.BatchSize], R_State.BatchNormalMats[R_State.BatchSize]);
-	++R_State.BatchSize;
+	makexform(pos, rot, scale, r_state.batchmodelmats[r_state.batchsize]);
+	makenorm(r_state.batchmodelmats[r_state.batchsize], r_state.batchnormmats[r_state.batchsize]);
+	++r_state.batchsize;
 }
 
 void
-R_FlushTileBatch(void)
+r_flushtiles(void)
 {
-	if (R_State.BatchSize == 0)
+	if (r_state.batchsize == 0)
 	{
 		return;
 	}
 	
-	glUniformMatrix4fv(R_Uniforms.ModelMats, R_State.BatchSize, GL_FALSE, (f32 *)R_State.BatchModelMats);
-	glUniformMatrix3fv(R_Uniforms.NormalMats, R_State.BatchSize, GL_FALSE, (f32 *)R_State.BatchNormalMats);
-	glBindVertexArray(R_Models[R_M_PLANE].VAO);
-	glDrawElementsInstanced(GL_TRIANGLES, R_Models[R_M_PLANE].IdxCnt, GL_UNSIGNED_INT, NULL, R_State.BatchSize);
-	R_State.BatchSize = 0;
+	glUniformMatrix4fv(r_uniforms.modelmats, r_state.batchsize, GL_FALSE, (f32 *)r_state.batchmodelmats);
+	glUniformMatrix3fv(r_uniforms.normalmats, r_state.batchsize, GL_FALSE, (f32 *)r_state.batchnormmats);
+	glBindVertexArray(r_models[R_PLANE].vao);
+	glDrawElementsInstanced(GL_TRIANGLES, r_models[R_PLANE].nidxs, GL_UNSIGNED_INT, NULL, r_state.batchsize);
+	r_state.batchsize = 0;
 }
 
 void
-R_Update(void)
+r_update(void)
 {
 	// update fade brightness.
-	if (R_State.FadeStatus)
+	if (r_state.fadestatus)
 	{
-		R_State.FadeBrightness += O_FADE_SPEED;
-		R_State.FadeBrightness = R_State.FadeBrightness > 1.0f ? 1.0f : R_State.FadeBrightness;
+		r_state.fadebrightness += O_FADESPEED;
+		r_state.fadebrightness = r_state.fadebrightness > 1.0f ? 1.0f : r_state.fadebrightness;
 	}
 	else
 	{
-		R_State.FadeBrightness -= O_FADE_SPEED;
-		R_State.FadeBrightness = R_State.FadeBrightness < 0.0f ? 0.0f : R_State.FadeBrightness;
+		r_state.fadebrightness -= O_FADESPEED;
+		r_state.fadebrightness = r_state.fadebrightness < 0.0f ? 0.0f : r_state.fadebrightness;
 	}
 	
 	// update camera pan.
-	R_Cam.Pan.Pitch = InterpolateAngle(R_Cam.Pan.Pitch, R_Cam.Pan.DstPitch, O_PAN_ROT_SPEED);
-	R_Cam.Pan.Yaw = InterpolateAngle(R_Cam.Pan.Yaw, R_Cam.Pan.Yaw, O_PAN_ROT_SPEED);
-	glm_vec3_lerp(R_Cam.Pan.Pos, R_Cam.Pan.DstPos, O_PAN_POS_SPEED, R_Cam.Pan.Pos);
+	r_cam.pan.pitch = interpangle(r_cam.pan.pitch, r_cam.pan.dstpitch, O_PANROTSPEED);
+	r_cam.pan.yaw = interpangle(r_cam.pan.yaw, r_cam.pan.dstyaw, O_PANROTSPEED);
+	glm_vec3_lerp(r_cam.pan.pos, r_cam.pan.dstpos, O_PANPOSSPEED, r_cam.pan.pos);
 }
 
 void
-R_Fade(R_FadeStatus FS)
+r_fade(r_fadestatus fs)
 {
-	R_State.FadeStatus = FS;
+	r_state.fadestatus = fs;
 }
 
 void
-R_PanCamera(vec3 Pos, f32 Pitch, f32 Yaw)
+r_pancam(vec3 pos, f32 pitch, f32 yaw)
 {
-	R_Cam.Pan.DstPitch = Pitch;
-	R_Cam.Pan.DstYaw = Yaw;
-	glm_vec3_copy(Pos, R_Cam.Pan.DstPos);
+	r_cam.pan.dstpitch = pitch;
+	r_cam.pan.dstyaw = yaw;
+	glm_vec3_copy(pos, r_cam.pan.dstpos);
 }
 
 void
-R_EffectiveCameraState(vec3 OutPos, f32 *OutPitch, f32 *OutYaw)
+r_effcamstate(OUT vec3 pos, OUT f32 *pitch, OUT f32 *yaw)
 {
-	if (OutPos)
+	if (pos)
 	{
-		glm_vec3_copy(R_Cam.Base.Pos, OutPos);
-		glm_vec3_add(R_Cam.Pan.Pos, OutPos, OutPos);
+		glm_vec3_copy(r_cam.base.pos, pos);
+		glm_vec3_add(r_cam.pan.pos, pos, pos);
 	}
-	if (OutPitch)
+	if (pitch)
 	{
-		*OutPitch = R_Cam.Base.Pitch + R_Cam.Pan.Pitch;
+		*pitch = r_cam.base.pitch + r_cam.pan.pitch;
 	}
-	if (OutYaw)
+	if (yaw)
 	{
-		*OutYaw = R_Cam.Base.Yaw + R_Cam.Pan.Yaw;
+		*yaw = r_cam.base.yaw + r_cam.pan.yaw;
 	}
 }
 
 static void
-R_PreprocShader(char *Src, usize Len)
+r_preproc(char *src, usize len)
 {
 	// substitute all constants for in-game values prior to shader compilation.
-	for (usize i = 0; i < Len; ++i)
+	for (usize i = 0; i < len; ++i)
 	{
-		if (Len - i >= 13 && !strncmp(&Src[i], "$O_MAX_LIGHTS", 13))
+		if (len - i >= 12 && !strncmp(&src[i], "$O_MAXLIGHTS", 12))
 		{
-			usize CL = snprintf(&Src[i], 13, "%u", O_MAX_LIGHTS);
-			memset(&Src[i + CL], ' ', 13 - CL);
+			usize cl = snprintf(&src[i], 12, "%u", O_MAXLIGHTS);
+			memset(&src[i + cl], ' ', 12 - cl);
 		}
-		else if (Len - i >= 16 && !strncmp(&Src[i], "$O_AMBIENT_LIGHT", 16))
+		else if (len - i >= 15 && !strncmp(&src[i], "$O_AMBIENTLIGHT", 15))
 		{
-			usize CL = snprintf(&Src[i], 16, "%f", O_AMBIENT_LIGHT);
-			memset(&Src[i + CL], ' ', 16 - CL);
+			usize cl = snprintf(&src[i], 15, "%f", O_AMBIENTLIGHT);
+			memset(&src[i + cl], ' ', 15 - cl);
 		}
-		else if (Len - i >= 13 && !strncmp(&Src[i], "$O_LIGHT_STEP", 13))
+		else if (len - i >= 12 && !strncmp(&src[i], "$O_LIGHTSTEP", 12))
 		{
-			usize CL = snprintf(&Src[i], 13, "%f", O_LIGHT_STEP);
-			memset(&Src[i + CL], ' ', 13 - CL);
+			usize cl = snprintf(&src[i], 12, "%f", O_LIGHTSTEP);
+			memset(&src[i + cl], ' ', 12 - cl);
 		}
-		else if (Len - i >= 14 && !strncmp(&Src[i], "$O_SHADOW_BIAS", 14))
+		else if (len - i >= 13 && !strncmp(&src[i], "$O_SHADOWBIAS", 13))
 		{
-			usize CL = snprintf(&Src[i], 14, "%f", O_SHADOW_BIAS);
-			memset(&Src[i + CL], ' ', 14 - CL);
+			usize cl = snprintf(&src[i], 13, "%f", O_SHADOWBIAS);
+			memset(&src[i + cl], ' ', 13 - cl);
 		}
-		else if (Len - i >= 15 && !strncmp(&Src[i], "$O_CAM_CLIP_FAR", 15))
+		else if (len - i >= 13 && !strncmp(&src[i], "$O_CAMCLIPFAR", 13))
 		{
-			usize CL = snprintf(&Src[i], 15, "%f", O_CAM_CLIP_FAR);
-			memset(&Src[i + CL], ' ', 15 - CL);
+			usize cl = snprintf(&src[i], 13, "%f", O_CAMCLIPFAR);
+			memset(&src[i + cl], ' ', 13 - cl);
 		}
-		else if (Len - i >= 17 && !strncmp(&Src[i], "$O_MAX_TILE_BATCH", 17))
+		else if (len - i >= 15 && !strncmp(&src[i], "$O_MAXTILEBATCH", 15))
 		{
-			usize CL = snprintf(&Src[i], 17, "%u", O_MAX_TILE_BATCH);
-			memset(&Src[i + CL], ' ', 17 - CL);
+			usize cl = snprintf(&src[i], 15, "%u", O_MAXTILEBATCH);
+			memset(&src[i + cl], ' ', 15 - cl);
 		}
 	}
 }
 
 static void
-R_DeleteGlContext(void)
+r_deleteglctx(void)
 {
-	SDL_GL_DeleteContext(R_GlContext);
+	SDL_GL_DeleteContext(r_glctx);
 }

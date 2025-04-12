@@ -1,19 +1,19 @@
 #ifndef TEXTBOX_H
 #define TEXTBOX_H
 
-typedef enum T_TextboxSprite
+typedef enum t_sprite
 {
-	T_TS_ARKADY = 0,
-	T_TS_PETER,
-	T_TS_MATTHEW,
-	T_TS_GERASIM,
+	T_ARKADY = 0,
+	T_PETER,
+	T_MATTHEW,
+	T_GERASIM,
 	
-	T_TS_END__
-} T_TextboxSprite;
+	T_SPRITE_END__
+} t_sprite;
 
-bool T_IsActive(void);
-void T_Show(T_TextboxSprite Sprite, char const *Msg);
-void T_Update(void);
-void T_RenderOverlay(void);
+bool t_active(void);
+void t_show(t_sprite sprite, char const *msg);
+void t_update(void);
+void t_renderoverlay(void);
 
 #endif

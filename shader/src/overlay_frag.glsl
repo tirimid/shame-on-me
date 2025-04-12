@@ -1,18 +1,18 @@
 #version 430 core
 
-in vec2 v_Texcoord;
+in vec2 texcoord;
 
-uniform sampler2D i_Tex;
+uniform sampler2D tex;
 
-out vec4 f_Col;
+out vec4 col;
 
 void
 main()
 {
-	vec4 Pix = texture(i_Tex, v_Texcoord);
-	if (Pix.a == 0.0)
+	vec4 pix = texture(tex, texcoord);
+	if (pix.a == 0.0)
 	{
 		discard;
 	}
-	f_Col = Pix;
+	col = pix;
 }

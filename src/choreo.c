@@ -1,614 +1,642 @@
-#define C_WALK_DST_THRESHOLD2 0.015f
-#define C_LOOK_THRESHOLD 0.005f
+#define C_WALKTHRESHOLD 0.12f
+#define C_WALKTHRESHOLD2 (C_WALKTHRESHOLD * C_WALKTHRESHOLD)
+#define C_LOOKTHRESHOLD 0.005f
 
-typedef enum C_ActionType
+typedef enum c_actiontype
 {
-	C_AT_TELEPORT = 0,
-	C_AT_TELEPORT_TO,
-	C_AT_WALK,
-	C_AT_WALK_TO,
-	C_AT_LOOK,
-	C_AT_LOOK_AT,
-	C_AT_LOOK_WALK_TO,
-	C_AT_SET_TEXTURE,
-	C_AT_WAIT,
-	C_AT_SPEAK,
-	C_AT_SWAP_MODEL,
-	C_AT_SET_LIGHT_INTENSITY,
-	C_AT_PAN_CAMERA
-} C_ActionType;
+	C_TELEPORT = 0,
+	C_TELEPORTTO,
+	C_WALK,
+	C_WALKTO,
+	C_LOOK,
+	C_LOOKAT,
+	C_LOOKWALKTO,
+	C_SETTEXTURE,
+	C_WAIT,
+	C_SPEAK,
+	C_SWAPMODEL,
+	C_SETLIGHTINTENSITY,
+	C_PANCAMERA,
+	C_SETDURAKPHASE
+} c_actiontype;
 
-typedef union C_Action
+typedef union c_action
 {
-	u8 Type;
+	u8 type;
 	
 	struct
 	{
-		u8 Type;
-		u8 Actor;
-		vec2 Dst;
-	} Teleport;
+		u8 type;
+		u8 actor;
+		vec2 dst;
+	} teleport;
 	
 	struct
 	{
-		u8 Type;
-		char Point;
-		u8 Actor;
-	} TeleportTo;
+		u8 type;
+		char point;
+		u8 actor;
+	} teleportto;
 	
 	struct
 	{
-		u8 Type;
-		u8 Actor;
-		vec2 Dst;
-	} Walk;
+		u8 type;
+		u8 actor;
+		vec2 dst;
+	} walk;
 	
 	struct
 	{
-		u8 Type;
-		char Point;
-		u8 Actor;
-	} WalkTo;
+		u8 type;
+		char point;
+		u8 actor;
+	} walkto;
 	
 	struct
 	{
-		u8 Type;
-		u8 Actor;
-		f32 Pitch, Yaw;
-	} Look;
+		u8 type;
+		u8 actor;
+		f32 pitch, yaw;
+	} look;
 	
 	struct
 	{
-		u8 Type;
-		char Point;
-		u8 Actor;
-	} LookAt;
+		u8 type;
+		char point;
+		u8 actor;
+	} lookat;
 	
 	struct
 	{
-		u8 Type;
-		char Point;
-		u8 Actor;
-	} LookWalkTo;
+		u8 type;
+		char point;
+		u8 actor;
+	} lookwalkto;
 	
 	struct
 	{
-		u8 Type;
-		u8 Tex;
-		u8 Actor;
-	} SetTexture;
+		u8 type;
+		u8 tex;
+		u8 actor;
+	} settexture;
 	
 	struct
 	{
-		u8 Type;
-		i64 MS;
-	} Wait;
+		u8 type;
+		i64 ms;
+	} wait;
 	
 	struct
 	{
-		u8 Type;
-		u8 TextSprite;
-		char const *Msg;
-	} Speak;
+		u8 type;
+		u8 textsprite;
+		char const *msg;
+	} speak;
 	
 	struct
 	{
-		u8 Type;
-		u8 NewModel;
-		usize PropIdx;
-	} SwapModel;
+		u8 type;
+		u8 newmodel;
+		usize propidx;
+	} swapmodel;
 	
 	struct
 	{
-		u8 Type;
-		f32 NewIntensity;
-		usize LightIdx;
-	} SetLightIntensity;
+		u8 type;
+		f32 newintensity;
+		usize lightidx;
+	} setlightintensity;
 	
 	struct
 	{
-		u8 Type;
-		f32 Pitch, Yaw;
-		vec3 Pos;
-	} PanCamera;
-} C_Action;
+		u8 type;
+		f32 pitch, yaw;
+		vec3 pos;
+	} pancamera;
+	
+	struct
+	{
+		u8 type;
+		d_gamephase phase;
+	} setdurakphase;
+} c_action;
 
-typedef struct C_ActorData
+typedef struct c_actordata
 {
-	vec2 Pos;
-	f32 Pitch, Yaw;
-	f32 BobTime;
-	u8 ActiveTex;
-} C_ActorData;
+	vec2 pos;
+	f32 pitch, yaw;
+	f32 bobtime;
+	u8 activetex;
+} c_actordata;
 
-C_MapData C_Map;
-C_Prop C_Props[O_MAX_CHOREO_PROPS];
-usize C_PropCnt;
+c_mapdata c_map;
+c_prop c_props[O_MAXPROPS];
+usize c_nprops;
 
-static void C_GetPointPos(char Point, vec2 Out);
+static void c_getpoint(char point, OUT vec2 pos);
 
-static C_ActorData C_Actors[C_A_END__] =
+static c_actordata c_actors[C_ACTOR_END__] =
 {
 	// arkady (player).
 	{
-		.ActiveTex = 0 // dummy value, player is not drawn.
+		.activetex = 0 // dummy value, player is not drawn.
 	},
 	
 	// peter.
 	{
-		.ActiveTex = R_T_EYES_DUMMY
+		.activetex = R_EYESDUMMY
 	},
 	
 	// matthew.
 	{
-		.ActiveTex = R_T_GLASSES_DUMMY
+		.activetex = R_GLASSESDUMMY
 	},
 	
 	// gerasim.
 	{
-		.ActiveTex = R_T_DUMMY
+		.activetex = R_DUMMY
 	}
 };
 
-static C_Action C_Actions[O_MAX_CHOREO_ACTIONS];
-static usize C_ActionCnt;
+static c_action c_actions[O_MAXACTIONS];
+static usize c_nactions;
 
 void
-C_Teleport(C_Actor a, vec2 Pos)
+c_teleport(c_actor a, vec2 pos)
 {
-	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS)
+	if (c_nactions >= O_MAXACTIONS)
 	{
 		return;
 	}
-	C_Actions[C_ActionCnt++] = (C_Action)
+	c_actions[c_nactions++] = (c_action)
 	{
-		.Teleport =
+		.teleport =
 		{
-			.Type = C_AT_TELEPORT,
-			.Dst = {Pos[0], Pos[1]},
-			.Actor = a
+			.type = C_TELEPORT,
+			.dst = {pos[0], pos[1]},
+			.actor = a
 		}
 	};
 }
 
 void
-C_TeleportTo(C_Actor a, char Point)
+c_teleportto(c_actor a, char point)
 {
-	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS)
+	if (c_nactions >= O_MAXACTIONS)
 	{
 		return;
 	}
-	C_Actions[C_ActionCnt++] = (C_Action)
+	c_actions[c_nactions++] = (c_action)
 	{
-		.TeleportTo =
+		.teleportto =
 		{
-			.Type = C_AT_TELEPORT_TO,
-			.Point = Point,
-			.Actor = a
+			.type = C_TELEPORTTO,
+			.point = point,
+			.actor = a
 		}
 	};
 }
 
 void
-C_Walk(C_Actor a, vec2 Pos)
+c_walk(c_actor a, vec2 pos)
 {
-	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS)
+	if (c_nactions >= O_MAXACTIONS)
 	{
 		return;
 	}
-	C_Actions[C_ActionCnt++] = (C_Action)
+	c_actions[c_nactions++] = (c_action)
 	{
-		.Walk =
+		.walk =
 		{
-			.Type = C_AT_WALK,
-			.Dst = {Pos[0], Pos[1]},
-			.Actor = a
+			.type = C_WALK,
+			.dst = {pos[0], pos[1]},
+			.actor = a
 		}
 	};
 }
 
 void
-C_WalkTo(C_Actor a, char Point)
+c_walkto(c_actor a, char point)
 {
-	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS)
+	if (c_nactions >= O_MAXACTIONS)
 	{
 		return;
 	}
-	C_Actions[C_ActionCnt++] = (C_Action)
+	c_actions[c_nactions++] = (c_action)
 	{
-		.WalkTo =
+		.walkto =
 		{
-			.Type = C_AT_WALK_TO,
-			.Point = Point,
-			.Actor = a
+			.type = C_WALKTO,
+			.point = point,
+			.actor = a
 		}
 	};
 }
 
 void
-C_Look(C_Actor a, f32 PitchDeg, f32 YawDeg)
+c_look(c_actor a, f32 pitchdeg, f32 yawdeg)
 {
-	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS)
+	if (c_nactions >= O_MAXACTIONS)
 	{
 		return;
 	}
-	C_Actions[C_ActionCnt++] = (C_Action)
+	c_actions[c_nactions++] = (c_action)
 	{
-		.Look =
+		.look =
 		{
-			.Type = C_AT_LOOK,
-			.Pitch = glm_rad(PitchDeg),
-			.Yaw = glm_rad(YawDeg),
-			.Actor = a
+			.type = C_LOOK,
+			.pitch = glm_rad(pitchdeg),
+			.yaw = glm_rad(yawdeg),
+			.actor = a
 		}
 	};
 }
 
 void
-C_LookAt(C_Actor a, char Point)
+c_lookat(c_actor a, char point)
 {
-	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS)
+	if (c_nactions >= O_MAXACTIONS)
 	{
 		return;
 	}
-	C_Actions[C_ActionCnt++] = (C_Action)
+	c_actions[c_nactions++] = (c_action)
 	{
-		.LookAt =
+		.lookat =
 		{
-			.Type = C_AT_LOOK_AT,
-			.Point = Point,
-			.Actor = a
+			.type = C_LOOKAT,
+			.point = point,
+			.actor = a
 		}
 	};
 }
 
 void
-C_LookWalkTo(C_Actor a, char Point)
+c_lookwalkto(c_actor a, char point)
 {
-	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS)
+	if (c_nactions >= O_MAXACTIONS)
 	{
 		return;
 	}
-	C_Actions[C_ActionCnt++] = (C_Action)
+	c_actions[c_nactions++] = (c_action)
 	{
-		.LookWalkTo =
+		.lookwalkto =
 		{
-			.Type = C_AT_LOOK_WALK_TO,
-			.Point = Point,
-			.Actor = a
+			.type = C_LOOKWALKTO,
+			.point = point,
+			.actor = a
 		}
 	};
 }
 
 void
-C_SetTexture(C_Actor a, R_Texture t)
+c_settexture(c_actor a, r_tex t)
 {
-	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS)
+	if (c_nactions >= O_MAXACTIONS)
 	{
 		return;
 	}
-	C_Actions[C_ActionCnt++] = (C_Action)
+	c_actions[c_nactions++] = (c_action)
 	{
-		.SetTexture =
+		.settexture =
 		{
-			.Type = C_AT_SET_TEXTURE,
-			.Tex = t,
-			.Actor = a
+			.type = C_SETTEXTURE,
+			.tex = t,
+			.actor = a
 		}
 	};
 }
 
 void
-C_Wait(u64 MS)
+c_wait(u64 ms)
 {
-	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS)
+	if (c_nactions >= O_MAXACTIONS)
 	{
 		return;
 	}
-	C_Actions[C_ActionCnt++] = (C_Action)
+	c_actions[c_nactions++] = (c_action)
 	{
-		.Wait =
+		.wait =
 		{
-			.Type = C_AT_WAIT,
-			.MS = MS
+			.type = C_WAIT,
+			.ms = ms
 		}
 	};
 }
 
 void
-C_Speak(T_TextboxSprite t, char const *Msg)
+c_speak(t_sprite t, char const *msg)
 {
-	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS)
+	if (c_nactions >= O_MAXACTIONS)
 	{
 		return;
 	}
-	C_Actions[C_ActionCnt++] = (C_Action)
+	c_actions[c_nactions++] = (c_action)
 	{
-		.Speak =
+		.speak =
 		{
-			.Type = C_AT_SPEAK,
-			.Msg = Msg,
-			.TextSprite = t
+			.type = C_SPEAK,
+			.msg = msg,
+			.textsprite = t
 		}
 	};
 }
 
 void
-C_SwapModel(usize Idx, R_Model NewModel)
+c_swapmodel(usize idx, r_model newmodel)
 {
-	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS)
+	if (c_nactions >= O_MAXACTIONS)
 	{
 		return;
 	}
-	C_Actions[C_ActionCnt++] = (C_Action)
+	c_actions[c_nactions++] = (c_action)
 	{
-		.SwapModel =
+		.swapmodel =
 		{
-			.Type = C_AT_SWAP_MODEL,
-			.PropIdx = Idx,
-			.NewModel = NewModel
+			.type = C_SWAPMODEL,
+			.propidx = idx,
+			.newmodel = newmodel
 		}
 	};
 }
 
 void
-C_SetLightIntensity(usize Idx, f32 Intensity)
+c_setlightintensity(usize idx, f32 intensity)
 {
-	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS)
+	if (c_nactions >= O_MAXACTIONS)
 	{
 		return;
 	}
-	C_Actions[C_ActionCnt++] = (C_Action)
+	c_actions[c_nactions++] = (c_action)
 	{
-		.SetLightIntensity =
+		.setlightintensity =
 		{
-			.Type = C_AT_SET_LIGHT_INTENSITY,
-			.LightIdx = Idx,
-			.NewIntensity = Intensity
+			.type = C_SETLIGHTINTENSITY,
+			.lightidx = idx,
+			.newintensity = intensity
 		}
 	};
 }
 
 void
-C_PanCamera(vec3 Pos, f32 PitchDeg, f32 YawDeg)
+c_pancamera(vec3 pos, f32 pitchdeg, f32 yawdeg)
 {
-	if (C_ActionCnt >= O_MAX_CHOREO_ACTIONS)
+	if (c_nactions >= O_MAXACTIONS)
 	{
 		return;
 	}
-	C_Actions[C_ActionCnt++] = (C_Action)
+	c_actions[c_nactions++] = (c_action)
 	{
-		.PanCamera =
+		.pancamera =
 		{
-			.Type = C_AT_PAN_CAMERA,
-			.Pos = {Pos[0], Pos[1], Pos[2]},
-			.Pitch = glm_rad(PitchDeg),
-			.Yaw = glm_rad(YawDeg)
+			.type = C_PANCAMERA,
+			.pos = {pos[0], pos[1], pos[2]},
+			.pitch = glm_rad(pitchdeg),
+			.yaw = glm_rad(yawdeg)
 		}
 	};
 }
 
 void
-C_Update(void)
+c_setdurakphase(d_gamephase phase)
+{
+	if (c_nactions >= O_MAXACTIONS)
+	{
+		return;
+	}
+	c_actions[c_nactions++] = (c_action)
+	{
+		.setdurakphase =
+		{
+			.type = C_SETDURAKPHASE,
+			.phase = phase
+		}
+	};
+}
+
+void
+c_update(void)
 {
 	// update render camera.
-	f32 VBob = fabs(sin(C_Actors[C_A_ARKADY].BobTime));
-	f32 HBob = fabs(cos(C_Actors[C_A_ARKADY].BobTime));
+	f32 vbob = fabs(sin(c_actors[C_ARKADY].bobtime));
+	f32 hbob = fabs(cos(c_actors[C_ARKADY].bobtime));
 	
-	R_Cam.Base.Pos[0] = C_Actors[C_A_ARKADY].Pos[0] + O_HORIZ_BOB_INTENSITY * HBob;
-	R_Cam.Base.Pos[1] = O_VERT_BOB_INTENSITY * VBob;
-	R_Cam.Base.Pos[2] = C_Actors[C_A_ARKADY].Pos[1] + O_HORIZ_BOB_INTENSITY * HBob;
-	R_Cam.Base.Pitch = C_Actors[C_A_ARKADY].Pitch;
-	R_Cam.Base.Yaw = C_Actors[C_A_ARKADY].Yaw;
+	r_cam.base.pos[0] = c_actors[C_ARKADY].pos[0] + O_HORIZBOB * hbob;
+	r_cam.base.pos[1] = O_VERTBOB * vbob;
+	r_cam.base.pos[2] = c_actors[C_ARKADY].pos[1] + O_HORIZBOB * hbob;
+	r_cam.base.pitch = c_actors[C_ARKADY].pitch;
+	r_cam.base.yaw = c_actors[C_ARKADY].yaw;
 	
 	// update choreography actions.
-	if (C_ActionCnt == 0)
+	if (c_nactions == 0)
 	{
 		return;
 	}
 	
-	C_Action *Action = &C_Actions[0];
+	c_action *action = &c_actions[0];
 	
-	switch (Action->Type)
+	switch (action->type)
 	{
-	case C_AT_TELEPORT:
+	case C_TELEPORT:
 	{
-		C_ActorData *Actor = &C_Actors[Action->Teleport.Actor];
-		Actor->Pos[0] = Action->Teleport.Dst[0];
-		Actor->Pos[1] = Action->Teleport.Dst[1];
+		c_actordata *actor = &c_actors[action->teleport.actor];
+		actor->pos[0] = action->teleport.dst[0];
+		actor->pos[1] = action->teleport.dst[1];
 		break;
 	}
-	case C_AT_TELEPORT_TO:
+	case C_TELEPORTTO:
 	{
-		C_ActorData *Actor = &C_Actors[Action->TeleportTo.Actor];
-		C_GetPointPos(Action->TeleportTo.Point, Actor->Pos);
+		c_actordata *actor = &c_actors[action->teleportto.actor];
+		c_getpoint(action->teleportto.point, actor->pos);
 		break;
 	}
-	case C_AT_WALK:
+	case C_WALK:
 	{
-		C_ActorData *Actor = &C_Actors[Action->Walk.Actor];
+		c_actordata *actor = &c_actors[action->walk.actor];
 		
-		if (glm_vec2_distance2(Actor->Pos, Action->Walk.Dst) < C_WALK_DST_THRESHOLD2)
+		if (glm_vec2_distance2(actor->pos, action->walk.dst) < C_WALKTHRESHOLD2)
 		{
-			glm_vec2_copy(Action->Walk.Dst, Actor->Pos);
+			glm_vec2_copy(action->walk.dst, actor->pos);
 			break;
 		}
 		
-		vec2 Move = {0};
-		glm_vec2_sub(Action->Walk.Dst, Actor->Pos, Move);
-		glm_vec2_normalize(Move);
-		glm_vec2_scale(Move, O_WALK_SPEED, Move);
+		vec2 move = {0};
+		glm_vec2_sub(action->walk.dst, actor->pos, move);
+		glm_vec2_normalize(move);
+		glm_vec2_scale(move, O_WALKSPEED, move);
 		
-		glm_vec2_add(Actor->Pos, Move, Actor->Pos);
-		Actor->BobTime += O_BOB_FREQUENCY;
+		glm_vec2_add(actor->pos, move, actor->pos);
+		actor->bobtime += O_BOBFREQ;
 		
 		return;
 	}
-	case C_AT_WALK_TO:
+	case C_WALKTO:
 	{
-		C_ActorData *Actor = &C_Actors[Action->WalkTo.Actor];
+		c_actordata *actor = &c_actors[action->walkto.actor];
 		
-		vec2 Dst = {0};
-		C_GetPointPos(Action->WalkTo.Point, Dst);
+		vec2 dst = {0};
+		c_getpoint(action->walkto.point, dst);
 		
-		if (glm_vec2_distance2(Actor->Pos, Dst) < C_WALK_DST_THRESHOLD2)
+		if (glm_vec2_distance2(actor->pos, dst) < C_WALKTHRESHOLD2)
 		{
-			glm_vec2_copy(Dst, Actor->Pos);
+			glm_vec2_copy(dst, actor->pos);
 			break;
 		}
 		
-		vec2 Move = {0};
-		glm_vec2_sub(Dst, Actor->Pos, Move);
-		glm_vec2_normalize(Move);
-		glm_vec2_scale(Move, O_WALK_SPEED, Move);
+		vec2 move = {0};
+		glm_vec2_sub(dst, actor->pos, move);
+		glm_vec2_normalize(move);
+		glm_vec2_scale(move, O_WALKSPEED, move);
 		
-		glm_vec2_add(Actor->Pos, Move, Actor->Pos);
-		Actor->BobTime += O_BOB_FREQUENCY;
+		glm_vec2_add(actor->pos, move, actor->pos);
+		actor->bobtime += O_BOBFREQ;
 		
 		return;
 	}
-	case C_AT_LOOK:
+	case C_LOOK:
 	{
-		C_ActorData *Actor = &C_Actors[Action->Look.Actor];
+		c_actordata *actor = &c_actors[action->look.actor];
 		
-		if (fabs(ShortestAngle(Action->Look.Pitch, Actor->Pitch)) < C_LOOK_THRESHOLD
-			&& fabs(ShortestAngle(Action->Look.Yaw, Actor->Yaw)) < C_LOOK_THRESHOLD)
+		if (fabs(shortestangle(action->look.pitch, actor->pitch)) < C_LOOKTHRESHOLD
+			&& fabs(shortestangle(action->look.yaw, actor->yaw)) < C_LOOKTHRESHOLD)
 		{
-			Actor->Pitch = Action->Look.Pitch;
-			Actor->Yaw = Action->Look.Yaw;
+			actor->pitch = action->look.pitch;
+			actor->yaw = action->look.yaw;
 			break;
 		}
 		
-		Actor->Pitch = InterpolateAngle(Actor->Pitch, Action->Look.Pitch, O_LOOK_SPEED);
-		Actor->Yaw = InterpolateAngle(Actor->Yaw, Action->Look.Yaw, O_LOOK_SPEED);
+		actor->pitch = interpangle(actor->pitch, action->look.pitch, O_LOOKSPEED);
+		actor->yaw = interpangle(actor->yaw, action->look.yaw, O_LOOKSPEED);
 		
 		return;
 	}
-	case C_AT_LOOK_AT:
+	case C_LOOKAT:
 	{
-		C_ActorData *Actor = &C_Actors[Action->LookAt.Actor];
+		c_actordata *actor = &c_actors[action->lookat.actor];
 		
-		vec2 Dir = {0};
-		C_GetPointPos(Action->LookAt.Point, Dir);
-		glm_vec2_sub(Dir, Actor->Pos, Dir);
+		vec2 dir = {0};
+		c_getpoint(action->lookat.point, dir);
+		glm_vec2_sub(dir, actor->pos, dir);
 		
-		f32 DstPitch = 0.0f;
-		f32 DstYaw = atan2f(Dir[1], Dir[0]);
+		f32 dstpitch = 0.0f;
+		f32 dstyaw = atan2f(dir[1], dir[0]);
 		
-		if (fabs(ShortestAngle(Actor->Pitch, DstPitch)) < C_LOOK_THRESHOLD
-			&& fabs(ShortestAngle(Actor->Yaw, DstYaw)) < C_LOOK_THRESHOLD)
+		if (fabs(shortestangle(actor->pitch, dstpitch)) < C_LOOKTHRESHOLD
+			&& fabs(shortestangle(actor->yaw, dstyaw)) < C_LOOKTHRESHOLD)
 		{
-			Actor->Pitch = DstPitch;
-			Actor->Yaw = DstYaw;
+			actor->pitch = dstpitch;
+			actor->yaw = dstyaw;
 			break;
 		}
 		
-		Actor->Pitch = InterpolateAngle(Actor->Pitch, DstPitch, O_LOOK_SPEED);
-		Actor->Yaw = InterpolateAngle(Actor->Yaw, DstYaw, O_LOOK_SPEED);
+		actor->pitch = interpangle(actor->pitch, dstpitch, O_LOOKSPEED);
+		actor->yaw = interpangle(actor->yaw, dstyaw, O_LOOKSPEED);
 		
 		return;
 	}
-	case C_AT_LOOK_WALK_TO:
+	case C_LOOKWALKTO:
 	{
-		C_ActorData *Actor = &C_Actors[Action->LookWalkTo.Actor];
+		c_actordata *actor = &c_actors[action->lookwalkto.actor];
 		
-		vec2 Dst = {0}, Dir = {0};
-		C_GetPointPos(Action->LookWalkTo.Point, Dst);
-		glm_vec2_sub(Dst, Actor->Pos, Dir);
+		vec2 dst = {0}, dir = {0};
+		c_getpoint(action->lookwalkto.point, dst);
+		glm_vec2_sub(dst, actor->pos, dir);
 		
-		f32 DstPitch = 0.0f;
-		f32 DstYaw = atan2f(Dir[1], Dir[0]);
+		f32 dstpitch = 0.0f;
+		f32 dstyaw = atan2f(dir[1], dir[0]);
 		
-		bool RotDone = false;
-		if (fabs(ShortestAngle(DstPitch, Actor->Pitch)) < C_LOOK_THRESHOLD
-			&& fabs(ShortestAngle(DstYaw, Actor->Yaw)) < C_LOOK_THRESHOLD)
+		bool rotdone = false;
+		if (fabs(shortestangle(dstpitch, actor->pitch)) < C_LOOKTHRESHOLD
+			&& fabs(shortestangle(dstyaw, actor->yaw)) < C_LOOKTHRESHOLD)
 		{
-			Actor->Pitch = DstPitch;
-			Actor->Yaw = DstYaw;
-			RotDone = true;
+			actor->pitch = dstpitch;
+			actor->yaw = dstyaw;
+			rotdone = true;
 		}
 		
-		bool MoveDone = false;
-		if (glm_vec2_distance2(Actor->Pos, Dst) < C_WALK_DST_THRESHOLD2)
+		bool movedone = false;
+		if (glm_vec2_distance2(actor->pos, dst) < C_WALKTHRESHOLD2)
 		{
-			glm_vec2_copy(Dst, Actor->Pos);
-			MoveDone = true;
+			glm_vec2_copy(dst, actor->pos);
+			movedone = true;
 		}
 		
-		if (!RotDone)
+		if (!rotdone)
 		{
-			Actor->Pitch = InterpolateAngle(Actor->Pitch, DstPitch, O_LOOK_SPEED);
-			Actor->Yaw = InterpolateAngle(Actor->Yaw, DstYaw, O_LOOK_SPEED);
+			actor->pitch = interpangle(actor->pitch, dstpitch, O_LOOKSPEED);
+			actor->yaw = interpangle(actor->yaw, dstyaw, O_LOOKSPEED);
 		}
 		
-		if (!MoveDone)
+		if (!movedone)
 		{
-			vec2 Move = {0};
-			glm_vec2_sub(Dst, Actor->Pos, Move);
-			glm_vec2_normalize(Move);
-			glm_vec2_scale(Move, O_WALK_SPEED, Move);
+			vec2 move = {0};
+			glm_vec2_sub(dst, actor->pos, move);
+			glm_vec2_normalize(move);
+			glm_vec2_scale(move, O_WALKSPEED, move);
 			
-			glm_vec2_add(Actor->Pos, Move, Actor->Pos);
-			Actor->BobTime += O_BOB_FREQUENCY;
+			glm_vec2_add(actor->pos, move, actor->pos);
+			actor->bobtime += O_BOBFREQ;
 		}
 		
-		if (RotDone && MoveDone)
+		if (rotdone && movedone)
 		{
 			break;
 		}
 		
 		return;
 	}
-	case C_AT_SET_TEXTURE:
+	case C_SETTEXTURE:
 	{
-		C_ActorData *Actor = &C_Actors[Action->SetTexture.Actor];
-		Actor->ActiveTex = Action->SetTexture.Tex;
+		c_actordata *actor = &c_actors[action->settexture.actor];
+		actor->activetex = action->settexture.tex;
 		break;
 	}
-	case C_AT_WAIT:
-		if (Action->Wait.MS <= 0)
+	case C_WAIT:
+		if (action->wait.ms <= 0)
 		{
 			break;
 		}
-		Action->Wait.MS -= O_TICK_MS;
+		action->wait.ms -= O_TICKMS;
 		return;
-	case C_AT_SPEAK:
-		T_Show(Action->Speak.TextSprite, Action->Speak.Msg);
-		if (I_KeyPressed(O_KEY_NEXT))
+	case C_SPEAK:
+		t_show(action->speak.textsprite, action->speak.msg);
+		if (i_kpressed(O_KNEXT))
 		{
 			break;
 		}
 		return;
-	case C_AT_SWAP_MODEL:
-		C_Props[Action->SwapModel.PropIdx].Model = Action->SwapModel.NewModel;
+	case C_SWAPMODEL:
+		c_props[action->swapmodel.propidx].model = action->swapmodel.newmodel;
 		break;
-	case C_AT_SET_LIGHT_INTENSITY:
-		R_SetLightIntensity(
-			Action->SetLightIntensity.LightIdx,
-			Action->SetLightIntensity.NewIntensity
+	case C_SETLIGHTINTENSITY:
+		r_setlightintensity(
+			action->setlightintensity.lightidx,
+			action->setlightintensity.newintensity
 		);
 		break;
-	case C_AT_PAN_CAMERA:
-		R_PanCamera(Action->PanCamera.Pos, Action->PanCamera.Pitch, Action->PanCamera.Yaw);
+	case C_PANCAMERA:
+		r_pancam(action->pancamera.pos, action->pancamera.pitch, action->pancamera.yaw);
+		break;
+	case C_SETDURAKPHASE:
+		d_setphase(action->setdurakphase.phase);
 		break;
 	}
 	
 	// dequeue completed action.
-	memmove(&C_Actions[0], &C_Actions[1], sizeof(C_Action) * --C_ActionCnt);
+	memmove(&c_actions[0], &c_actions[1], sizeof(c_action) * --c_nactions);
 }
 
 void
-C_RenderTiles(void)
+c_rendertiles(void)
 {
 	// draw floor.
-	R_SetTexture(R_T_FLOOR);
-	for (u32 x = 0; x < C_Map.w; ++x)
+	r_settex(R_FLOOR);
+	for (u32 x = 0; x < c_map.w; ++x)
 	{
-		for (u32 y = 0; y < C_Map.h; ++y)
+		for (u32 y = 0; y < c_map.h; ++y)
 		{
-			if (C_Map.Data[C_Map.w * y + x] != '#')
+			if (c_map.data[c_map.w * y + x] != '#')
 			{
-				R_BatchRenderTile(
+				r_batchtile(
 					(vec3){x, -1.5f, y},
 					(vec3){GLM_PI, 0.0f, 0.0f},
 					(vec3){0.5f, 1.0f, 0.5f}
@@ -617,17 +645,17 @@ C_RenderTiles(void)
 		}
 	}
 	
-	R_FlushTileBatch();
+	r_flushtiles();
 	
 	// draw ceiling.
-	R_SetTexture(R_T_CEILING);
-	for (u32 x = 0; x < C_Map.w; ++x)
+	r_settex(R_CEILING);
+	for (u32 x = 0; x < c_map.w; ++x)
 	{
-		for (u32 y = 0; y < C_Map.h; ++y)
+		for (u32 y = 0; y < c_map.h; ++y)
 		{
-			if (C_Map.Data[C_Map.w * y + x] != '#')
+			if (c_map.data[c_map.w * y + x] != '#')
 			{
-				R_BatchRenderTile(
+				r_batchtile(
 					(vec3){x, 0.5f, y},
 					(vec3){0.0f, 0.0f, 0.0f},
 					(vec3){0.5f, 1.0f, 0.5f}
@@ -636,33 +664,33 @@ C_RenderTiles(void)
 		}
 	}
 	
-	R_FlushTileBatch();
+	r_flushtiles();
 	
 	// draw walls.
-	R_SetTexture(R_T_WALL);
+	r_settex(R_WALL);
 	
-	for (u32 x = 0; x < C_Map.w; ++x)
+	for (u32 x = 0; x < c_map.w; ++x)
 	{
-		for (u32 y = 0; y < C_Map.h; ++y)
+		for (u32 y = 0; y < c_map.h; ++y)
 		{
-			if (C_Map.Data[C_Map.w * y + x] == '#')
+			if (c_map.data[c_map.w * y + x] == '#')
 			{
-				R_BatchRenderTile(
+				r_batchtile(
 					(vec3){x + 0.5f, -0.5f, y},
 					(vec3){-GLM_PI / 2.0f, 0.0f, GLM_PI / 2.0f},
 					(vec3){0.5f, 0.5f, 1.0f}
 				);
-				R_BatchRenderTile(
+				r_batchtile(
 					(vec3){x - 0.5f, -0.5f, y},
 					(vec3){GLM_PI / 2.0f, GLM_PI, GLM_PI / 2.0f},
 					(vec3){0.5f, 0.5f, 1.0f}
 				);
-				R_BatchRenderTile(
+				r_batchtile(
 					(vec3){x, -0.5f, y + 0.5f},
 					(vec3){-GLM_PI / 2.0f, 0.0f, 0.0f},
 					(vec3){0.5f, 1.0f, 1.0f}
 				);
-				R_BatchRenderTile(
+				r_batchtile(
 					(vec3){x, -0.5f, y - 0.5f},
 					(vec3){GLM_PI / 2.0f, GLM_PI, 0.0f},
 					(vec3){0.5f, 1.0f, 1.0f}
@@ -671,102 +699,102 @@ C_RenderTiles(void)
 		}
 	}
 	
-	for (u32 x = 0; x < C_Map.w; ++x)
+	for (u32 x = 0; x < c_map.w; ++x)
 	{
-		R_BatchRenderTile(
+		r_batchtile(
 			(vec3){x, -0.5f, -0.5f},
 			(vec3){-GLM_PI / 2.0f, 0.0f, 0.0f},
 			(vec3){0.5f, 1.0f, 1.0f}
 		);
-		R_BatchRenderTile(
-			(vec3){x, -0.5f, C_Map.h - 0.5f},
+		r_batchtile(
+			(vec3){x, -0.5f, c_map.h - 0.5f},
 			(vec3){GLM_PI / 2.0f, GLM_PI, 0.0f},
 			(vec3){0.5f, 1.0f, 1.0f}
 		);
 	}
 	
-	for (u32 y = 0; y < C_Map.h; ++y)
+	for (u32 y = 0; y < c_map.h; ++y)
 	{
-		R_BatchRenderTile(
+		r_batchtile(
 			(vec3){-0.5f, -0.5f, y},
 			(vec3){-GLM_PI / 2.0f, 0.0f, GLM_PI / 2.0f},
 			(vec3){0.5f, 0.5f, 1.0f}
 		);
-		R_BatchRenderTile(
-			(vec3){C_Map.w - 0.5f, -0.5f, y},
+		r_batchtile(
+			(vec3){c_map.w - 0.5f, -0.5f, y},
 			(vec3){GLM_PI / 2.0f, GLM_PI, GLM_PI / 2.0f},
 			(vec3){0.5f, 0.5f, 1.0f}
 		);
 	}
 	
-	R_FlushTileBatch();
+	r_flushtiles();
 }
 
 void
-C_RenderModels(void)
+c_rendermodels(void)
 {
 	// draw all non-player characters.
-	for (usize i = C_A_ARKADY + 1; i < C_A_END__; ++i)
+	for (usize i = C_ARKADY + 1; i < C_ACTOR_END__; ++i)
 	{
-		vec3 CamPos;
-		R_EffectiveCameraState(CamPos, NULL, NULL);
+		vec3 campos;
+		r_effcamstate(campos, NULL, NULL);
 		
-		vec2 LookPos = {CamPos[0], CamPos[2]};
-		C_ActorData *a = &C_Actors[i];
+		vec2 lookpos = {campos[0], campos[2]};
+		c_actordata *a = &c_actors[i];
 		
-		vec2 Dir;
-		glm_vec2_sub(LookPos, a->Pos, Dir);
-		glm_vec2_normalize(Dir);
-		f32 Yaw = atan2f(Dir[0], -Dir[1]);
+		vec2 dir;
+		glm_vec2_sub(lookpos, a->pos, dir);
+		glm_vec2_normalize(dir);
+		f32 yaw = atan2f(dir[0], -dir[1]);
 		
-		f32 Bob = O_VERT_BOB_INTENSITY * fabs(sin(a->BobTime));
+		f32 bob = O_VERTBOB * fabs(sin(a->bobtime));
 		
-		R_SetTexture(a->ActiveTex);
-		R_RenderModel(
-			R_M_PLANE,
-			(vec3){a->Pos[0], Bob - 0.65f, a->Pos[1]},
-			(vec3){GLM_PI / 2.0f, GLM_PI, 2.0f * GLM_PI - Yaw},
+		r_settex(a->activetex);
+		r_rendermodel(
+			R_PLANE,
+			(vec3){a->pos[0], bob - 0.65f, a->pos[1]},
+			(vec3){GLM_PI / 2.0f, GLM_PI, 2.0f * GLM_PI - yaw},
 			(vec3){0.5f, 1.0f, 0.875f}
 		);
 	}
 	
 	// draw all props.
-	for (usize i = 0; i < C_PropCnt; ++i)
+	for (usize i = 0; i < c_nprops; ++i)
 	{
-		R_SetTexture(C_Props[i].Tex);
-		R_RenderModel(C_Props[i].Model, C_Props[i].Pos, C_Props[i].Rot, C_Props[i].Scale);
+		r_settex(c_props[i].tex);
+		r_rendermodel(c_props[i].model, c_props[i].pos, c_props[i].rot, c_props[i].scale);
 	}
 }
 
 i64
-C_PutProp(R_Model m, R_Texture t, vec3 Pos, vec3 Rot, vec3 Scale)
+c_putprop(r_model m, r_tex t, vec3 pos, vec3 rot, vec3 scale)
 {
-	if (C_PropCnt >= O_MAX_CHOREO_PROPS)
+	if (c_nprops >= O_MAXPROPS)
 	{
 		return -1;
 	}
-	C_Props[C_PropCnt] = (C_Prop)
+	c_props[c_nprops] = (c_prop)
 	{
-		.Model = m,
-		.Tex = t,
-		.Pos = {Pos[0], Pos[1], Pos[2]},
-		.Rot = {Rot[0], Rot[1], Rot[2]},
-		.Scale = {Scale[0], Scale[1], Scale[2]}
+		.model = m,
+		.tex = t,
+		.pos = {pos[0], pos[1], pos[2]},
+		.rot = {rot[0], rot[1], rot[2]},
+		.scale = {scale[0], scale[1], scale[2]}
 	};
-	return C_PropCnt++;
+	return c_nprops++;
 }
 
 static void
-C_GetPointPos(char Point, vec2 Out)
+c_getpoint(char point, OUT vec2 pos)
 {
-	for (u32 x = 0; x < C_Map.w; ++x)
+	for (u32 x = 0; x < c_map.w; ++x)
 	{
-		for (u32 y = 0; y < C_Map.h; ++y)
+		for (u32 y = 0; y < c_map.h; ++y)
 		{
-			if (C_Map.Data[y * C_Map.w + x] == Point)
+			if (c_map.data[y * c_map.w + x] == point)
 			{
-				Out[0] = x;
-				Out[1] = y;
+				pos[0] = x;
+				pos[1] = y;
 				return;
 			}
 		}

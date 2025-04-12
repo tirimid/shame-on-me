@@ -1,33 +1,33 @@
 #version 430 core
 
-#define MAX_LIGHTS $O_MAX_LIGHTS
-#define AMBIENT_LIGHT $O_AMBIENT_LIGHT
-#define LIGHT_STEP $O_LIGHT_STEP
-#define CAM_CLIP_FAR $O_CAM_CLIP_FAR
-#define SHADOW_BIAS $O_SHADOW_BIAS
+#define MAXLIGHTS $O_MAXLIGHTS
+#define AMBIENTLIGHT $O_AMBIENTLIGHT
+#define LIGHTSTEP $O_LIGHTSTEP
+#define CAMCLIPFAR $O_CAMCLIPFAR
+#define SHADOWBIAS $O_SHADOWBIAS
 
-in vec2 v_Texcoord;
-in vec3 v_Normal;
-in vec3 v_FragPos;
+in vec2 texcoord;
+in vec3 normal;
+in vec3 fragpos;
 
-uniform vec4 i_Lights[MAX_LIGHTS];
-uniform samplerCube i_ShadowMaps[MAX_LIGHTS];
-uniform sampler2D i_Tex;
-uniform float i_FadeBrightness;
+uniform vec4 lights[MAXLIGHTS];
+uniform samplerCube shadowmaps[MAXLIGHTS];
+uniform sampler2D tex;
+uniform float fadebrightness;
 
-out vec4 f_Col;
+out vec4 col;
 
 float
-ComputeLight(vec4 Light, samplerCube ShadowMap)
+computelight(vec4 light, samplerCube shadowmap)
 {
-	vec3 LightToFrag = v_FragPos - Light.xyz;
-	float Depth = CAM_CLIP_FAR * texture(ShadowMap, LightToFrag).r;
+	vec3 ltof = fragpos - light.xyz;
+	float depth = CAMCLIPFAR * texture(shadowmap, ltof).r;
 
-	if (length(LightToFrag) - SHADOW_BIAS < Depth)
+	if (length(ltof) - SHADOWBIAS < depth)
 	{
-		vec3 Dir = normalize(Light.xyz - v_FragPos);
-		float Diff = max(dot(Dir, v_Normal), 0.0);
-		return sqrt(Light.w * Diff);
+		vec3 dir = normalize(light.xyz - fragpos);
+		float d = max(dot(dir, normal), 0.0);
+		return sqrt(light.w * d);
 	}
 
 	return 0.0;
@@ -36,23 +36,23 @@ ComputeLight(vec4 Light, samplerCube ShadowMap)
 void
 main()
 {
-	vec4 Pix = texture(i_Tex, v_Texcoord);
-	if (Pix.a == 0.0)
+	vec4 pix = texture(tex, texcoord);
+	if (pix.a == 0.0)
 	{
 		discard;
 	}
 
-	float Brightness = 0.0;
+	float brightness = 0.0;
 
 	// manually unrolled and refactored lighting computation loop.
 	// platform GLSL compiler cannot be relied on.
-	Brightness += ComputeLight(i_Lights[0], i_ShadowMaps[0]);
-	Brightness += ComputeLight(i_Lights[1], i_ShadowMaps[1]);
-	Brightness += ComputeLight(i_Lights[2], i_ShadowMaps[2]);
-	Brightness += ComputeLight(i_Lights[3], i_ShadowMaps[3]);
+	brightness += computelight(lights[0], shadowmaps[0]);
+	brightness += computelight(lights[1], shadowmaps[1]);
+	brightness += computelight(lights[2], shadowmaps[2]);
+	brightness += computelight(lights[3], shadowmaps[3]);
 
-	Brightness -= Brightness - LIGHT_STEP * floor(Brightness / LIGHT_STEP);
-	Brightness += AMBIENT_LIGHT;
+	brightness -= brightness - LIGHTSTEP * floor(brightness / LIGHTSTEP);
+	brightness += AMBIENTLIGHT;
 
-	f_Col = vec4(i_FadeBrightness * Brightness * Pix.rgb, 1.0);
+	col = vec4(fadebrightness * brightness * pix.rgb, 1.0);
 }

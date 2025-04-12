@@ -1,68 +1,68 @@
-static bool T_Active = false;
-static u8 T_ActiveSprite;
-static char const *T_ActiveMsg;
+static bool t_curactive = false;
+static u8 t_cursprite;
+static char const *t_curmsg;
 
 // data tables.
-static u8 T_SpriteTextures[T_TS_END__] =
+static u8 t_spritetex[T_SPRITE_END__] =
 {
-	R_T_SOMETHING, // arkady.
-	R_T_EYES_DUMMY_FACE, // peter.
-	R_T_GLASSES_DUMMY_FACE, // matthew.
-	R_T_DUMMY_FACE // gerasim.
+	R_SOMETHING, // arkady.
+	R_EYESDUMMYFACE, // peter.
+	R_GLASSESDUMMYFACE, // matthew.
+	R_DUMMYFACE // gerasim.
 };
 
 bool
-T_IsActive(void)
+t_active(void)
 {
-	return T_Active;
+	return t_curactive;
 }
 
 void
-T_Show(T_TextboxSprite Sprite, char const *Msg)
+t_show(t_sprite sprite, char const *msg)
 {
-	if (T_Active)
+	if (t_curactive)
 	{
 		return;
 	}
 	
-	T_Active = true;
-	T_ActiveSprite = Sprite;
-	T_ActiveMsg = Msg;
+	t_curactive = true;
+	t_cursprite = sprite;
+	t_curmsg = msg;
 }
 
 void
-T_Update(void)
+t_update(void)
 {
-	if (!T_Active)
+	if (!t_curactive)
 	{
 		return;
 	}
 	
-	if (I_KeyPressed(O_KEY_NEXT))
+	if (i_kpressed(O_KNEXT))
 	{
-		T_Active = false;
+		t_curactive = false;
 	}
 }
 
 void
-T_RenderOverlay(void)
+t_renderoverlay(void)
 {
-	if (!T_Active)
+	if (!t_curactive)
 	{
 		return;
 	}
 	
-	i32 Rw, Rh;
-	R_GetRenderBounds(&Rw, &Rh);
+	i32 rw, rh;
+	r_renderbounds(&rw, &rh);
 	
-	R_RenderRect(R_T_BLACK50, 0, 0, Rw, Rh);
-	R_RenderRect(
-		T_SpriteTextures[T_ActiveSprite],
+	r_renderrect(R_BLACK50, 0, 0, rw, rh);
+	r_renderrect(
+		t_spritetex[t_cursprite],
 		5,
-		5 + O_TEXT_BOX_SIZE,
-		O_TEXT_SPRITE_SIZE,
-		O_TEXT_SPRITE_SIZE
+		5 + O_TEXTBOXSIZE,
+		O_TEXTSPRITESIZE,
+		O_TEXTSPRITESIZE
 	);
-	R_RenderRect(R_T_BLACK, 5, 5, Rw - 10, O_TEXT_BOX_SIZE);
-	R_RenderText(R_F_VCR_OSD_MONO, T_ActiveMsg, 10, 10, Rw - 20, O_TEXT_BOX_SIZE - 10);
+	r_renderrect(R_BLACK, 5, 5, rw - 10, O_TEXTBOXSIZE);
+	r_rendertext(R_VCROSDMONO, t_curmsg, 10, 10, rw - 20, O_TEXTBOXSIZE - 10);
 }

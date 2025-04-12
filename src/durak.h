@@ -4,45 +4,69 @@
 // to represent a card, OR together a suit and a value.
 // e.g. 7 of clubs is (D_CLUBS | D_7).
 
-#define D_SUIT_MASK 0x30
-#define D_SPADES 0x0
-#define D_HEARTS 0x10
-#define D_CLUBS 0x20
-#define D_DIAMONDS 0x30
+#define D_SUITMASK 0xf0
+#define D_SPADES 0x10
+#define D_DIAMONDS 0x20
+#define D_CLUBS 0x30
+#define D_HEARTS 0x40
 
-#define D_VALUE_MASK 0xf
-#define D_6 0x0
-#define D_7 0x1
-#define D_8 0x2
-#define D_9 0x3
-#define D_10 0x4
-#define D_J 0x5
-#define D_Q 0x6
-#define D_K 0x7
-#define D_A 0x8
+#define D_VALUEMASK 0xf
+#define D_6 0x1
+#define D_7 0x2
+#define D_8 0x3
+#define D_9 0x4
+#define D_10 0x5
+#define D_J 0x6
+#define D_Q 0x7
+#define D_K 0x8
+#define D_A 0x9
 
-typedef enum D_Player
+#define D_MAXCARDS 36
+
+typedef enum d_player
 {
-	D_P_ARKADY = 0,
-	D_P_PETER,
-	D_P_MATTHEW,
-	D_P_GERASIM
-} D_Player;
+	D_ARKADY = 0,
+	D_PETER,
+	D_MATTHEW,
+	D_GERASIM
+} d_player;
 
-typedef struct D_DurakState
+typedef enum d_gamephase
 {
-	struct
-	{
-		u8 Cards[36]; // enough memory for max possible card count.
-		u8 CardCnt;
-	} Players[4];
-	u8 Attacker;
-} D_DurakState;
+	D_NULL = 0,
+	D_START,
+	D_CHOOSETRUMP,
+	D_DEALCARDS,
+	D_ATTACK,
+	D_DEFEND
+} d_gamephase;
 
-extern D_DurakState D_State;
+typedef struct d_cardstack
+{
+	u8 cards[D_MAXCARDS];
+	u8 ncards;
+} d_cardstack;
 
-void D_RenderCards(void);
-void D_RenderOverlay(void);
-void D_Update(void);
+typedef struct d_gamestate
+{
+	d_cardstack players[4];
+	d_cardstack draw;
+	u8 ncovered;
+	
+	u8 attacker;
+	u8 trumpcard;
+	u8 gamephase;
+} d_gamestate;
+
+extern d_gamestate d_state;
+
+void d_setphase(d_gamephase phase);
+void d_rendercards(void);
+void d_renderoverlay(void);
+void d_update(void);
+void d_shuffle(d_cardstack *stack);
+void d_addcard(d_cardstack *stack, u8 card);
+void d_rmcard(d_cardstack *stack, usize idx);
+void d_sort(d_cardstack *stack);
 
 #endif

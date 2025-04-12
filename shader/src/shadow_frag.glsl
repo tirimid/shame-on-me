@@ -1,13 +1,13 @@
 #version 430 core
 
-#define CAM_CLIP_FAR $O_CAM_CLIP_FAR
+#define CAMCLIPFAR $O_CAMCLIPFAR
 
-in vec4 g_FragPos;
+in vec4 fragpos;
 
-uniform vec3 i_LightPos;
+uniform vec3 lightpos;
 
 void
 main()
 {
-	gl_FragDepth = length(g_FragPos.xyz - i_LightPos) / CAM_CLIP_FAR;
+	gl_FragDepth = length(fragpos.xyz - lightpos) / CAMCLIPFAR;
 }

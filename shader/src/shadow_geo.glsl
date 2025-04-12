@@ -4,10 +4,10 @@ layout (triangles) in;
 
 layout (triangle_strip, max_vertices = 18) out;
 
-out vec4 g_FragPos;
+out vec4 fragpos;
 
-uniform mat4 i_ShadowViewMats[6];
-uniform mat4 i_ProjMat;
+uniform mat4 shadowviewmats[6];
+uniform mat4 projmat;
 
 void
 main()
@@ -16,8 +16,8 @@ main()
 	{
 		for (int i = 0; i < 3; ++i)
 		{
-			g_FragPos = gl_in[i].gl_Position;
-			gl_Position = i_ProjMat * i_ShadowViewMats[gl_Layer] * g_FragPos;
+			fragpos = gl_in[i].gl_Position;
+			gl_Position = projmat * shadowviewmats[gl_Layer] * fragpos;
 			EmitVertex();
 		}
 

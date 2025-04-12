@@ -1,16 +1,16 @@
 #ifndef INPUT_H
 #define INPUT_H
 
-typedef enum I_InputType
+typedef enum i_input
 {
-	I_IT_RELEASE = 0,
-	I_IT_PRESS
-} I_InputType;
+	I_RELEASE = 0,
+	I_PRESS
+} i_input;
 
-void I_SetKeybdState(SDL_Event const *e, I_InputType IT);
-void I_Prepare(void);
-bool I_KeyDown(SDL_Keycode k);
-bool I_KeyPressed(SDL_Keycode k);
-bool I_KeyReleased(SDL_Keycode k);
+void i_setkstate(SDL_Event const *e, i_input input);
+void i_prepare(void);
+bool i_kdown(SDL_Keycode k);
+bool i_kpressed(SDL_Keycode k);
+bool i_kreleased(SDL_Keycode k);
 
 #endif

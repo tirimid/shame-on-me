@@ -1,49 +1,50 @@
 #ifndef CHOREO_H
 #define CHOREO_H
 
-typedef enum C_Actor
+typedef enum c_actor
 {
-	C_A_ARKADY = 0,
-	C_A_PETER,
-	C_A_MATTHEW,
-	C_A_GERASIM,
+	C_ARKADY = 0,
+	C_PETER,
+	C_MATTHEW,
+	C_GERASIM,
 	
-	C_A_END__
-} C_Actor;
+	C_ACTOR_END__
+} c_actor;
 
-typedef struct C_MapData
+typedef struct c_mapdata
 {
-	char const *Data;
+	char const *data;
 	u32 w, h;
-} C_MapData;
+} c_mapdata;
 
-typedef struct C_Prop
+typedef struct c_prop
 {
-	vec3 Pos, Rot, Scale;
-	u8 Model;
-	u8 Tex;
-} C_Prop;
+	vec3 pos, rot, scale;
+	u8 model;
+	u8 tex;
+} c_prop;
 
-extern C_MapData C_Map;
-extern C_Prop C_Props[O_MAX_CHOREO_PROPS];
-extern usize C_PropCnt;
+extern c_mapdata c_map;
+extern c_prop c_props[O_MAXPROPS];
+extern usize c_propcnt;
 
-void C_Teleport(C_Actor a, vec2 Pos);
-void C_TeleportTo(C_Actor a, char Point);
-void C_Walk(C_Actor a, vec2 Pos);
-void C_WalkTo(C_Actor a, char Point);
-void C_Look(C_Actor a, f32 PitchDeg, f32 YawDeg);
-void C_LookAt(C_Actor a, char Point);
-void C_LookWalkTo(C_Actor a, char Point);
-void C_SetTexture(C_Actor a, R_Texture t);
-void C_Wait(u64 MS);
-void C_Speak(T_TextboxSprite t, char const *Msg);
-void C_SwapModel(usize Idx, R_Model NewModel);
-void C_SetLightIntensity(usize Idx, f32 Intensity);
-void C_PanCamera(vec3 Pos, f32 PitchDeg, f32 YawDeg);
-void C_Update(void);
-void C_RenderTiles(void);
-void C_RenderModels(void);
-i64 C_PutProp(R_Model m, R_Texture t, vec3 Pos, vec3 Rot, vec3 Scale);
+void c_teleport(c_actor a, vec2 pos);
+void c_teleportto(c_actor a, char point);
+void c_walk(c_actor a, vec2 pos);
+void c_walkto(c_actor a, char point);
+void c_look(c_actor a, f32 pitchdeg, f32 yawdeg);
+void c_lookat(c_actor a, char point);
+void c_lookwalkto(c_actor a, char point);
+void c_settexture(c_actor a, r_tex t);
+void c_wait(u64 ms);
+void c_speak(t_sprite t, char const *msg);
+void c_swapmodel(usize idx, r_model newmodel);
+void c_setlightintensity(usize idx, f32 intensity);
+void c_pancamera(vec3 pos, f32 pitchdeg, f32 yawdeg);
+void c_setdurakphase(d_gamephase phase);
+void c_update(void);
+void c_rendertiles(void);
+void c_rendermodels(void);
+i64 c_putprop(r_model m, r_tex t, vec3 pos, vec3 rot, vec3 scale);
 
 #endif

@@ -1,13 +1,13 @@
 #version 430 core
 
-#define MAX_TILE_BATCH $O_MAX_TILE_BATCH
+#define MAXTILEBATCH $O_MAXTILEBATCH
 
-layout (location = 0) in vec3 i_Pos;
+layout (location = 0) in vec3 pos;
 
-uniform mat4 i_ModelMats[MAX_TILE_BATCH];
+uniform mat4 modelmats[MAXTILEBATCH];
 
 void
 main()
 {
-	gl_Position = i_ModelMats[gl_InstanceID] * vec4(i_Pos, 1.0);
+	gl_Position = modelmats[gl_InstanceID] * vec4(pos, 1.0);
 }

@@ -12,10 +12,10 @@
 #include "util.h"
 #include "render.h"
 #include "textbox.h"
+#include "durak.h"
 #include "choreo.h"
 #include "game.h"
 #include "input.h"
-#include "durak.h"
 
 #include "choreo.c"
 #include "durak.c"
@@ -26,39 +26,39 @@
 #include "util.c"
 
 int
-main(int Argc, char *Argv[])
+main(int argc, char *argv[])
 {
-	(void)Argc;
-	(void)Argv;
+	(void)argc;
+	(void)argv;
 	
 	// initialize non-game systems.
-	if (SDL_Init(O_SDL_INIT_FLAGS))
+	if (SDL_Init(O_SDLFLAGS))
 	{
 		fprintf(stderr, "err: main: failed to init SDL2!\n");
 		return 1;
 	}
 	atexit(SDL_Quit);
 	
-	if (IMG_Init(O_IMG_INIT_FLAGS) != O_IMG_INIT_FLAGS)
+	if (IMG_Init(O_IMGFLAGS) != O_IMGFLAGS)
 	{
-		ShowError("main: failed to init SDL2 image!");
+		showerr("main: failed to init SDL2 image!");
 		return 1;
 	}
 	atexit(IMG_Quit);
 	
 	if (TTF_Init())
 	{
-		ShowError("main: failed to init SDL2 TTF!");
+		showerr("main: failed to init SDL2 TTF!");
 		return 1;
 	}
 	atexit(TTF_Quit);
 	
-	if (R_Init())
+	if (r_init())
 	{
 		return 1;
 	}
 	
-	G_Loop();
+	g_loop();
 	
 	return 0;
 }

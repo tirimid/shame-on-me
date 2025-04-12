@@ -1,98 +1,99 @@
-static u64 TickStartTime;
+static u64 u_tickstart;
 
 void
-ShowError(char const *Fmt, ...)
+showerr(char const *fmt, ...)
 {
-	va_list Args;
-	va_start(Args, Fmt);
+	va_list args;
+	va_start(args, fmt);
 	
-	char Msg[O_MAX_LOG_LEN];
-	vsnprintf(Msg, O_MAX_LOG_LEN, Fmt, Args);
+	char msg[O_MAXLOGLEN];
+	vsnprintf(msg, O_MAXLOGLEN, fmt, args);
 	
 	// stderr is backup so that error can still be processed in case a message
 	// box can't be opened.
-	if (SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, O_ERR_WND_TITLE, Msg, NULL))
+	if (SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, O_ERRWNDTITLE, msg, NULL))
 	{
-		fprintf(stderr, "err: %s\n", Msg);
+		fprintf(stderr, "err: %s\n", msg);
 	}
 	
-	va_end(Args);
+	va_end(args);
 }
 
 u64
-GetUnixTimeUs(void)
+unixus(void)
 {
-	struct timeval Tv;
-	gettimeofday(&Tv, NULL);
-	return (u64)Tv.tv_sec * 1000000 + (u64)Tv.tv_usec;
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	return (u64)tv.tv_sec * 1000000 + (u64)tv.tv_usec;
 }
 
 u64
-GetUnixTimeMs(void)
+unixms(void)
 {
-	return GetUnixTimeUs() / 1000;
+	return unixus() / 1000;
 }
 
 void
-BeginTick(void)
+begintick(void)
 {
-	TickStartTime = GetUnixTimeMs();
+	u_tickstart = unixms();
 }
 
 void
-EndTick(void)
+endtick(void)
 {
-	u64 TickEndTime = GetUnixTimeMs();
-	i64 TickTimeLeft = O_TICK_MS - TickEndTime + TickStartTime;
-	SDL_Delay(TickTimeLeft * (TickTimeLeft > 0));
+	u64 tickend = unixms();
+	i64 timeleft = O_TICKMS - tickend + u_tickstart;
+	timeleft *= (timeleft > 0);
+	SDL_Delay(timeleft);
 }
 
 f32
-InterpolateAngle(f32 a, f32 b, f32 t)
+interpangle(f32 a, f32 b, f32 t)
 {
-	return a + ShortestAngle(a, b) * t;
+	return a + shortestangle(a, b) * t;
 }
 
 f32
-ShortestAngle(f32 a, f32 b)
+shortestangle(f32 a, f32 b)
 {
 	f32 d = fmod(b - a, 2.0f * GLM_PI);
-	f32 Shortest = fmod(2.0f * d, 2.0f * GLM_PI) - d;
-	return Shortest;
+	f32 shortest = fmod(2.0f * d, 2.0f * GLM_PI) - d;
+	return shortest;
 }
 
 void
-MakeXformMat(vec3 Pos, vec3 Rot, vec3 Scale, mat4 Out)
+makexform(vec3 pos, vec3 rot, vec3 scale, OUT mat4 out)
 {
-	mat4 TransMat, RotMat, ScaleMat;
-	glm_translate_make(TransMat, Pos);
-	glm_euler(Rot, RotMat);
-	glm_scale_make(ScaleMat, Scale);
+	mat4 transm, rotm, scalem;
+	glm_translate_make(transm, pos);
+	glm_euler(rot, rotm);
+	glm_scale_make(scalem, scale);
 	
-	glm_mat4_identity(Out);
-	glm_mat4_mul(Out, TransMat, Out);
-	glm_mat4_mul(Out, RotMat, Out);
-	glm_mat4_mul(Out, ScaleMat, Out);
+	glm_mat4_identity(out);
+	glm_mat4_mul(out, transm, out);
+	glm_mat4_mul(out, rotm, out);
+	glm_mat4_mul(out, scalem, out);
 }
 
 void
-MakeNormalMat(mat4 Xform, mat3 Out)
+makenorm(mat4 xform, OUT mat3 out)
 {
-	mat4 Tmp;
-	glm_mat4_inv_fast(Xform, Tmp);
-	glm_mat4_transpose(Tmp);
-	glm_mat4_pick3(Tmp, Out);
+	mat4 tmp;
+	glm_mat4_inv_fast(xform, tmp);
+	glm_mat4_transpose(tmp);
+	glm_mat4_pick3(tmp, out);
 }
 
 void
-BeginMicroTimer(u64 *OutTimer)
+begintimer(OUT u64 *timer)
 {
-	*OutTimer = GetUnixTimeUs();
+	*timer = unixus();
 }
 
 void
-EndMicroTimer(u64 TimerStart, char const *Name)
+endtimer(u64 timer, char const *name)
 {
-	u64 Delta = GetUnixTimeUs() - TimerStart;
-	fprintf(stderr, "[profile] %s: %lu\n", Name, Delta);
+	u64 d = unixus() - timer;
+	fprintf(stderr, "[profile] %s: %lu\n", name, d);
 }

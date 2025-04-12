@@ -1,5 +1,5 @@
-#define G_MAP_WIDTH 17
-#define G_MAP_HEIGHT 15
+#define G_MAPWIDTH 17
+#define G_MAPHEIGHT 15
 #define G_MAP \
 	".............A..#" \
 	"#############.B.#" \
@@ -17,28 +17,30 @@
 	"..........#.#...#" \
 	"......I...#.#...#"
 
-static void G_SetupEnvironment(void);
-static void G_IntroSeq(void);
-static void G_FastIntroSeq(void);
+static void g_setupenv(void);
+static void g_intro(void);
+static void g_fastintro(void);
+static void g_tutorial(void);
 
-static usize G_MainDoorProp, G_RoomDoorProp;
-static usize G_HallwayLight, G_EntryLight, G_RoomLight;
+static usize g_maindoor, g_roomdoor;
+static usize g_hallwaylight, g_entrylight, g_roomlight;
 
 void
-G_Loop(void)
+g_loop(void)
 {
-	NEW_MICRO_TIMER(LargeTimer);
-	NEW_MICRO_TIMER(StageTimer);
+	NEWTIMER(largetimer);
+	NEWTIMER(stagetimer);
 	
-	G_SetupEnvironment();
-	G_FastIntroSeq();
+	g_setupenv();
+	g_fastintro();
+	g_tutorial();
 	
 	for (;;)
 	{
-		BeginTick();
+		begintick();
 		
 		// handle events.
-		I_Prepare();
+		i_prepare();
 		SDL_Event e;
 		while (SDL_PollEvent(&e))
 		{
@@ -47,14 +49,14 @@ G_Loop(void)
 			case SDL_WINDOWEVENT:
 				if (e.window.event == SDL_WINDOWEVENT_RESIZED)
 				{
-					R_HandleResize(e.window.data1, e.window.data2);
+					r_resize(e.window.data1, e.window.data2);
 				}
 				break;
 			case SDL_KEYDOWN:
-				I_SetKeybdState(&e, I_IT_PRESS);
+				i_setkstate(&e, I_PRESS);
 				break;
 			case SDL_KEYUP:
-				I_SetKeybdState(&e, I_IT_RELEASE);
+				i_setkstate(&e, I_RELEASE);
 				break;
 			case SDL_QUIT:
 				return;
@@ -64,186 +66,186 @@ G_Loop(void)
 		}
 		
 		// update.
-		C_Update();
-		R_Update();
+		c_update();
+		r_update();
 		
 		// render.
-		BEGIN_MICRO_TIMER(&LargeTimer);
+		BEGINTIMER(&largetimer);
 		
-		BEGIN_MICRO_TIMER(&StageTimer);
-		R_SetShader(R_S_SHADOW);
-		for (usize i = 0; i < O_MAX_LIGHTS; ++i)
+		BEGINTIMER(&stagetimer);
+		r_setshader(R_SHADOW);
+		for (usize i = 0; i < O_MAXLIGHTS; ++i)
 		{
-			if (!R_LightEnabled(i))
+			if (!r_lightenabled(i))
 			{
 				continue;
 			}
-			R_BeginShadow(i);
-			C_RenderTiles();
-			C_RenderModels();
-			D_RenderCards();
+			r_beginshadow(i);
+			c_rendertiles();
+			c_rendermodels();
+			d_rendercards();
 		}
-		END_MICRO_TIMER(StageTimer, "game: render shadow");
+		ENDTIMER(stagetimer, "game: render shadow");
 		
-		BEGIN_MICRO_TIMER(&StageTimer);
-		R_SetShader(R_S_BASE);
-		R_BeginBase();
-		C_RenderTiles();
-		C_RenderModels();
-		D_RenderCards();
-		END_MICRO_TIMER(StageTimer, "game: render base");
+		BEGINTIMER(&stagetimer);
+		r_setshader(R_BASE);
+		r_beginbase();
+		c_rendertiles();
+		c_rendermodels();
+		d_rendercards();
+		ENDTIMER(stagetimer, "game: render base");
 		
-		BEGIN_MICRO_TIMER(&StageTimer);
-		R_SetShader(R_S_OVERLAY);
-		R_BeginOverlay();
-		T_RenderOverlay();
-		D_RenderOverlay();
-		END_MICRO_TIMER(StageTimer, "game: render overlay");
+		BEGINTIMER(&stagetimer);
+		r_setshader(R_OVERLAY);
+		r_beginoverlay();
+		t_renderoverlay();
+		d_renderoverlay();
+		ENDTIMER(stagetimer, "game: render overlay");
 		
-		END_MICRO_TIMER(LargeTimer, "game: render");
+		ENDTIMER(largetimer, "game: render");
 		
-		R_Present();
+		r_present();
 		
 		// update textbox after render in order to avoid effect where it disappears
 		// for one frame before reappearing on the next dialog.
-		T_Update();
+		t_update();
 		
-		EndTick();
+		endtick();
 	}
 }
 
 static void
-G_SetupEnvironment(void)
+g_setupenv(void)
 {
 	// set map.
-	C_Map = (C_MapData)
+	c_map = (c_mapdata)
 	{
-		.Data = G_MAP,
-		.w = G_MAP_WIDTH,
-		.h = G_MAP_HEIGHT
+		.data = G_MAP,
+		.w = G_MAPWIDTH,
+		.h = G_MAPHEIGHT
 	};
 	
 	// place lights.
-	G_HallwayLight = R_PutLight((vec3){14.0f, 0.0f, 7.0f}, 1.5f);
-	G_EntryLight = R_PutLight((vec3){9.0f, 0.0f, 8.0f}, 0.0f);
-	G_RoomLight = R_PutLight((vec3){6.0f, 0.0f, 12.0f}, 0.0f);
+	g_hallwaylight = r_putlight((vec3){14.0f, 0.0f, 7.0f}, 1.5f);
+	g_entrylight = r_putlight((vec3){9.0f, 0.0f, 8.0f}, 0.0f);
+	g_roomlight = r_putlight((vec3){6.0f, 0.0f, 12.0f}, 0.0f);
 	
 	// place props.
-	G_MainDoorProp = C_PutProp(
-		R_M_DOOR_CLOSED,
-		R_T_DOOR,
+	g_maindoor = c_putprop(
+		R_DOORCLOSED,
+		R_DOOR,
 		(vec3){12.0f, -1.5f, 7.0f},
 		(vec3){0.0f, 0.0f, 0.0f},
 		(vec3){1.0f, 1.0f, 1.0f}
 	);
 	
-	C_PutProp(
-		R_M_DOOR_CLOSED,
-		R_T_DOOR,
+	c_putprop(
+		R_DOORCLOSED,
+		R_DOOR,
 		(vec3){16.0f, -1.5f, 4.0f},
 		(vec3){0.0f, 0.0f, 0.0f},
 		(vec3){1.0f, 1.0f, 1.0f}
 	);
 	
-	G_RoomDoorProp = C_PutProp(
-		R_M_DOOR_CLOSED,
-		R_T_DOOR,
+	g_roomdoor = c_putprop(
+		R_DOORCLOSED,
+		R_DOOR,
 		(vec3){3.0f, -1.5f, 9.0f},
 		(vec3){0.0f, GLM_PI / 2.0f, 0.0f},
 		(vec3){1.0f, 1.0f, 1.0f}
 	);
 	
-	C_PutProp(
-		R_M_DOOR_CLOSED,
-		R_T_DOOR,
+	c_putprop(
+		R_DOORCLOSED,
+		R_DOOR,
 		(vec3){10.0f, -1.5f, 5.0f},
 		(vec3){0.0f, GLM_PI / 2.0f, 0.0f},
 		(vec3){1.0f, 1.0f, 1.0f}
 	);
 	
-	C_PutProp(
-		R_M_WINDOW,
-		R_T_WINDOW,
+	c_putprop(
+		R_MWINDOW,
+		R_TWINDOW,
 		(vec3){14.5f, -0.3f, 14.5f},
 		(vec3){0.0f, GLM_PI / 2.0f, 0.0f},
 		(vec3){0.5f, 0.5f, 0.8f}
 	);
 	
-	C_PutProp(
-		R_M_WINDOW,
-		R_T_WINDOW,
+	c_putprop(
+		R_MWINDOW,
+		R_TWINDOW,
 		(vec3){13.5f, -0.3f, 14.5f},
 		(vec3){0.0f, GLM_PI / 2.0f, 0.0f},
 		(vec3){0.5f, 0.5f, 0.8f}
 	);
 	
-	C_PutProp(
-		R_M_WINDOW,
-		R_T_WINDOW,
+	c_putprop(
+		R_MWINDOW,
+		R_TWINDOW,
 		(vec3){-0.5f, -0.3f, 6.5f},
 		(vec3){0.0f, 0.0f, 0.0f},
 		(vec3){0.5f, 0.5f, 0.8f}
 	);
 	
-	C_PutProp(
-		R_M_WINDOW,
-		R_T_WINDOW,
+	c_putprop(
+		R_MWINDOW,
+		R_TWINDOW,
 		(vec3){-0.5f, -0.3f, 7.5f},
 		(vec3){0.0f, 0.0f, 0.0f},
 		(vec3){0.5f, 0.5f, 0.8f}
 	);
 	
-	C_PutProp(
-		R_M_TABLE,
-		R_T_TABLE,
+	c_putprop(
+		R_MTABLE,
+		R_TTABLE,
 		(vec3){6.0f, -1.5f, 12.0f},
 		(vec3){0.0f, 0.0f, 0.0f},
 		(vec3){1.2f, 0.4f, 1.2f}
 	);
 	
-	C_PutProp(
-		R_M_WINDOW,
-		R_T_WINDOW,
+	c_putprop(
+		R_MWINDOW,
+		R_TWINDOW,
 		(vec3){4.5f, -0.3f, 14.5f},
 		(vec3){0.0f, GLM_PI / 2.0f, 0.0f},
 		(vec3){0.5f, 0.5f, 0.8f}
 	);
 	
-	C_PutProp(
-		R_M_WINDOW,
-		R_T_WINDOW,
+	c_putprop(
+		R_MWINDOW,
+		R_TWINDOW,
 		(vec3){3.5f, -0.3f, 14.5f},
 		(vec3){0.0f, GLM_PI / 2.0f, 0.0f},
 		(vec3){0.5f, 0.5f, 0.8f}
 	);
 	
-	C_PutProp(
-		R_M_WINDOW,
-		R_T_WINDOW,
+	c_putprop(
+		R_MWINDOW,
+		R_TWINDOW,
 		(vec3){5.5f, -0.3f, 14.5f},
 		(vec3){0.0f, GLM_PI / 2.0f, 0.0f},
 		(vec3){0.5f, 0.5f, 0.8f}
 	);
 	
-	C_PutProp(
-		R_M_LIGHTBULB,
-		R_T_LIGHTBULB,
+	c_putprop(
+		R_MLIGHTBULB,
+		R_TLIGHTBULB,
 		(vec3){14.0f, 0.5f, 7.0f},
 		(vec3){0.0f, 0.0f, 0.0f},
 		(vec3){0.5f, 0.2f, 0.5f}
 	);
 	
-	C_PutProp(
-		R_M_LIGHTBULB,
-		R_T_LIGHTBULB,
+	c_putprop(
+		R_MLIGHTBULB,
+		R_TLIGHTBULB,
 		(vec3){9.0f, 0.5f, 8.0f},
 		(vec3){0.0f, 0.0f, 0.0f},
 		(vec3){0.5f, 0.2f, 0.5f}
 	);
 	
-	C_PutProp(
-		R_M_LIGHTBULB,
-		R_T_LIGHTBULB,
+	c_putprop(
+		R_MLIGHTBULB,
+		R_TLIGHTBULB,
 		(vec3){6.0f, 0.5f, 12.0f},
 		(vec3){0.0f, 0.0f, 0.0f},
 		(vec3){0.5f, 0.2f, 0.5f}
@@ -251,147 +253,153 @@ G_SetupEnvironment(void)
 }
 
 static void
-G_IntroSeq(void)
+g_intro(void)
 {
-	R_Fade(R_FS_FADE_IN);
+	r_fade(R_FADEIN);
 	
-	C_LookWalkTo(C_A_ARKADY, 'A');
-	C_LookWalkTo(C_A_ARKADY, 'B');
-	C_LookAt(C_A_ARKADY, 'C');
-	C_Speak(T_TS_ARKADY, "...");
-	C_Speak(T_TS_ARKADY, "I dread that this'll be what I thought");
-	C_Speak(T_TS_ARKADY, "...");
-	C_Speak(T_TS_ARKADY, "But I've already arrived");
-	C_Speak(T_TS_ARKADY, "It's too late to leave");
-	C_Speak(T_TS_ARKADY, "...");
-	C_Speak(T_TS_ARKADY, "There's no turning back now");
-	C_Wait(300);
-	C_WalkTo(C_A_ARKADY, 'C');
-	C_LookAt(C_A_ARKADY, 'D');
-	C_Wait(1500);
-	C_Speak(T_TS_ARKADY, "...");
-	C_Wait(2500);
-	C_TeleportTo(C_A_GERASIM, 'D');
-	C_SetLightIntensity(G_EntryLight, 1.5f);
-	C_SwapModel(G_MainDoorProp, R_M_DOOR_OPEN);
-	C_Wait(400);
-	C_Speak(T_TS_GERASIM, "...");
-	C_Speak(T_TS_GERASIM, "*Gerasim looks at you quizzically, in an almost sad way*");
-	C_Wait(1500);
-	C_Speak(T_TS_ARKADY, "It's good to see you again");
-	C_Speak(T_TS_GERASIM, "...");
-	C_WalkTo(C_A_GERASIM, 'E');
-	C_WalkTo(C_A_ARKADY, 'D');
-	C_SwapModel(G_MainDoorProp, R_M_DOOR_CLOSED);
-	C_SetLightIntensity(G_HallwayLight, 0.0f);
-	C_LookAt(C_A_ARKADY, 'E');
-	C_Speak(T_TS_ARKADY, "Are the others already here?");
-	C_Speak(T_TS_GERASIM, "*He nods weightfully*");
-	C_Speak(T_TS_ARKADY, "I see");
-	C_Wait(200);
-	C_LookWalkTo(C_A_ARKADY, 'F');
-	C_LookAt(C_A_ARKADY, 'H');
-	C_Wait(800);
-	C_TeleportTo(C_A_MATTHEW, 'I');
-	C_TeleportTo(C_A_PETER, 'J');
-	C_SetLightIntensity(G_RoomLight, 1.5f);
-	C_SwapModel(G_RoomDoorProp, R_M_DOOR_OPEN);
-	C_Wait(200);
-	C_WalkTo(C_A_ARKADY, 'H');
-	C_SwapModel(G_RoomDoorProp, R_M_DOOR_CLOSED);
-	C_SetLightIntensity(G_EntryLight, 0.0f);
-	C_LookAt(C_A_ARKADY, 'J');
-	C_Wait(400);
-	C_LookAt(C_A_ARKADY, 'I');
-	C_Wait(250);
-	C_Speak(T_TS_MATTHEW, "Oh... You're already here, Arkady?");
-	C_Speak(T_TS_MATTHEW, "*Matthew's face radiates a kind of regretful melancholy*");
-	C_Wait(300);
-	C_Speak(T_TS_ARKADY, "That's right");
-	C_Speak(T_TS_ARKADY, "(Act friendly, maybe I'm wrong, maybe it's not what I thought)");
-	C_Speak(T_TS_PETER, "Look, I'm sorry I didn't tell you why we needed you here");
-	C_LookAt(C_A_ARKADY, 'J');
-	C_Wait(100);
-	C_Speak(T_TS_PETER, "*Peter looks at you how you imagine a fox looks at his next meal*");
-	C_Speak(T_TS_PETER, "But that's kind of just the nature of the matter");
-	C_Speak(T_TS_PETER, "If I'd been honest, you wouldn't have come");
-	C_Speak(T_TS_PETER, "...");
-	C_Speak(T_TS_ARKADY, "Why did you call me over?");
-	C_Speak(T_TS_PETER, "You're aware of the population crisis, right?");
-	C_Speak(T_TS_ARKADY, "(I knew it)");
-	C_Speak(T_TS_ARKADY, "That's right");
-	C_Speak(T_TS_PETER, "Good. It's all over the news");
-	C_Wait(2000);
-	C_Speak(T_TS_PETER, "Anyway...");
-	C_Speak(T_TS_PETER, "With the country falling apart, the government can't sustain our population anymore");
-	C_Speak(T_TS_PETER, "...");
-	C_Speak(T_TS_PETER, "We have one day to decide who will die and who will live");
-	C_Speak(T_TS_PETER, "...");
-	C_Speak(T_TS_PETER, "Or they will decide for us");
-	C_Wait(2500);
-	C_Speak(T_TS_ARKADY, "So you've brought me here like a lamb to the slaughterhouse?");
-	C_Speak(T_TS_PETER, "Not quite, Arkady");
-	C_Speak(T_TS_PETER, "Not the slaughterhouse, the casino");
-	C_Speak(T_TS_ARKADY, "I don't understand");
-	C_Wait(500);
-	C_Speak(T_TS_PETER, "We're going to play cards - the loser dies");
-	C_Speak(T_TS_ARKADY, "(How sick)");
-	C_Speak(T_TS_ARKADY, "I don't suppose I have much of a choice");
-	C_Wait(800);
-	C_Speak(T_TS_PETER, "No, Arkady, you don't have a choice");
-	C_Speak(T_TS_PETER, "Try to leave, and we'll just kill you on the spot");
-	C_Wait(1500);
-	C_Speak(T_TS_MATTHEW, "Well then, take a seat - our esteemed guest and friend");
-	C_Wait(600);
-	C_LookWalkTo(C_A_ARKADY, 'K');
-	C_LookAt(C_A_ARKADY, 'I');
-	C_TeleportTo(C_A_GERASIM, 'F');
-	C_Wait(400);
-	C_WalkTo(C_A_GERASIM, 'H');
-	C_LookAt(C_A_ARKADY, 'H');
-	C_Wait(600);
-	C_Speak(T_TS_ARKADY, "Come play with us, Gerasim");
-	C_Speak(T_TS_GERASIM, "*He gestures as if to indicate the obviousness of such an action*");
-	C_WalkTo(C_A_GERASIM, 'L');
-	C_LookAt(C_A_ARKADY, 'L');
-	C_Wait(500);
-	C_LookAt(C_A_ARKADY, 'I');
-	C_Wait(500);
-	C_LookAt(C_A_ARKADY, 'J');
-	C_Wait(500);
-	C_LookAt(C_A_ARKADY, 'I');
-	C_Speak(T_TS_ARKADY, "So, what are we going to play?");
-	C_Speak(T_TS_MATTHEW, "Do you know how to play Fool?");
-	C_Speak(T_TS_ARKADY, "No, I can't say I do...");
-	C_Speak(T_TS_MATTHEW, "That's alright, we'll show you how to play");
-	C_Wait(800);
-	C_Speak(T_TS_MATTHEW, "Well then, shall we start?");
+	c_lookwalkto(C_ARKADY, 'A');
+	c_lookwalkto(C_ARKADY, 'B');
+	c_lookat(C_ARKADY, 'C');
+	c_speak(T_ARKADY, "...");
+	c_speak(T_ARKADY, "I dread that this'll be what I thought");
+	c_speak(T_ARKADY, "...");
+	c_speak(T_ARKADY, "But I've already arrived");
+	c_speak(T_ARKADY, "It's too late to leave");
+	c_speak(T_ARKADY, "...");
+	c_speak(T_ARKADY, "There's no turning back now");
+	c_wait(300);
+	c_walkto(C_ARKADY, 'C');
+	c_lookat(C_ARKADY, 'D');
+	c_wait(1500);
+	c_speak(T_ARKADY, "...");
+	c_wait(2500);
+	c_teleportto(C_GERASIM, 'D');
+	c_setlightintensity(g_entrylight, 1.5f);
+	c_swapmodel(g_maindoor, R_DOOROPEN);
+	c_wait(400);
+	c_speak(T_GERASIM, "...");
+	c_speak(T_GERASIM, "*Gerasim looks at you quizzically, in an almost sad way*");
+	c_wait(1500);
+	c_speak(T_ARKADY, "It's good to see you again");
+	c_speak(T_GERASIM, "...");
+	c_walkto(C_GERASIM, 'E');
+	c_walkto(C_ARKADY, 'D');
+	c_swapmodel(g_maindoor, R_DOORCLOSED);
+	c_setlightintensity(g_hallwaylight, 0.0f);
+	c_lookat(C_ARKADY, 'E');
+	c_speak(T_ARKADY, "Are the others already here?");
+	c_speak(T_GERASIM, "*He nods weightfully*");
+	c_speak(T_ARKADY, "I see");
+	c_wait(200);
+	c_lookwalkto(C_ARKADY, 'F');
+	c_lookat(C_ARKADY, 'H');
+	c_wait(800);
+	c_teleportto(C_MATTHEW, 'I');
+	c_teleportto(C_PETER, 'J');
+	c_setlightintensity(g_roomlight, 1.5f);
+	c_swapmodel(g_roomdoor, R_DOOROPEN);
+	c_wait(200);
+	c_walkto(C_ARKADY, 'H');
+	c_swapmodel(g_roomdoor, R_DOORCLOSED);
+	c_setlightintensity(g_entrylight, 0.0f);
+	c_lookat(C_ARKADY, 'J');
+	c_wait(400);
+	c_lookat(C_ARKADY, 'I');
+	c_wait(250);
+	c_speak(T_MATTHEW, "Oh... You're already here, Arkady?");
+	c_speak(T_MATTHEW, "*Matthew's face radiates a kind of regretful melancholy*");
+	c_wait(300);
+	c_speak(T_ARKADY, "That's right");
+	c_speak(T_ARKADY, "(Act friendly, maybe I'm wrong, maybe it's not what I thought)");
+	c_speak(T_PETER, "Look, I'm sorry I didn't tell you why we needed you here");
+	c_lookat(C_ARKADY, 'J');
+	c_wait(100);
+	c_speak(T_PETER, "*Peter looks at you how you imagine a fox looks at his next meal*");
+	c_speak(T_PETER, "But that's kind of just the nature of the matter");
+	c_speak(T_PETER, "If I'd been honest, you wouldn't have come");
+	c_speak(T_PETER, "...");
+	c_speak(T_ARKADY, "Why did you call me over?");
+	c_speak(T_PETER, "You're aware of the population crisis, right?");
+	c_speak(T_ARKADY, "(I knew it)");
+	c_speak(T_ARKADY, "That's right");
+	c_speak(T_PETER, "Good. It's all over the news");
+	c_wait(2000);
+	c_speak(T_PETER, "Anyway...");
+	c_speak(T_PETER, "With the country falling apart, the government can't sustain our population anymore");
+	c_speak(T_PETER, "...");
+	c_speak(T_PETER, "We have one day to decide who will die and who will live");
+	c_speak(T_PETER, "...");
+	c_speak(T_PETER, "Or they will decide for us");
+	c_wait(2500);
+	c_speak(T_ARKADY, "So you've brought me here like a lamb to the slaughterhouse?");
+	c_speak(T_PETER, "Not quite, Arkady");
+	c_speak(T_PETER, "Not the slaughterhouse, the casino");
+	c_speak(T_ARKADY, "I don't understand");
+	c_wait(500);
+	c_speak(T_PETER, "We're going to play cards - the loser dies");
+	c_speak(T_ARKADY, "(How sick)");
+	c_speak(T_ARKADY, "I don't suppose I have much of a choice");
+	c_wait(800);
+	c_speak(T_PETER, "No, Arkady, you don't have a choice");
+	c_speak(T_PETER, "Try to leave, and we'll just kill you on the spot");
+	c_wait(1500);
+	c_speak(T_MATTHEW, "Well then, take a seat - our esteemed guest and friend");
+	c_wait(600);
+	c_lookwalkto(C_ARKADY, 'K');
+	c_lookat(C_ARKADY, 'I');
+	c_teleportto(C_GERASIM, 'F');
+	c_wait(400);
+	c_walkto(C_GERASIM, 'H');
+	c_lookat(C_ARKADY, 'H');
+	c_wait(600);
+	c_speak(T_ARKADY, "Come play with us, Gerasim");
+	c_speak(T_GERASIM, "*He gestures as if to indicate the obviousness of such an action*");
+	c_walkto(C_GERASIM, 'L');
+	c_lookat(C_ARKADY, 'L');
+	c_wait(500);
+	c_lookat(C_ARKADY, 'I');
+	c_wait(500);
+	c_lookat(C_ARKADY, 'J');
+	c_wait(500);
+	c_lookat(C_ARKADY, 'I');
+	c_speak(T_ARKADY, "So, what are we going to play?");
+	c_speak(T_MATTHEW, "Do you know how to play Fool?");
+	c_speak(T_ARKADY, "No, I can't say I do...");
+	c_speak(T_MATTHEW, "That's alright, we'll show you how to play");
+	c_wait(800);
+	c_speak(T_MATTHEW, "Well then, shall we start?");
 	
 	// TODO: work on normal intro sequence.
 }
 
 static void
-G_FastIntroSeq(void)
+g_fastintro(void)
 {
-	R_Fade(R_FS_FADE_IN);
+	r_fade(R_FADEIN);
 	
-	C_SetLightIntensity(G_HallwayLight, 0.0f);
-	C_SetLightIntensity(G_EntryLight, 0.0f);
-	C_TeleportTo(C_A_ARKADY, 'K');
-	C_TeleportTo(C_A_PETER, 'J');
-	C_TeleportTo(C_A_MATTHEW, 'I');
-	C_TeleportTo(C_A_GERASIM, 'L');
-	C_LookAt(C_A_ARKADY, 'I');
-	C_Wait(2000);
-	C_SetLightIntensity(G_RoomLight, 1.5f);
-	C_Wait(80);
-	C_SetLightIntensity(G_RoomLight, 0.6f);
-	C_Wait(100);
-	C_SetLightIntensity(G_RoomLight, 1.1f);
-	C_Wait(600);
-	C_SetLightIntensity(G_RoomLight, 1.5f);
-	C_Wait(500);
-	C_Speak(T_TS_MATTHEW, "Well then, shall we start?");
-	C_PanCamera((vec3){0.0f, 0.8f, 1.4f}, -75.0f, 0.0f);
-	C_Wait(1000);
+	c_setlightintensity(g_hallwaylight, 0.0f);
+	c_setlightintensity(g_entrylight, 0.0f);
+	c_teleportto(C_ARKADY, 'K');
+	c_teleportto(C_PETER, 'J');
+	c_teleportto(C_MATTHEW, 'I');
+	c_teleportto(C_GERASIM, 'L');
+	c_lookat(C_ARKADY, 'I');
+	c_wait(2000);
+	c_setlightintensity(g_roomlight, 1.5f);
+	c_wait(80);
+	c_setlightintensity(g_roomlight, 0.6f);
+	c_wait(100);
+	c_setlightintensity(g_roomlight, 1.1f);
+	c_wait(600);
+	c_setlightintensity(g_roomlight, 1.5f);
+	c_wait(500);
+	c_speak(T_MATTHEW, "Well then, shall we start?");
+}
+
+static void
+g_tutorial(void)
+{
+	c_pancamera((vec3){0.0f, 0.8f, 1.4f}, -75.0f, 0.0f);
+	c_wait(1000);
+	c_setdurakphase(D_START);
 }
