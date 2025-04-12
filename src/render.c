@@ -286,7 +286,7 @@ r_init(void)
 	atexit(r_deleteglctx);
 	
 	glewExperimental = GL_TRUE;
-	GLenum rc = glewInit();
+	i32 rc = glewInit();
 	if (rc != GLEW_OK)
 	{
 		showerr("render: failed to init GLEW - %s!", glewGetErrorString(rc));
@@ -330,8 +330,6 @@ r_init(void)
 	char shaderlog[O_MAXLOGLEN];
 	for (usize i = 0; i < R_SHADER_END__; ++i)
 	{
-		i32 rc;
-		
 		// create geometry shader if present.
 		u32 geo = 0;
 		if (r_shaders[i].geosrc)

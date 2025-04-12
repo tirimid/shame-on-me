@@ -71,13 +71,13 @@ d_sort(d_cardstack *stack)
 {
 	for (usize i = 0; i < stack->ncards; ++i)
 	{
-		for (usize i = 1; i < stack->ncards; ++i)
+		for (usize j = 1; j < stack->ncards; ++j)
 		{
-			if (stack->cards[i] < stack->cards[i - 1])
+			if (stack->cards[j] < stack->cards[j - 1])
 			{
-				u8 tmp = stack->cards[i];
-				stack->cards[i] = stack->cards[i - 1];
-				stack->cards[i - 1] = tmp;
+				u8 tmp = stack->cards[j];
+				stack->cards[j] = stack->cards[j - 1];
+				stack->cards[j - 1] = tmp;
 			}
 		}
 	}
