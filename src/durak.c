@@ -1,6 +1,26 @@
-d_gamestate d_state;
+typedef enum d_ai
+{
+	D_AGGRESSIVE = 1,
+	D_MERCIFUL,
+	D_BALANCED
+} d_ai;
 
+d_gamestate d_state =
+{
+	.attacker = D_MATTHEW
+};
+
+static void d_aiattack(d_cardstack *src, d_ai ai);
+static void d_aidefend(d_cardstack *src, d_ai ai);
 static void d_rendercard(u8 card, f32 relx, f32 rely, f32 angle);
+
+static u8 d_playerai[D_PLAYER_END__] =
+{
+	0, // arkady.
+	D_AGGRESSIVE, // peter.
+	D_MERCIFUL, // matthew.
+	D_BALANCED // gerasim.
+};
 
 void
 d_setphase(d_gamephase phase)
@@ -9,9 +29,8 @@ d_setphase(d_gamephase phase)
 	switch (phase)
 	{
 	case D_START:
-		// create draw stack.
-		d_state.draw.ncards = D_MAXCARDS;
-		for (i32 i = 0; i < D_MAXCARDS; ++i)
+		d_state.draw.ncards = D_NMAXCARDS;
+		for (i32 i = 0; i < D_NMAXCARDS; ++i)
 		{
 			u8 val = i % 9 + 1, suit = i % 4 + 1;
 			d_state.draw.cards[i] = suit << D_SUITSHIFT | val << D_VALUESHIFT;
@@ -29,6 +48,24 @@ d_setphase(d_gamephase phase)
 			d_rmcard(&d_state.draw, i);
 		}
 		break;
+	case D_DEALCARDS:
+		for (i32 i = 0; i < D_NDEALCARDS * D_PLAYER_END__; ++i)
+		{
+			u8 deal = d_state.draw.cards[0];
+			d_rmcard(&d_state.draw, 0);
+			d_addcard(&d_state.players[i % D_PLAYER_END__], deal);
+		}
+		for (i32 i = 0; i < D_PLAYER_END__; ++i)
+		{
+			d_sort(&d_state.players[i]);
+		}
+		break;
+	case D_ATTACK:
+		// TODO: implement attack game phase.
+		break;
+	case D_DEFEND:
+		// TODO: implement defend game phase.
+		break;
 	default:
 		break;
 	}
@@ -37,19 +74,52 @@ d_setphase(d_gamephase phase)
 void
 d_renderoverlay(void)
 {
-	if (d_state.gamephase < D_START)
+	if (!d_state.gamephase)
 	{
 		return;
 	}
 	
-	if (d_state.gamephase >= D_CHOOSETRUMP)
+	if (d_state.trumpcard & D_VALUEMASK)
 	{
-		d_rendercard(d_state.trumpcard, 0.2f, 0.5f, 0.0f);
+		d_rendercard(d_state.trumpcard, 0.25f, 0.6f, 0.0f);
 	}
 	
 	if (d_state.draw.ncards)
 	{
-		d_rendercard(0, 0.2f, 0.6f, GLM_PI / 2.0f);
+		d_rendercard(0, 0.25f, 0.7f, GLM_PI / 2.0f);
+	}
+	
+	if (d_state.covered.ncards)
+	{
+		d_rendercard(0, 0.55f, 0.7f, GLM_PI / 2.0f);
+	}
+	
+	for (i32 i = 0; i < d_state.players[D_ARKADY].ncards; ++i)
+	{
+		f32 pos = (f32)i / d_state.players[D_ARKADY].ncards;
+		pos = 0.25f + 0.5f * pos;
+		d_rendercard(d_state.players[D_ARKADY].cards[i], pos, 0.0f, 0.0f);
+	}
+	
+	for (i32 i = 0; i < d_state.players[D_PETER].ncards; ++i)
+	{
+		f32 pos = (f32)i / d_state.players[D_PETER].ncards;
+		pos = 0.25f + 0.5f * pos;
+		d_rendercard(0, 0.0f, pos, GLM_PI / 2.0f);
+	}
+	
+	for (i32 i = 0; i < d_state.players[D_MATTHEW].ncards; ++i)
+	{
+		f32 pos = (f32)i / d_state.players[D_MATTHEW].ncards;
+		pos = 0.25f + 0.5f * pos;
+		d_rendercard(0, pos, 1.0f, 0.0f);
+	}
+	
+	for (i32 i = 0; i < d_state.players[D_GERASIM].ncards; ++i)
+	{
+		f32 pos = (f32)i / d_state.players[D_GERASIM].ncards;
+		pos = 0.25f + 0.5f * pos;
+		d_rendercard(0, 1.0f, pos, GLM_PI / 2.0f);
 	}
 	
 	// TODO: implement durak render overlay.
@@ -64,7 +134,7 @@ d_update(void)
 void
 d_shuffle(d_cardstack *stack)
 {
-	for (usize i = 0; i < stack->ncards; ++i)
+	for (i32 i = 0; i < stack->ncards; ++i)
 	{
 		usize other = randint(i, stack->ncards);
 		u8 tmp = stack->cards[other];
@@ -76,7 +146,7 @@ d_shuffle(d_cardstack *stack)
 void
 d_addcard(d_cardstack *stack, u8 card)
 {
-	if (stack->ncards < D_MAXCARDS)
+	if (stack->ncards < D_NMAXCARDS)
 	{
 		stack->cards[stack->ncards] = card;
 		++stack->ncards;
@@ -104,6 +174,18 @@ d_sort(d_cardstack *stack)
 			}
 		}
 	}
+}
+
+static void
+d_aiattack(d_cardstack *src, d_ai ai)
+{
+	// TODO: implement AI attack.
+}
+
+static void
+d_aidefend(d_cardstack *src, d_ai ai)
+{
+	// TODO: implement AI defend.
 }
 
 static void
@@ -139,7 +221,7 @@ d_rendercard(u8 card, f32 relx, f32 rely, f32 angle)
 	}
 	
 	r_renderrect(
-		R_BLACK,
+		R_BLACK50,
 		absx - O_CARDOUTLINE,
 		absy - O_CARDOUTLINE,
 		O_CARDWIDTH + 2 * O_CARDOUTLINE,

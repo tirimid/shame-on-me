@@ -23,20 +23,22 @@
 #define D_K 0x8
 #define D_A 0x9
 
-#define D_MAXCARDS 36
+#define D_NMAXCARDS 36
+#define D_NDEALCARDS 6
 
 typedef enum d_player
 {
 	D_ARKADY = 0,
 	D_PETER,
 	D_MATTHEW,
-	D_GERASIM
+	D_GERASIM,
+	
+	D_PLAYER_END__
 } d_player;
 
 typedef enum d_gamephase
 {
-	D_NULL = 0,
-	D_START,
+	D_START = 1,
 	D_CHOOSETRUMP,
 	D_DEALCARDS,
 	D_ATTACK,
@@ -45,7 +47,7 @@ typedef enum d_gamephase
 
 typedef struct d_cardstack
 {
-	u8 cards[D_MAXCARDS];
+	u8 cards[D_NMAXCARDS];
 	u8 ncards;
 } d_cardstack;
 
@@ -53,7 +55,8 @@ typedef struct d_gamestate
 {
 	d_cardstack players[4];
 	d_cardstack draw;
-	u8 ncovered;
+	d_cardstack active;
+	d_cardstack covered;
 	
 	u8 attacker;
 	u8 trumpcard;
