@@ -36,7 +36,7 @@
 #define O_AMBIENTLIGHT 0.2f
 #define O_LIGHTSTEP 0.1f
 #define O_SHADOWBIAS 0.15f
-#define O_PIXELATION 6.0f
+#define O_PIXELATION 4.0f
 #define O_CAMFOV (GLM_PI / 2.5f)
 #define O_CAMCLIPNEAR 0.1f
 #define O_CAMCLIPFAR 500.0f
@@ -46,23 +46,8 @@
 #define O_MAXTILEBATCH 64
 
 // durak options.
-#define O_CARDSTACKSCALE {1.0f, 1.0f, 1.0f}
-#define O_DRAWSTACKPOS {6.7f, -0.2f, 12.3f}
-#define O_DRAWSTACKROT {0.0f, 0.0f, 0.0f}
-//#define O_TRUMP_CARD_POS {5.7f, 0.0f, 12.2f}
-//#define O_TRUMP_CARD_ROT {0.0f, GLM_PI / 2.0f, 0.0f}
-#define O_COVEREDSTACKPOS {5.5f, -0.2f, 12.3f}
-#define O_COVEREDSTACKROT {0.0f, 0.0f, 0.0f}
-#if 0
-#define O_PLAYERSTACKLEN 0.8f
-#define O_P1STACKPOS {}
-#define O_P1STACKROT {}
-#define O_P2STACKPOS {}
-#define O_P2STACKROT {}
-#define O_P3STACKPOS {}
-#define O_P3STACKROT {}
-#define O_P4STACKPOS {}
-#define O_P4STACKROT {}
-#endif
+#define O_CARDWIDTH 60
+#define O_CARDHEIGHT 84
+#define O_CARDOUTLINE 1
 
 #endif

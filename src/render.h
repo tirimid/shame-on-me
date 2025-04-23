@@ -130,7 +130,7 @@ void r_settex(r_tex t);
 void r_rendermodel(r_model m, vec3 pos, vec3 rot, vec3 scale);
 i32 r_putlight(vec3 pos, f32 intensity);
 void r_setlightintensity(usize idx, f32 intensity);
-void r_renderrect(r_tex t, i32 x, i32 y, i32 w, i32 h);
+void r_renderrect(r_tex t, i32 x, i32 y, i32 w, i32 h, f32 angle);
 void r_rendertext(r_font f, char const *text, i32 x, i32 y, i32 w, i32 h);
 void r_batchtile(vec3 pos, vec3 rot, vec3 scale);
 void r_flushtiles(void);

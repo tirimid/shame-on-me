@@ -5,12 +5,14 @@
 // e.g. 7 of clubs is (D_CLUBS | D_7).
 
 #define D_SUITMASK 0xf0
+#define D_SUITSHIFT 4
 #define D_SPADES 0x10
 #define D_DIAMONDS 0x20
 #define D_CLUBS 0x30
 #define D_HEARTS 0x40
 
 #define D_VALUEMASK 0xf
+#define D_VALUESHIFT 0
 #define D_6 0x1
 #define D_7 0x2
 #define D_8 0x3
@@ -61,7 +63,6 @@ typedef struct d_gamestate
 extern d_gamestate d_state;
 
 void d_setphase(d_gamephase phase);
-void d_rendercards(void);
 void d_renderoverlay(void);
 void d_update(void);
 void d_shuffle(d_cardstack *stack);

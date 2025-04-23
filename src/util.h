@@ -40,5 +40,6 @@ void makexform(vec3 pos, vec3 rot, vec3 scale, OUT mat4 out);
 void makenorm(mat4 xform, OUT mat3 out);
 void begintimer(OUT u64 *timer);
 void endtimer(u64 timer, char const *name);
+i32 randint(i32 lb, i32 ub);
 
 #endif

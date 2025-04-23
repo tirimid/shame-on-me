@@ -83,7 +83,6 @@ g_loop(void)
 			r_beginshadow(i);
 			c_rendertiles();
 			c_rendermodels();
-			d_rendercards();
 		}
 		ENDTIMER(stagetimer, "game: render shadow");
 		
@@ -92,14 +91,13 @@ g_loop(void)
 		r_beginbase();
 		c_rendertiles();
 		c_rendermodels();
-		d_rendercards();
 		ENDTIMER(stagetimer, "game: render base");
 		
 		BEGINTIMER(&stagetimer);
 		r_setshader(R_OVERLAY);
 		r_beginoverlay();
-		t_renderoverlay();
 		d_renderoverlay();
+		t_renderoverlay();
 		ENDTIMER(stagetimer, "game: render overlay");
 		
 		ENDTIMER(largetimer, "game: render");
@@ -399,7 +397,15 @@ g_fastintro(void)
 static void
 g_tutorial(void)
 {
-	c_pancamera((vec3){0.0f, 0.8f, 1.4f}, -75.0f, 0.0f);
+	c_pancamera((vec3){0.0f, 0.0f, 2.0f}, -90.0f, 0.0f);
 	c_wait(1000);
 	c_setdurakphase(D_START);
+	c_wait(400);
+	c_speak(T_MATTHEW, "This is a special deck, I've gone and removed some cards");
+	c_speak(T_MATTHEW, "There are 36 cards - only 6-10s, face cards, and aces");
+	c_speak(T_MATTHEW, "...");
+	c_speak(T_MATTHEW, "The first step is to pick out a trump suit");
+	c_speak(T_MATTHEW, "We'll pick out the top card and select its suit");
+	c_wait(600);
+	c_setdurakphase(D_CHOOSETRUMP);
 }

@@ -1,7 +1,6 @@
 d_gamestate d_state;
 
-static void d_setcardtex(u8 card);
-static void d_renderstack(u8 ncards, vec3 pos, vec3 rot);
+static void d_rendercard(u8 card, f32 relx, f32 rely, f32 angle);
 
 void
 d_setphase(d_gamephase phase)
@@ -10,7 +9,25 @@ d_setphase(d_gamephase phase)
 	switch (phase)
 	{
 	case D_START:
-		// TODO: shuffle cards, create stacks, etc.
+		// create draw stack.
+		d_state.draw.ncards = D_MAXCARDS;
+		for (i32 i = 0; i < D_MAXCARDS; ++i)
+		{
+			u8 val = i % 9 + 1, suit = i % 4 + 1;
+			d_state.draw.cards[i] = suit << D_SUITSHIFT | val << D_VALUESHIFT;
+		}
+		d_shuffle(&d_state.draw);
+		break;
+	case D_CHOOSETRUMP:
+		for (i32 i = 0; i <= 4; ++i)
+		{
+			if ((d_state.draw.cards[i] & D_VALUEMASK) == D_A)
+			{
+				continue;
+			}
+			d_state.trumpcard = d_state.draw.cards[i];
+			d_rmcard(&d_state.draw, i);
+		}
 		break;
 	default:
 		break;
@@ -18,23 +35,23 @@ d_setphase(d_gamephase phase)
 }
 
 void
-d_rendercards(void)
+d_renderoverlay(void)
 {
 	if (d_state.gamephase < D_START)
 	{
 		return;
 	}
 	
-	d_setcardtex(0);
-	d_renderstack(d_state.draw.ncards, (vec3)O_DRAWSTACKPOS, (vec3)O_DRAWSTACKROT);
-	d_renderstack(d_state.ncovered, (vec3)O_COVEREDSTACKPOS, (vec3)O_COVEREDSTACKROT);
+	if (d_state.gamephase >= D_CHOOSETRUMP)
+	{
+		d_rendercard(d_state.trumpcard, 0.2f, 0.5f, 0.0f);
+	}
 	
-	// TODO: finish implement durak render cards.
-}
-
-void
-d_renderoverlay(void)
-{
+	if (d_state.draw.ncards)
+	{
+		d_rendercard(0, 0.2f, 0.6f, GLM_PI / 2.0f);
+	}
+	
 	// TODO: implement durak render overlay.
 }
 
@@ -47,7 +64,13 @@ d_update(void)
 void
 d_shuffle(d_cardstack *stack)
 {
-	// TODO: implement shuffle stack.
+	for (usize i = 0; i < stack->ncards; ++i)
+	{
+		usize other = randint(i, stack->ncards);
+		u8 tmp = stack->cards[other];
+		stack->cards[other] = stack->cards[i];
+		stack->cards[i] = tmp;
+	}
 }
 
 void
@@ -84,43 +107,44 @@ d_sort(d_cardstack *stack)
 }
 
 static void
-d_setcardtex(u8 card)
+d_rendercard(u8 card, f32 relx, f32 rely, f32 angle)
 {
-	if (!card)
+	i32 rw, rh;
+	r_renderbounds(&rw, &rh);
+	
+	i32 absx = relx * rw - O_CARDWIDTH / 2;
+	i32 absy = rely * rh - O_CARDWIDTH / 2;
+	
+	u8 tex = R_CBACK;
+	if (card)
 	{
-		r_settex(R_CBACK);
-		return;
+		u8 suit = card & D_SUITMASK, value = card & D_VALUEMASK;
+		switch (suit)
+		{
+		case D_SPADES:
+			tex = R_CS6 + value - 1;
+			break;
+		case D_DIAMONDS:
+			tex = R_CD6 + value - 1;
+			break;
+		case D_CLUBS:
+			tex = R_CC6 + value - 1;
+			break;
+		case D_HEARTS:
+			tex = R_CH6 + value - 1;
+			break;
+		default:
+			break;
+		}
 	}
 	
-	u8 suit = card & D_SUITMASK, value = card & D_VALUEMASK;
-	switch (suit)
-	{
-	case D_SPADES:
-		r_settex(R_CS6 + value - 1);
-		break;
-	case D_DIAMONDS:
-		r_settex(R_CD6 + value - 1);
-		break;
-	case D_CLUBS:
-		r_settex(R_CC6 + value - 1);
-		break;
-	case D_HEARTS:
-		r_settex(R_CH6 + value - 1);
-		break;
-	default:
-		break;
-	}
-}
-
-static void
-d_renderstack(u8 ncards, vec3 pos, vec3 rot)
-{
-	if (!ncards)
-	{
-		return;
-	}
-	
-	vec3 scale = O_CARDSTACKSCALE;
-	scale[1] /= 37 - ncards;
-	r_rendermodel(R_CARDSTACK, pos, rot, scale);
+	r_renderrect(
+		R_BLACK,
+		absx - O_CARDOUTLINE,
+		absy - O_CARDOUTLINE,
+		O_CARDWIDTH + 2 * O_CARDOUTLINE,
+		O_CARDHEIGHT + 2 * O_CARDOUTLINE,
+		angle
+	);
+	r_renderrect(tex, absx, absy, O_CARDWIDTH, O_CARDHEIGHT, angle);
 }

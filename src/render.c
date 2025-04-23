@@ -665,10 +665,10 @@ r_setlightintensity(usize idx, f32 intensity)
 }
 
 void
-r_renderrect(r_tex t, i32 x, i32 y, i32 w, i32 h)
+r_renderrect(r_tex t, i32 x, i32 y, i32 w, i32 h, f32 angle)
 {
 	vec3 pos = {x + w / 2.0f, y + h / 2.0f, 0.0f};
-	vec3 rot = {GLM_PI / 2.0f, GLM_PI, GLM_PI};
+	vec3 rot = {GLM_PI / 2.0f, GLM_PI + angle, GLM_PI};
 	vec3 scale = {w / 2.0f, 1.0f, h / 2.0f};
 	
 	r_settex(t);

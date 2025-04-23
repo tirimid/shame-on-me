@@ -97,3 +97,9 @@ endtimer(u64 timer, char const *name)
 	u64 d = unixus() - timer;
 	fprintf(stderr, "[profile] %s: %lu\n", name, d);
 }
+
+i32
+randint(i32 lb, i32 ub)
+{
+	return rand() % (ub - lb) + lb;
+}

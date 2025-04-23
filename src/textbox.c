@@ -55,14 +55,15 @@ t_renderoverlay(void)
 	i32 rw, rh;
 	r_renderbounds(&rw, &rh);
 	
-	r_renderrect(R_BLACK50, 0, 0, rw, rh);
+	r_renderrect(R_BLACK50, 0, 0, rw, rh, 0.0f);
 	r_renderrect(
 		t_spritetex[t_cursprite],
 		5,
 		5 + O_TEXTBOXSIZE,
 		O_TEXTSPRITESIZE,
-		O_TEXTSPRITESIZE
+		O_TEXTSPRITESIZE,
+		0.0f
 	);
-	r_renderrect(R_BLACK, 5, 5, rw - 10, O_TEXTBOXSIZE);
+	r_renderrect(R_BLACK, 5, 5, rw - 10, O_TEXTBOXSIZE, 0.0f);
 	r_rendertext(R_VCROSDMONO, t_curmsg, 10, 10, rw - 20, O_TEXTBOXSIZE - 10);
 }

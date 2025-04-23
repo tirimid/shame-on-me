@@ -106,6 +106,8 @@ main(int argc, char *argv[])
 	(void)argc;
 	(void)argv;
 	
+	srand(0);
+	
 	// initialize non-game systems.
 	if (SDL_Init(O_SDLFLAGS))
 	{
