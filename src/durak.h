@@ -58,9 +58,11 @@ typedef struct d_gamestate
 	d_cardstack active;
 	d_cardstack covered;
 	
+	u32 acttick;
 	u8 attacker;
 	u8 trumpcard;
 	u8 gamephase;
+	u8 playersactive; // bit 0 = player 0 active, bit 1 = player 1, etc.
 } d_gamestate;
 
 extern d_gamestate d_state;

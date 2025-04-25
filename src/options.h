@@ -46,8 +46,11 @@
 #define O_MAXTILEBATCH 64
 
 // durak options.
-#define O_CARDWIDTH 60
-#define O_CARDHEIGHT 84
+#define O_CARDWIDTH 55
+#define O_CARDHEIGHT 80
 #define O_CARDOUTLINE 1
+#define O_ATTACKTICK 40
+#define O_DEFENDTICK 20
+#define O_VARYTICK 30
 
 #endif

@@ -1,5 +1,6 @@
 // standard library.
 #include <stdlib.h>
+#include <time.h>
 
 // system dependencies.
 #include <cglm/cglm.h>
@@ -106,7 +107,7 @@ main(int argc, char *argv[])
 	(void)argc;
 	(void)argv;
 	
-	srand(0);
+	srand(time(NULL));
 	
 	// initialize non-game systems.
 	if (SDL_Init(O_SDLFLAGS))

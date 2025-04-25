@@ -1,8 +1,8 @@
 #!/bin/bash
 
 INCLUDE="-I. -Isrc"
-DEFINES="-DPROFILE"
-#DEFINES=""
+#DEFINES="-DPROFILE"
+DEFINES=""
 WARNINGS="-Wall -Wextra -Wshadow"
 LIBRARIES="$(pkg-config --cflags --libs sdl2 gl SDL2_mixer SDL2_ttf SDL2_image cglm glew) -lm"
 CFLAGS="-std=c99 -pedantic -O3"

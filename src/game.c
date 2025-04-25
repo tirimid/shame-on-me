@@ -67,6 +67,7 @@ g_loop(void)
 		
 		// update.
 		c_update();
+		d_update();
 		r_update();
 		
 		// render.
