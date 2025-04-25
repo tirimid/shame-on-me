@@ -11,11 +11,14 @@ typedef enum d_ai
 d_gamestate d_state =
 {
 	.attacker = D_MATTHEW,
-	.playersactive = 0xf
+	.playersactive = 0xf,
+	.selidx = D_NDEALCARDS
 };
 
 static void d_aiattack(d_cardstack *src, d_ai ai);
 static void d_aidefend(d_cardstack *src);
+static void d_playattack(d_cardstack *src);
+static void d_playdefend(d_cardstack *src);
 static void d_rendercard(u8 card, f32 relx, f32 rely, f32 angle);
 static i32 d_power(u8 card);
 static i32 d_powercmp(u8 lhs, u8 rhs);
@@ -24,10 +27,11 @@ static void d_allcovered(void);
 static void d_takeall(void);
 static void d_drawto(d_cardstack *dst, usize ncards);
 static i32 d_reattack(d_cardstack *src, bool hiattack);
+static i32 d_activeplayers(void);
 
 static u8 d_playerai[D_PLAYER_END__] =
 {
-	D_MERCIFUL, //0, // arkady.
+	0, // arkady.
 	D_AGGRESSIVE, // peter.
 	D_MERCIFUL, // matthew.
 	D_BALANCED // gerasim.
@@ -71,6 +75,9 @@ d_setphase(d_gamephase phase)
 	case D_DEFEND:
 		d_state.acttick = O_DEFENDTICK + randint(0, O_VARYTICK);
 		break;
+	case D_FINISH:
+		// TODO: implement durak finish.
+		break;
 	default:
 		break;
 	}
@@ -102,14 +109,7 @@ d_renderoverlay(void)
 		d_rendercard(0, 0.55f, 0.7f, GLM_PI / 2.0f);
 	}
 	
-	// render player hands.
-	for (i32 i = 0; i < d_state.players[D_ARKADY].ncards; ++i)
-	{
-		f32 pos = (f32)i / d_state.players[D_ARKADY].ncards;
-		pos = 0.25f + 0.5f * pos;
-		d_rendercard(d_state.players[D_ARKADY].cards[i], pos, 0.0f, 0.0f);
-	}
-	
+	// render AI player hands.
 	for (i32 i = 0; i < d_state.players[D_PETER].ncards; ++i)
 	{
 		f32 pos = (f32)i / d_state.players[D_PETER].ncards;
@@ -142,17 +142,29 @@ d_renderoverlay(void)
 			d_rendercard(d_state.active.cards[i + 1], pos, 0.36f, 0.0f);
 		}
 	}
+	
+	// render arkady's hand.
+	for (i32 i = 0; i < d_state.players[D_ARKADY].ncards; ++i)
+	{
+		f32 posx = (f32)i / d_state.players[D_ARKADY].ncards;
+		posx = 0.25f + 0.5f * posx;
+		
+		f32 posy = d_state.selidx == i ? 0.1f : 0.0f;
+		
+		d_rendercard(d_state.players[D_ARKADY].cards[i], posx, posy, 0.0f);
+	}
 }
 
 void
 d_update(void)
 {
+	// update game state.
 	switch (d_state.gamephase)
 	{
 	case D_ATTACK:
 		if (!d_playerai[d_state.attacker])
 		{
-			// TODO: implement player attack.
+			d_playattack(&d_state.players[d_state.attacker]);
 		}
 		else
 		{
@@ -173,7 +185,7 @@ d_update(void)
 		
 		if (!d_playerai[def])
 		{
-			// TODO: implement player defend.
+			d_playdefend(&d_state.players[def]);
 		}
 		else
 		{
@@ -426,6 +438,108 @@ d_aidefend(d_cardstack *src)
 }
 
 static void
+d_playattack(d_cardstack *src)
+{
+	d_state.selidx = d_state.selidx >= src->ncards ? 0 : d_state.selidx;
+	
+	if (i_kpressed(O_KRIGHT))
+	{
+		d_state.selidx = d_state.selidx + 1 >= src->ncards ? 0 : d_state.selidx + 1;
+	}
+	
+	if (i_kpressed(O_KLEFT))
+	{
+		d_state.selidx = d_state.selidx == 0 ? src->ncards - 1 : d_state.selidx - 1;
+	}
+	
+	if (d_state.active.ncards)
+	{
+		if (src->ncards && i_kpressed(O_KSEL))
+		{
+			u8 card = src->cards[d_state.selidx];
+			
+			for (usize i = 0; i < d_state.active.ncards; ++i)
+			{
+				if ((d_state.active.cards[i] & D_VALUEMASK) == (card & D_VALUEMASK))
+				{
+					d_addcard(&d_state.active, card);
+					d_addcard(&d_state.active, 0);
+					d_rmcard(src, d_state.selidx);
+					
+					d_state.selidx = -1;
+					d_setphase(D_DEFEND);
+					
+					break;
+				}
+			}
+		}
+		else if (i_kpressed(O_KSKIP))
+		{
+			d_state.selidx = -1;
+			d_allcovered();
+		}
+	}
+	else
+	{
+		if (i_kpressed(O_KSEL))
+		{
+			u8 card = src->cards[d_state.selidx];
+			
+			d_addcard(&d_state.active, card);
+			d_addcard(&d_state.active, 0);
+			d_rmcard(src, d_state.selidx);
+			
+			d_state.selidx = -1;
+			d_setphase(D_DEFEND);
+		}
+	}
+}
+
+static void
+d_playdefend(d_cardstack *src)
+{
+	d_state.selidx = d_state.selidx >= src->ncards ? 0 : d_state.selidx;
+	
+	if (i_kpressed(O_KRIGHT))
+	{
+		d_state.selidx = d_state.selidx + 1 >= src->ncards ? 0 : d_state.selidx + 1;
+	}
+	
+	if (i_kpressed(O_KLEFT))
+	{
+		d_state.selidx = d_state.selidx == 0 ? src->ncards - 1 : d_state.selidx - 1;
+	}
+	
+	if (src->ncards && i_kpressed(O_KSEL))
+	{
+		u8 card = src->cards[d_state.selidx];
+		for (usize i = 0; i < d_state.active.ncards; i += 2)
+		{
+			if (d_state.active.cards[i + 1])
+			{
+				continue;
+			}
+			
+			if (d_powercmp(card, d_state.active.cards[i]) > 0)
+			{
+				d_state.active.cards[i + 1] = card;
+				d_rmcard(src, d_state.selidx);
+				
+				d_state.selidx = -1;
+				d_setphase(D_ATTACK);
+				
+				break;
+			}
+		}
+	}
+	else if (i_kpressed(O_KSKIP))
+	{
+		d_state.selidx = -1;
+		d_takeall();
+	}
+}
+
+static void
 d_rendercard(u8 card, f32 relx, f32 rely, f32 angle)
 {
 	i32 rw, rh;
@@ -565,8 +679,7 @@ d_allcovered(void)
 	}
 	d_state.attacker = next;
 	
-	// TODO: handle lose condition.
-	d_setphase(D_ATTACK);
+	d_setphase(d_activeplayers() == 1 ? D_FINISH : D_ATTACK);
 }
 
 static void
@@ -607,8 +720,7 @@ d_takeall(void)
 	}
 	d_state.attacker = next;
 	
-	// TODO: handle lose condition.
-	d_setphase(D_ATTACK);
+	d_setphase(d_activeplayers() == 1 ? D_FINISH : D_ATTACK);
 }
 
 static void
@@ -660,4 +772,15 @@ d_reattack(d_cardstack *src, bool hiattack)
 	}
 	
 	return -1;
+}
+
+static i32
+d_activeplayers(void)
+{
+	i32 sum = 0;
+	for (usize i = 0; i < 8; ++i)
+	{
+		sum += !!(d_state.playersactive & 1 << i);
+	}
+	return sum;
 }

@@ -399,7 +399,7 @@ static void
 g_tutorial(void)
 {
 	c_pancamera((vec3){0.0f, 0.0f, 2.0f}, -90.0f, 0.0f);
-	c_wait(1000);
+	c_wait(1200);
 	c_setdurakphase(D_START);
 	c_wait(400);
 	c_speak(T_MATTHEW, "This is a special deck, I've gone and removed some cards");
@@ -445,6 +445,6 @@ g_tutorial(void)
 	c_speak(T_ARKADY, "I think so");
 	c_speak(T_PETER, "Well, I suppose I am, are you?");
 	c_speak(T_MATTHEW, "I'm ready");
-	c_wait(800);
+	c_wait(500);
 	c_setdurakphase(D_ATTACK);
 }

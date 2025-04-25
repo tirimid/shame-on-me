@@ -4,7 +4,7 @@
 // to represent a card, OR together a suit and a value.
 // e.g. 7 of clubs is (D_CLUBS | D_7).
 
-#define D_SUITMASK 0xf0
+#define D_SUITMASK 0x70
 #define D_SUITSHIFT 4
 #define D_SPADES 0x10
 #define D_DIAMONDS 0x20
@@ -42,7 +42,8 @@ typedef enum d_gamephase
 	D_CHOOSETRUMP,
 	D_DEALCARDS,
 	D_ATTACK,
-	D_DEFEND
+	D_DEFEND,
+	D_FINISH
 } d_gamephase;
 
 typedef struct d_cardstack
@@ -63,6 +64,7 @@ typedef struct d_gamestate
 	u8 trumpcard;
 	u8 gamephase;
 	u8 playersactive; // bit 0 = player 0 active, bit 1 = player 1, etc.
+	u8 selidx;
 } d_gamestate;
 
 extern d_gamestate d_state;

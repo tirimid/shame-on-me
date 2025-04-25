@@ -11,7 +11,10 @@
 #define O_ERRWNDTITLE "Shame on Me - Error"
 
 // input options.
-#define O_KNEXT SDLK_c
+#define O_KSEL SDLK_c
+#define O_KSKIP SDLK_z
+#define O_KRIGHT SDLK_RIGHT
+#define O_KLEFT SDLK_LEFT
 
 // game system options.
 #define O_TICKMS 20
@@ -28,8 +31,12 @@
 #define O_TEXTBOXSIZE 70
 #define O_TEXTSPRITESIZE 60
 #define O_FADESPEED 0.005f
-#define O_PANPOSSPEED 0.06f
+#define O_PANPOSSPEED 0.1f
 #define O_PANROTSPEED 0.1f
+#define O_CARDWIDTH 55
+#define O_CARDHEIGHT 80
+#define O_CARDOUTLINE 1
+#define O_CARDSPEED 0.2f
 
 // render options.
 #define O_MAXLIGHTS 4
@@ -46,9 +53,6 @@
 #define O_MAXTILEBATCH 64
 
 // durak options.
-#define O_CARDWIDTH 55
-#define O_CARDHEIGHT 80
-#define O_CARDOUTLINE 1
 #define O_ATTACKTICK 40
 #define O_DEFENDTICK 20
 #define O_VARYTICK 30

@@ -38,7 +38,7 @@ t_update(void)
 		return;
 	}
 	
-	if (i_kpressed(O_KNEXT))
+	if (i_kpressed(O_KSEL))
 	{
 		t_curactive = false;
 	}
