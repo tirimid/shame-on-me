@@ -654,7 +654,7 @@ d_allcovered(void)
 	d_drawto(&d_state.players[next], D_NDEALCARDS);
 	if (!d_state.players[next].ncards)
 	{
-		d_state.playersactive &= ~(1 << d_state.attacker);
+		d_state.playersactive &= ~(1 << next);
 	}
 	
 	// advance attacker.
