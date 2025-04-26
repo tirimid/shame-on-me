@@ -18,9 +18,6 @@
 	"......I...#.#...#"
 
 static void g_setupenv(void);
-static void g_intro(void);
-static void g_fastintro(void);
-static void g_tutorial(void);
 
 static usize g_maindoor, g_roomdoor;
 static usize g_hallwaylight, g_entrylight, g_roomlight;
@@ -28,14 +25,14 @@ static usize g_hallwaylight, g_entrylight, g_roomlight;
 void
 g_loop(void)
 {
-	(void)g_intro; // TODO: remove temporary warning suppression.
+	(void)g_fastintroseq; // TODO: remove temporary warning suppression.
 	
 	NEWTIMER(largetimer);
 	NEWTIMER(stagetimer);
 	
 	g_setupenv();
-	g_fastintro();
-	g_tutorial();
+	g_introseq();
+	g_tutorialseq();
 	
 	for (;;)
 	{
@@ -253,8 +250,8 @@ g_setupenv(void)
 	);
 }
 
-static void
-g_intro(void)
+void
+g_introseq(void)
 {
 	r_fade(R_FADEIN);
 	
@@ -366,15 +363,13 @@ g_intro(void)
 	c_speak(T_ARKADY, "So, what are we going to play?");
 	c_speak(T_MATTHEW, "Do you know how to play Fool?");
 	c_speak(T_ARKADY, "No, I can't say I do...");
-	c_speak(T_MATTHEW, "That's alright, we'll show you how to play");
+	c_speak(T_MATTHEW, "That's alright, we'll show you how to play a simplified variant");
 	c_wait(800);
 	c_speak(T_MATTHEW, "Well then, shall we start?");
-	
-	// TODO: work on normal intro sequence.
 }
 
-static void
-g_fastintro(void)
+void
+g_fastintroseq(void)
 {
 	r_fade(R_FADEIN);
 	
@@ -397,8 +392,8 @@ g_fastintro(void)
 	c_speak(T_MATTHEW, "Well then, shall we start?");
 }
 
-static void
-g_tutorial(void)
+void
+g_tutorialseq(void)
 {
 	c_pancamera((vec3){0.0f, 0.0f, 2.0f}, -90.0f, 0.0f);
 	c_wait(1200);
@@ -436,17 +431,33 @@ g_tutorial(void)
 	c_speak(T_MATTHEW, "That make sense?");
 	c_speak(T_ARKADY, "I think I'll understand more once we actually start playing");
 	c_speak(T_MATTHEW, "Oh...");
-	c_speak(T_MATTHEW, "Well... No problem, of course, let's get started");
+	c_speak(T_MATTHEW, "Well... No problem, of course...");
 	c_speak(T_MATTHEW, "Just remember - defend, attack left, shed your cards");
 	c_speak(T_MATTHEW, "Last player who still has cards loses");
-	c_speak(T_ARKADY, "(I can feel my heart beating, I'm not ready)");
+	c_speak(T_ARKADY, "(Even though it's just a practice round, I can feel my heart beating, I'm not ready)");
 	c_speak(T_ARKADY, "I understand");
 	c_wait(1000);
 	c_speak(T_MATTHEW, "You all ready?");
 	c_speak(T_GERASIM, "*Gerasim picks up his cards, he has clearly played before*");
 	c_speak(T_ARKADY, "I think so");
-	c_speak(T_PETER, "Well, I suppose I am, are you?");
-	c_speak(T_MATTHEW, "I'm ready");
+	c_speak(T_PETER, "What difference does it make?");
+	c_speak(T_MATTHEW, "I suppose that's true");
+	c_speak(T_MATTHEW, "Let's just get started");
 	c_wait(500);
 	c_setdurakphase(D_ATTACK);
+}
+
+void
+g_posttutorialseq(void)
+{
+	c_wait(800);
+	c_pancamera((vec3){0.0f, 0.0f, 0.0f}, 0.0f, 0.0f);
+	c_wait(1200);
+	c_speak(T_MATTHEW, "Since that was just a practice round, nothing happens");
+	c_speak(T_MATTHEW, "Are the rules of the game clearer now, Arkady?");
+	c_speak(T_ARKADY, "Yeah, I think so...");
+	c_speak(T_MATTHEW, "...");
+	c_speak(T_MATTHEW, "That's great, probably");
+	
+	// TODO: finish post-tutorial sequence.
 }

@@ -53,8 +53,8 @@
 #define O_MAXTILEBATCH 64
 
 // durak options.
-#define O_ATTACKTICK 40
-#define O_DEFENDTICK 20
-#define O_VARYTICK 30
+#define O_ATTACKTICK 50
+#define O_DEFENDTICK 30
+#define O_VARYTICK 50
 
 #endif

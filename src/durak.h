@@ -73,9 +73,10 @@ typedef struct d_gamestate
 	d_pcards covered;
 	
 	u32 acttick;
+	u8 losses[D_PLAYER_END];
 	u8 trumpsuit;
 	u8 attacker;
-	u8 gamephase;
+	u8 round, gamephase;
 	u8 playersactive; // bit 0 = player 0 active, bit 1 = player 1, etc.
 	u8 selidx;
 } d_gamestate;

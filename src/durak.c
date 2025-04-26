@@ -1,5 +1,6 @@
 #define D_BALANCEDYIELD 35
 #define D_BALANCEDHIATTACK 40
+#define D_BALANCEDMID 2
 
 typedef enum d_ai
 {
@@ -87,7 +88,35 @@ d_setphase(d_gamephase phase)
 		d_state.acttick = O_DEFENDTICK + randint(0, O_VARYTICK);
 		break;
 	case D_FINISH:
-		// TODO: implement durak finish.
+		d_state.draw.ncards = 0;
+		d_state.covered.ncards = 0;
+		d_state.attack.ncards = 0;
+		d_state.defend.ncards = 0;
+		
+		for (usize i = 0; i < D_PLAYER_END; ++i)
+		{
+			d_state.players[i].ncards = 0;
+		}
+		
+		for (usize i = 0; i < D_NMAXCARDS; ++i)
+		{
+			d_state.data[i].dstx = 0.5f;
+			d_state.data[i].dsty = 1.5f;
+			d_state.data[i].dstrot = 0.0f;
+		}
+		
+		if (d_state.round == 0)
+		{
+			// tutorial round.
+			g_posttutorialseq();
+		}
+		else
+		{
+			// TODO: handle non-tutorial round end logic.
+		}
+		
+		++d_state.round;
+		
 		break;
 	default:
 		break;
@@ -139,6 +168,15 @@ d_renderoverlay(void)
 	for (usize i = 0; i < d_state.players[D_ARKADY].ncards; ++i)
 	{
 		d_rendercard(&d_state.data[d_state.players[D_ARKADY].pcards[i]]);
+	}
+	
+	// at end of round, all cards need to be drawn leaving the screen.
+	if (d_state.gamephase >= D_FINISH)
+	{
+		for (usize i = 0; i < D_NMAXCARDS; ++i)
+		{
+			d_rendercard(&d_state.data[i]);
+		}
 	}
 }
 
@@ -400,7 +438,7 @@ d_aiattack(d_pcards *pc, d_ai ai)
 		}
 		case D_BALANCED:
 		{
-			usize idx = randint(0, pc->ncards);
+			usize idx = randint(0, (pc->ncards + D_BALANCEDMID - 1) / D_BALANCEDMID);
 			
 			d_addcard(&d_state.attack, pc->pcards[idx]);
 			d_rmcard(pc, idx);
