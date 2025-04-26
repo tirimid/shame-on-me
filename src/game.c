@@ -25,13 +25,13 @@ static usize g_hallwaylight, g_entrylight, g_roomlight;
 void
 g_loop(void)
 {
-	(void)g_introseq; // TODO: remove temporary warning suppression.
+	(void)g_fastintroseq; // TODO: remove temporary warning suppression.
 	
 	NEWTIMER(largetimer);
 	NEWTIMER(stagetimer);
 	
 	g_setupenv();
-	g_fastintroseq();
+	g_introseq();
 	g_tutorialseq();
 	
 	for (;;)
@@ -259,12 +259,12 @@ g_introseq(void)
 	c_lookwalkto(C_ARKADY, 'B');
 	c_lookat(C_ARKADY, 'C');
 	c_speak(T_ARKADY, "...");
-	c_speak(T_ARKADY, "I dread that this'll be what I thought");
+	c_speak(T_ARKADY, "\"I dread that this'll be what I thought\"");
 	c_speak(T_ARKADY, "...");
-	c_speak(T_ARKADY, "But I've already arrived");
-	c_speak(T_ARKADY, "It's too late to leave");
+	c_speak(T_ARKADY, "\"But I've already arrived\"");
+	c_speak(T_ARKADY, "\"It's too late to leave\"");
 	c_speak(T_ARKADY, "...");
-	c_speak(T_ARKADY, "There's no turning back now");
+	c_speak(T_ARKADY, "\"There's no turning back now\"");
 	c_wait(300);
 	c_walkto(C_ARKADY, 'C');
 	c_lookat(C_ARKADY, 'D');
@@ -276,18 +276,18 @@ g_introseq(void)
 	c_swapmodel(g_maindoor, R_DOOROPEN);
 	c_wait(400);
 	c_speak(T_GERASIM, "...");
-	c_speak(T_GERASIM, "*Gerasim looks at you quizzically, in an almost sad way*");
+	c_speak(T_GERASIM, "Gerasim looks at you quizzically, in an almost sad way");
 	c_wait(1500);
-	c_speak(T_ARKADY, "It's good to see you again");
+	c_speak(T_ARKADY, "\"It's good to see you again\"");
 	c_speak(T_GERASIM, "...");
 	c_walkto(C_GERASIM, 'E');
 	c_walkto(C_ARKADY, 'D');
 	c_swapmodel(g_maindoor, R_DOORCLOSED);
 	c_setlightintensity(g_hallwaylight, 0.0f);
 	c_lookat(C_ARKADY, 'E');
-	c_speak(T_ARKADY, "Are the others already here?");
-	c_speak(T_GERASIM, "*He nods weightfully*");
-	c_speak(T_ARKADY, "I see");
+	c_speak(T_ARKADY, "\"Are the others already here?\"");
+	c_speak(T_GERASIM, "He nods weightfully");
+	c_speak(T_ARKADY, "\"I see\"");
 	c_wait(200);
 	c_lookwalkto(C_ARKADY, 'F');
 	c_lookat(C_ARKADY, 'H');
@@ -304,44 +304,44 @@ g_introseq(void)
 	c_wait(400);
 	c_lookat(C_ARKADY, 'I');
 	c_wait(250);
-	c_speak(T_MATTHEW, "Oh... You're already here, Arkady?");
-	c_speak(T_MATTHEW, "*Matthew's face radiates a kind of regretful melancholy*");
+	c_speak(T_MATTHEW, "\"Oh... You're already here, Arkady?\"");
+	c_speak(T_MATTHEW, "Matthew's face radiates a kind of regretful melancholy");
 	c_wait(300);
-	c_speak(T_ARKADY, "That's right");
+	c_speak(T_ARKADY, "\"That's right\"");
 	c_speak(T_ARKADY, "(Act friendly, maybe I'm wrong, maybe it's not what I thought)");
-	c_speak(T_PETER, "Look, I'm sorry I didn't tell you why we needed you here");
+	c_speak(T_PETER, "\"Look, I'm sorry I didn't tell you why we needed you here\"");
 	c_lookat(C_ARKADY, 'J');
 	c_wait(100);
-	c_speak(T_PETER, "*Peter looks at you how you imagine a fox looks at his next meal*");
-	c_speak(T_PETER, "But that's kind of just the nature of the matter");
-	c_speak(T_PETER, "If I'd been honest, you wouldn't have come");
+	c_speak(T_PETER, "Peter looks at you how you imagine a fox looks at his next meal");
+	c_speak(T_PETER, "\"But that's kind of just the nature of the matter\"");
+	c_speak(T_PETER, "\"If I'd been honest, you wouldn't have come\"");
 	c_speak(T_PETER, "...");
-	c_speak(T_ARKADY, "Why did you call me over?");
-	c_speak(T_PETER, "You're aware of the population crisis, right?");
+	c_speak(T_ARKADY, "\"Why did you call me over?\"");
+	c_speak(T_PETER, "\"You're aware of what's happening with the Earth's crust, right? The earthquakes?\"");
 	c_speak(T_ARKADY, "(I knew it)");
-	c_speak(T_ARKADY, "That's right");
-	c_speak(T_PETER, "Good. It's all over the news");
+	c_speak(T_ARKADY, "\"That's right\"");
+	c_speak(T_PETER, "\"Good. It's all over the news, you'd have to be real dim not to notice the apocalypse\"");
 	c_wait(2000);
-	c_speak(T_PETER, "Anyway...");
-	c_speak(T_PETER, "With the country falling apart, the government can't sustain our population anymore");
+	c_speak(T_PETER, "\"Anyway...\"");
+	c_speak(T_PETER, "\"With the country falling apart, the government can't sustain our population anymore\"");
 	c_speak(T_PETER, "...");
-	c_speak(T_PETER, "We have one day to decide who will die and who will live");
+	c_speak(T_PETER, "\"We have one day to decide who will die and who will live\"");
 	c_speak(T_PETER, "...");
-	c_speak(T_PETER, "Or they will decide for us");
+	c_speak(T_PETER, "\"Or they will decide for us\"");
 	c_wait(2500);
-	c_speak(T_ARKADY, "So you've brought me here like a lamb to the slaughterhouse?");
-	c_speak(T_PETER, "Not quite, Arkady");
-	c_speak(T_PETER, "Not the slaughterhouse, the casino");
-	c_speak(T_ARKADY, "I don't understand");
+	c_speak(T_ARKADY, "\"So you've brought me here like a lamb to the slaughterhouse?\"");
+	c_speak(T_PETER, "\"Not quite, Arkady\"");
+	c_speak(T_PETER, "\"Not the slaughterhouse, the casino\"");
+	c_speak(T_ARKADY, "\"I don't understand\"");
 	c_wait(500);
-	c_speak(T_PETER, "We're going to play cards - the loser dies");
+	c_speak(T_PETER, "\"We're going to play cards - the loser dies\"");
 	c_speak(T_ARKADY, "(How sick)");
-	c_speak(T_ARKADY, "I don't suppose I have much of a choice");
+	c_speak(T_ARKADY, "\"I don't suppose I have much of a choice\"");
 	c_wait(800);
-	c_speak(T_PETER, "No, Arkady, you don't have a choice");
-	c_speak(T_PETER, "Try to leave, and we'll just kill you on the spot");
+	c_speak(T_PETER, "\"No, Arkady, you don't have a choice\"");
+	c_speak(T_PETER, "\"Try to leave, and we'll just kill you on the spot\"");
 	c_wait(1500);
-	c_speak(T_MATTHEW, "Well then, take a seat - our esteemed guest and friend");
+	c_speak(T_MATTHEW, "\"Well then, take a seat - our esteemed guest and friend\"");
 	c_wait(600);
 	c_lookwalkto(C_ARKADY, 'K');
 	c_lookat(C_ARKADY, 'I');
@@ -350,8 +350,8 @@ g_introseq(void)
 	c_walkto(C_GERASIM, 'H');
 	c_lookat(C_ARKADY, 'H');
 	c_wait(600);
-	c_speak(T_ARKADY, "Come play with us, Gerasim");
-	c_speak(T_GERASIM, "*He gestures as if to indicate the obviousness of such an action*");
+	c_speak(T_ARKADY, "\"Come play with us, Gerasim\"");
+	c_speak(T_GERASIM, "He gestures as if to indicate the obviousness of such an action");
 	c_walkto(C_GERASIM, 'L');
 	c_lookat(C_ARKADY, 'L');
 	c_wait(500);
@@ -360,12 +360,12 @@ g_introseq(void)
 	c_lookat(C_ARKADY, 'J');
 	c_wait(500);
 	c_lookat(C_ARKADY, 'I');
-	c_speak(T_ARKADY, "So, what are we going to play?");
-	c_speak(T_MATTHEW, "Do you know how to play Fool?");
-	c_speak(T_ARKADY, "No, I can't say I do...");
-	c_speak(T_MATTHEW, "That's alright, we'll show you how to play a simplified variant");
+	c_speak(T_ARKADY, "\"So, what are we going to play?\"");
+	c_speak(T_MATTHEW, "\"Do you know how to play Fool?\"");
+	c_speak(T_ARKADY, "\"No, I can't say I do...\"");
+	c_speak(T_MATTHEW, "\"That's alright, we'll show you how to play a simplified variant\"");
 	c_wait(800);
-	c_speak(T_MATTHEW, "Well then, shall we start?");
+	c_speak(T_MATTHEW, "\"Well then, shall we start?\"");
 }
 
 void
@@ -389,7 +389,7 @@ g_fastintroseq(void)
 	c_wait(600);
 	c_setlightintensity(g_roomlight, 1.5f);
 	c_wait(500);
-	c_speak(T_MATTHEW, "Well then, shall we start?");
+	c_speak(T_MATTHEW, "\"Well then, shall we start?\"");
 }
 
 void
@@ -399,50 +399,50 @@ g_tutorialseq(void)
 	c_wait(1200);
 	c_setdurakphase(D_START);
 	c_wait(400);
-	c_speak(T_MATTHEW, "This is a special deck, I've gone and removed some cards");
-	c_speak(T_MATTHEW, "There are 36 cards - only 6-10s, face cards, and aces");
+	c_speak(T_MATTHEW, "\"This is a special deck, I've gone and removed some cards\"");
+	c_speak(T_MATTHEW, "\"There are 36 cards - only 6-10s, face cards, and aces\"");
 	c_speak(T_MATTHEW, "...");
-	c_speak(T_MATTHEW, "The first step is to pick out a trump suit");
-	c_speak(T_MATTHEW, "We'll pick out a card and select its suit");
+	c_speak(T_MATTHEW, "\"The first step is to pick out a trump suit\"");
+	c_speak(T_MATTHEW, "\"We'll pick out a card and select its suit\"");
 	c_wait(300);
 	c_setdurakphase(D_CHOOSETRUMP);
 	c_wait(400);
-	c_speak(T_MATTHEW, "Next we have to deal out 6 cards to each player");
+	c_speak(T_MATTHEW, "\"Next we have to deal out 6 cards to each player\"");
 	c_wait(300);
 	c_setdurakphase(D_DEALCARDS);
 	c_wait(400);
-	c_speak(T_ARKADY, "So, how do we play?");
-	c_speak(T_MATTHEW, "Fool is a game where you need to get rid of your held cards");
-	c_speak(T_MATTHEW, "On my turn, I'll \"attack\" Gerasim, the player to my left, by laying out cards");
-	c_speak(T_MATTHEW, "He must then cover them by playing a card of higher value...");
-	c_speak(T_MATTHEW, "That's...");
-	c_speak(T_MATTHEW, "Basically, the non-trump cards go from 6 to 10, then Jack, Queen, King, and finally Ace");
-	c_speak(T_MATTHEW, "Only non-trump cards of equivalent suit can be used against each other");
-	c_speak(T_MATTHEW, "And the trump cards can cover non-trump cards of any value");
+	c_speak(T_ARKADY, "\"So, how do we play?\"");
+	c_speak(T_MATTHEW, "\"Fool is a game where you need to get rid of your held cards\"");
+	c_speak(T_MATTHEW, "\"On my turn, I'll 'attack' Gerasim, the player to my left, by laying out cards\"");
+	c_speak(T_MATTHEW, "\"He must then cover them by playing a card of higher value...\"");
+	c_speak(T_MATTHEW, "\"That's...\"");
+	c_speak(T_MATTHEW, "\"Basically, the non-trump cards go from 6 to 10, then Jack, Queen, King, and finally Ace\"");
+	c_speak(T_MATTHEW, "\"Only non-trump cards of equivalent suit can be used against each other\"");
+	c_speak(T_MATTHEW, "\"And the trump cards can cover non-trump cards of any value\"");
 	c_speak(T_MATTHEW, "...");
-	c_speak(T_MATTHEW, "Uh...");
-	c_speak(T_MATTHEW, "Right, then, when Gerasim covers my cards, I can give him more cards to cover");
-	c_speak(T_MATTHEW, "But I can only play new cards with the same face value as previously played cards");
-	c_speak(T_MATTHEW, "If he covers everything and I don't want to or can't attack him anymore, the attack ends, and he begins the next attack, this time on you");
-	c_speak(T_MATTHEW, "If he can't cover my cards, he has to take all of the cards in play, and he skips his attack");
+	c_speak(T_MATTHEW, "\"Uh...\"");
+	c_speak(T_MATTHEW, "\"Right, then, when Gerasim covers my cards, I can give him more cards to cover\"");
+	c_speak(T_MATTHEW, "\"But I can only play new cards with the same face value as previously played cards\"");
+	c_speak(T_MATTHEW, "\"If he covers everything and I don't want to or can't attack him anymore, the attack ends, and he begins the next attack, this time on you\"");
+	c_speak(T_MATTHEW, "\"If he can't cover my cards, he has to take all of the cards in play, and he skips his attack\"");
 	c_speak(T_MATTHEW, "...");
-	c_speak(T_MATTHEW, "Oh, and we all have to draw back up to six cards if we have less");
-	c_speak(T_MATTHEW, "At least until the draw pile is exhausted");
-	c_speak(T_MATTHEW, "That make sense?");
-	c_speak(T_ARKADY, "I think I'll understand more once we actually start playing");
-	c_speak(T_MATTHEW, "Oh...");
-	c_speak(T_MATTHEW, "Well... No problem, of course...");
-	c_speak(T_MATTHEW, "Just remember - defend, attack left, shed your cards");
-	c_speak(T_MATTHEW, "Last player who still has cards loses");
+	c_speak(T_MATTHEW, "\"Oh, and we all have to draw back up to six cards if we have less\"");
+	c_speak(T_MATTHEW, "\"At least until the draw pile is exhausted\"");
+	c_speak(T_MATTHEW, "\"That make sense?\"");
+	c_speak(T_ARKADY, "\"I think I'll understand more once we actually start playing\"");
+	c_speak(T_MATTHEW, "\"Oh...\"");
+	c_speak(T_MATTHEW, "\"Well... No problem, of course...\"");
+	c_speak(T_MATTHEW, "\"Just remember - defend, attack left, shed your cards\"");
+	c_speak(T_MATTHEW, "\"Last player who still has cards loses\"");
 	c_speak(T_ARKADY, "(Even though it's just a practice round, I can feel my heart beating, I'm not ready)");
-	c_speak(T_ARKADY, "I understand");
+	c_speak(T_ARKADY, "\"I understand\"");
 	c_wait(1000);
-	c_speak(T_MATTHEW, "You all ready?");
-	c_speak(T_GERASIM, "*Gerasim picks up his cards, he has clearly played before*");
-	c_speak(T_ARKADY, "I think so");
-	c_speak(T_PETER, "What difference does it make?");
-	c_speak(T_MATTHEW, "I suppose that's true");
-	c_speak(T_MATTHEW, "Let's just get started");
+	c_speak(T_MATTHEW, "\"You all ready?\"");
+	c_speak(T_GERASIM, "Gerasim picks up his cards, he has clearly played before");
+	c_speak(T_ARKADY, "\"I think so\"");
+	c_speak(T_PETER, "\"What difference does it make?\"");
+	c_speak(T_MATTHEW, "\"I suppose that's true\"");
+	c_speak(T_MATTHEW, "\"Let's just get started\"");
 	c_wait(500);
 	c_setdurakphase(D_ATTACK);
 }
@@ -453,11 +453,11 @@ g_posttutorialseq(void)
 	c_wait(800);
 	c_pancamera((vec3){0.0f, 0.0f, 0.0f}, 0.0f, 0.0f);
 	c_wait(1200);
-	c_speak(T_MATTHEW, "Since that was just a practice round, nothing happens");
-	c_speak(T_MATTHEW, "Are the rules of the game clearer now, Arkady?");
-	c_speak(T_ARKADY, "Yeah, I think so...");
+	c_speak(T_MATTHEW, "\"Since that was just a practice round, nothing happens\"");
+	c_speak(T_MATTHEW, "\"Are the rules of the game clearer now, Arkady?\"");
+	c_speak(T_ARKADY, "\"Yeah, I think so...\"");
 	c_speak(T_MATTHEW, "...");
-	c_speak(T_MATTHEW, "That's great, probably");
+	c_speak(T_MATTHEW, "\"That's great, probably\"");
 	
 	// TODO: finish post-tutorial sequence.
 }

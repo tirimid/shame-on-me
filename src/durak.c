@@ -279,6 +279,11 @@ d_update(void)
 		d_updatecard(&d_state.data[i]);
 	}
 	
+	if (t_active())
+	{
+		return;
+	}
+	
 	// update game state.
 	switch (d_state.gamephase)
 	{

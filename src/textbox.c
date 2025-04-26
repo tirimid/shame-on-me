@@ -72,17 +72,17 @@ t_renderoverlay(void)
 	r_renderrect(R_BLACK50, 0, 0, rw, rh, 0.0f);
 	r_renderrect(
 		t_spritetex[t_cursprite],
-		5,
+		10,
 		5 + O_TEXTBOXSIZE,
 		O_TEXTSPRITESIZE,
 		O_TEXTSPRITESIZE,
 		0.0f
 	);
-	r_renderrect(R_BLACK, 5, 5, rw - 10, O_TEXTBOXSIZE, 0.0f);
+	r_renderrect(R_BLACK, 10, 5, rw - 20, O_TEXTBOXSIZE, 0.0f);
 	
 	char *msg = malloc(t_curscroll + 1);
 	memcpy(msg, t_curmsg, t_curscroll);
 	msg[t_curscroll] = 0;
-	r_rendertext(R_VCROSDMONO, msg, 10, 10, rw - 20, O_TEXTBOXSIZE - 10);
+	r_rendertext(R_VCROSDMONO, msg, 15, 10, rw - 30, O_TEXTBOXSIZE - 10);
 	free(msg);
 }
