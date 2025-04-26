@@ -276,7 +276,7 @@ g_introseq(void)
 	c_swapmodel(g_maindoor, R_DOOROPEN);
 	c_wait(400);
 	c_speak(T_GERASIM, "...");
-	c_speak(T_GERASIM, "Gerasim looks at you quizzically, in an almost sad way");
+	c_speak(T_GERASIM, "Gerasim stares at you regretfully");
 	c_wait(1500);
 	c_speak(T_ARKADY, "\"It's good to see you again\"");
 	c_speak(T_GERASIM, "...");
@@ -286,7 +286,7 @@ g_introseq(void)
 	c_setlightintensity(g_hallwaylight, 0.0f);
 	c_lookat(C_ARKADY, 'E');
 	c_speak(T_ARKADY, "\"Are the others already here?\"");
-	c_speak(T_GERASIM, "He nods weightfully");
+	c_speak(T_GERASIM, "He nods with difficulty");
 	c_speak(T_ARKADY, "\"I see\"");
 	c_wait(200);
 	c_lookwalkto(C_ARKADY, 'F');
@@ -305,14 +305,14 @@ g_introseq(void)
 	c_lookat(C_ARKADY, 'I');
 	c_wait(250);
 	c_speak(T_MATTHEW, "\"Oh... You're already here, Arkady?\"");
-	c_speak(T_MATTHEW, "Matthew's face radiates a kind of regretful melancholy");
+	c_speak(T_MATTHEW, "Matthew's face looks about as friendly as it usually does");
 	c_wait(300);
 	c_speak(T_ARKADY, "\"That's right\"");
 	c_speak(T_ARKADY, "(Act friendly, maybe I'm wrong, maybe it's not what I thought)");
 	c_speak(T_PETER, "\"Look, I'm sorry I didn't tell you why we needed you here\"");
 	c_lookat(C_ARKADY, 'J');
 	c_wait(100);
-	c_speak(T_PETER, "Peter looks at you how you imagine a fox looks at his next meal");
+	c_speak(T_PETER, "Peter's eyes reflect the room's light in a particularly cynical way");
 	c_speak(T_PETER, "\"But that's kind of just the nature of the matter\"");
 	c_speak(T_PETER, "\"If I'd been honest, you wouldn't have come\"");
 	c_speak(T_PETER, "...");
@@ -341,7 +341,7 @@ g_introseq(void)
 	c_speak(T_PETER, "\"No, Arkady, you don't have a choice\"");
 	c_speak(T_PETER, "\"Try to leave, and we'll just kill you on the spot\"");
 	c_wait(1500);
-	c_speak(T_MATTHEW, "\"Well then, take a seat - our esteemed guest and friend\"");
+	c_speak(T_MATTHEW, "\"Well then, take a seat\"");
 	c_wait(600);
 	c_lookwalkto(C_ARKADY, 'K');
 	c_lookat(C_ARKADY, 'I');
@@ -416,9 +416,11 @@ g_tutorialseq(void)
 	c_speak(T_MATTHEW, "\"On my turn, I'll 'attack' Gerasim, the player to my left, by laying out cards\"");
 	c_speak(T_MATTHEW, "\"He must then cover them by playing a card of higher value...\"");
 	c_speak(T_MATTHEW, "\"That's...\"");
-	c_speak(T_MATTHEW, "\"Basically, the non-trump cards go from 6 to 10, then Jack, Queen, King, and finally Ace\"");
-	c_speak(T_MATTHEW, "\"Only non-trump cards of equivalent suit can be used against each other\"");
-	c_speak(T_MATTHEW, "\"And the trump cards can cover non-trump cards of any value\"");
+	c_speak(T_MATTHEW, "\"Basically, card values ascend from 6 to 10, then Jack, Queen, King, and finally Ace\"");
+	c_speak(T_MATTHEW, "\"And trump-suit cards are stronger than non-trump-suit cards\"");
+	c_speak(T_MATTHEW, "\"So, for example, if the trump suit is Clubs, then a 6 of Clubs would be better than an Ace of Diamonds...\"");
+	c_speak(T_MATTHEW, "\"But then a 7 of Clubs is still better than a 6...\"");
+	c_speak(T_MATTHEW, "\"Other than that, only cards of equivalent suit can be played against each other\"");
 	c_speak(T_MATTHEW, "...");
 	c_speak(T_MATTHEW, "\"Uh...\"");
 	c_speak(T_MATTHEW, "\"Right, then, when Gerasim covers my cards, I can give him more cards to cover\"");
