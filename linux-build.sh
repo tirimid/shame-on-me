@@ -3,13 +3,17 @@
 INCLUDE="-I. -Isrc"
 DEFINES=""
 WARNINGS="-Wall -Wextra -Wshadow"
-LIBRARIES="$(pkg-config --cflags --libs sdl2 SDL2_mixer SDL2_ttf SDL2_image cglm) -lglew32 -lglu32 -lopengl32 -lm"
+LIBRARIES="$(pkg-config --cflags --libs sdl2 gl SDL2_mixer SDL2_ttf SDL2_image cglm glew) -lm"
 CFLAGS="-std=c99 -pedantic -O3"
 
 CC=gcc
 CFLAGS_FULL="$INCLUDE $DEFINES $WARNINGS $CFLAGS $LIBRARIES"
 
-# resource build not supported on windows.
+echo "[$0] build: resources" >&2
+make -s -C img > /dev/null
+make -s -C model > /dev/null
+make -s -C shader > /dev/null
+make -s -C font > /dev/null
 
 echo "[$0] build: compilation" >&2
 $CC -o shame-on-me src/main.c $CFLAGS_FULL
