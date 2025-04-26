@@ -25,13 +25,13 @@ static usize g_hallwaylight, g_entrylight, g_roomlight;
 void
 g_loop(void)
 {
-	(void)g_fastintroseq; // TODO: remove temporary warning suppression.
+	(void)g_introseq; // TODO: remove temporary warning suppression.
 	
 	NEWTIMER(largetimer);
 	NEWTIMER(stagetimer);
 	
 	g_setupenv();
-	g_introseq();
+	g_fastintroseq();
 	g_tutorialseq();
 	
 	for (;;)

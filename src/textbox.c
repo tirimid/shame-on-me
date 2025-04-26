@@ -1,6 +1,8 @@
 static bool t_curactive = false;
 static u8 t_cursprite;
 static char const *t_curmsg;
+static usize t_curmsglen;
+static usize t_curscroll;
 
 // data tables.
 static u8 t_spritetex[T_SPRITE_END] =
@@ -28,6 +30,8 @@ t_show(t_sprite sprite, char const *msg)
 	t_curactive = true;
 	t_cursprite = sprite;
 	t_curmsg = msg;
+	t_curmsglen = strlen(msg);
+	t_curscroll = 1; // need to start at 1 char to not crash SDL2 TTF.
 }
 
 void
@@ -38,9 +42,19 @@ t_update(void)
 		return;
 	}
 	
+	t_curscroll += O_TEXTSCROLL;
+	t_curscroll = t_curscroll > t_curmsglen ? t_curmsglen : t_curscroll;
+	
 	if (i_kpressed(O_KSEL))
 	{
-		t_curactive = false;
+		if (t_curscroll < t_curmsglen)
+		{
+			t_curscroll = t_curmsglen;
+		}
+		else
+		{
+			t_curactive = false;
+		}
 	}
 }
 
@@ -65,5 +79,10 @@ t_renderoverlay(void)
 		0.0f
 	);
 	r_renderrect(R_BLACK, 5, 5, rw - 10, O_TEXTBOXSIZE, 0.0f);
-	r_rendertext(R_VCROSDMONO, t_curmsg, 10, 10, rw - 20, O_TEXTBOXSIZE - 10);
+	
+	char *msg = malloc(t_curscroll + 1);
+	memcpy(msg, t_curmsg, t_curscroll);
+	msg[t_curscroll] = 0;
+	r_rendertext(R_VCROSDMONO, msg, 10, 10, rw - 20, O_TEXTBOXSIZE - 10);
+	free(msg);
 }

@@ -37,6 +37,7 @@
 #define O_CARDHEIGHT 80
 #define O_CARDOUTLINE 1
 #define O_CARDSPEED 0.2f
+#define O_TEXTSCROLL 1
 
 // render options.
 #define O_MAXLIGHTS 4
