@@ -19,6 +19,12 @@ t_active(void)
 	return t_curactive;
 }
 
+bool
+t_scrolldone(void)
+{
+	return t_curscroll >= t_curmsglen;
+}
+
 void
 t_show(t_sprite sprite, char const *msg)
 {

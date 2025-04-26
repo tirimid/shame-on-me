@@ -599,7 +599,7 @@ c_update(void)
 		return;
 	case C_SPEAK:
 		t_show(action->speak.textsprite, action->speak.msg);
-		if (i_kpressed(O_KSEL))
+		if (t_scrolldone() && i_kpressed(O_KSEL))
 		{
 			break;
 		}

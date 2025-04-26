@@ -12,6 +12,7 @@ typedef enum t_sprite
 } t_sprite;
 
 bool t_active(void);
+bool t_scrolldone(void);
 void t_show(t_sprite sprite, char const *msg);
 void t_update(void);
 void t_renderoverlay(void);
