@@ -41,7 +41,7 @@
 
 // render options.
 #define O_MAXLIGHTS 4
-#define O_AMBIENTLIGHT 0.2f
+#define O_AMBIENTLIGHT 0.05f
 #define O_LIGHTSTEP 0.1f
 #define O_SHADOWBIAS 0.15f
 #define O_PIXELATION 4.0f

@@ -46,5 +46,7 @@ void c_update(void);
 void c_rendertiles(void);
 void c_rendermodels(void);
 i64 c_putprop(r_model m, r_tex t, vec3 pos, vec3 rot, vec3 scale);
+i64 c_putpropat(r_model m, r_tex t, char point, vec3 trans, vec3 rot, vec3 scale);
+i32 c_putlightat(char point, vec3 trans, f32 intensity);
 
 #endif

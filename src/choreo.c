@@ -784,6 +784,37 @@ c_putprop(r_model m, r_tex t, vec3 pos, vec3 rot, vec3 scale)
 	return c_nprops++;
 }
 
+i64
+c_putpropat(r_model m, r_tex t, char point, vec3 trans, vec3 rot, vec3 scale)
+{
+	if (c_nprops >= O_MAXPROPS)
+	{
+		return -1;
+	}
+	vec2 pos = {0};
+	c_getpoint(point, pos);
+	c_props[c_nprops] = (c_prop)
+	{
+		.model = m,
+		.tex = t,
+		.pos = {pos[0] + trans[0], trans[1], pos[1] + trans[2]},
+		.rot = {rot[0], rot[1], rot[2]},
+		.scale = {scale[0], scale[1], scale[2]}
+	};
+	return c_nprops++;
+}
+
+i32
+c_putlightat(char point, vec3 trans, f32 intensity)
+{
+	vec2 pos = {0};
+	c_getpoint(point, pos);
+	return r_putlight(
+		(vec3){pos[0] + trans[0], trans[1], pos[1] + trans[2]},
+		intensity
+	);
+}
+
 static void
 c_getpoint(char point, OUT vec2 pos)
 {

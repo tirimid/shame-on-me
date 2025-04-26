@@ -95,7 +95,7 @@ void
 endtimer(u64 timer, char const *name)
 {
 	u64 d = unixus() - timer;
-	fprintf(stderr, "[profile] %s: %lu\n", name, d);
+	fprintf(stderr, "[profile] %s: %llu\n", name, (unsigned long long)d);
 }
 
 i32

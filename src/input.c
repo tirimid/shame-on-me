@@ -5,6 +5,11 @@ static u8 i_kpressstates[1024 / 8], i_kreleasestates[1024 / 8];
 void
 i_setkstate(SDL_Event const *e, i_input input)
 {
+	if (e->key.repeat)
+	{
+		return;
+	}
+	
 	SDL_Keycode k = e->key.keysym.sym;
 	if (k & 1 << 30)
 	{

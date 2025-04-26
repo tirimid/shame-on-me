@@ -5,17 +5,17 @@
 	"#############.B.#" \
 	"........#...#...#" \
 	"........#...#...#" \
-	"........#...#...." \
-	"##########.##...#" \
+	"........#...#...e" \
+	"##########d##...#" \
 	"...........E#...#" \
-	"...F......D...C.#" \
-	"............#...#" \
-	"###.#########...#" \
-	"...H..K...#.#...#" \
-	"..........#.#...#" \
-	"....L...J.#.#...#" \
-	"..........#.#...#" \
-	"......I...#.#...#"
+	"h..F......D.c.C.#" \
+	".........g..#...#" \
+	"###b#########...#" \
+	"...H..K...#.#.f.#" \
+	"..........#.#####" \
+	"....L.a.J.#......" \
+	"..........#......" \
+	"......I...#......"
 
 static void g_setupenv(void);
 
@@ -124,127 +124,142 @@ g_setupenv(void)
 	};
 	
 	// place lights.
-	g_hallwaylight = r_putlight((vec3){14.0f, 0.0f, 7.0f}, 1.5f);
-	g_entrylight = r_putlight((vec3){9.0f, 0.0f, 8.0f}, 0.0f);
-	g_roomlight = r_putlight((vec3){6.0f, 0.0f, 12.0f}, 0.0f);
+	g_hallwaylight = c_putlightat('C', (vec3){0.0f, 0.0f, 0.0f}, 1.5f);
+	g_entrylight = c_putlightat('g', (vec3){0.0f, 0.0f, 0.0f}, 0.0f);
+	g_roomlight = c_putlightat('a', (vec3){0.0f, 0.0f, 0.0f}, 0.0f);
 	
 	// place props.
-	g_maindoor = c_putprop(
+	g_maindoor = c_putpropat(
 		R_DOORCLOSED,
 		R_DOOR,
-		(vec3){12.0f, -1.5f, 7.0f},
+		'c',
+		(vec3){0.0f, -1.5f, 0.0f},
 		(vec3){0.0f, 0.0f, 0.0f},
 		(vec3){1.0f, 1.0f, 1.0f}
 	);
 	
-	c_putprop(
+	c_putpropat(
 		R_DOORCLOSED,
 		R_DOOR,
-		(vec3){16.0f, -1.5f, 4.0f},
+		'e',
+		(vec3){0.0f, -1.5f, 0.0f},
 		(vec3){0.0f, 0.0f, 0.0f},
 		(vec3){1.0f, 1.0f, 1.0f}
 	);
 	
-	g_roomdoor = c_putprop(
+	g_roomdoor = c_putpropat(
 		R_DOORCLOSED,
 		R_DOOR,
-		(vec3){3.0f, -1.5f, 9.0f},
+		'b',
+		(vec3){0.0f, -1.5f, 0.0f},
 		(vec3){0.0f, GLM_PI / 2.0f, 0.0f},
 		(vec3){1.0f, 1.0f, 1.0f}
 	);
 	
-	c_putprop(
+	c_putpropat(
 		R_DOORCLOSED,
 		R_DOOR,
-		(vec3){10.0f, -1.5f, 5.0f},
+		'd',
+		(vec3){0.0f, -1.5f, 0.0f},
 		(vec3){0.0f, GLM_PI / 2.0f, 0.0f},
 		(vec3){1.0f, 1.0f, 1.0f}
 	);
 	
-	c_putprop(
+	c_putpropat(
 		R_MWINDOW,
 		R_TWINDOW,
-		(vec3){14.5f, -0.3f, 14.5f},
+		'f',
+		(vec3){0.5f, -0.3f, 0.5f},
 		(vec3){0.0f, GLM_PI / 2.0f, 0.0f},
 		(vec3){0.5f, 0.5f, 0.8f}
 	);
 	
-	c_putprop(
+	c_putpropat(
 		R_MWINDOW,
 		R_TWINDOW,
-		(vec3){13.5f, -0.3f, 14.5f},
+		'f',
+		(vec3){-0.5f, -0.3f, 0.5f},
 		(vec3){0.0f, GLM_PI / 2.0f, 0.0f},
 		(vec3){0.5f, 0.5f, 0.8f}
 	);
 	
-	c_putprop(
+	c_putpropat(
 		R_MWINDOW,
 		R_TWINDOW,
-		(vec3){-0.5f, -0.3f, 6.5f},
+		'h',
+		(vec3){-0.5f, -0.3f, -0.5f},
 		(vec3){0.0f, 0.0f, 0.0f},
 		(vec3){0.5f, 0.5f, 0.8f}
 	);
 	
-	c_putprop(
+	c_putpropat(
 		R_MWINDOW,
 		R_TWINDOW,
-		(vec3){-0.5f, -0.3f, 7.5f},
+		'h',
+		(vec3){-0.5f, -0.3f, 0.5f},
 		(vec3){0.0f, 0.0f, 0.0f},
 		(vec3){0.5f, 0.5f, 0.8f}
 	);
 	
-	c_putprop(
+	c_putpropat(
 		R_MTABLE,
 		R_TTABLE,
-		(vec3){6.0f, -1.5f, 12.0f},
+		'a',
+		(vec3){0.0f, -1.5f, 0.0f},
 		(vec3){0.0f, 0.0f, 0.0f},
 		(vec3){1.2f, 0.4f, 1.2f}
 	);
 	
-	c_putprop(
+	c_putpropat(
 		R_MWINDOW,
 		R_TWINDOW,
-		(vec3){4.5f, -0.3f, 14.5f},
+		'I',
+		(vec3){-0.5f, -0.3f, 0.5f},
 		(vec3){0.0f, GLM_PI / 2.0f, 0.0f},
 		(vec3){0.5f, 0.5f, 0.8f}
 	);
 	
-	c_putprop(
+	c_putpropat(
 		R_MWINDOW,
 		R_TWINDOW,
-		(vec3){3.5f, -0.3f, 14.5f},
+		'I',
+		(vec3){-1.5f, -0.3f, 0.5f},
 		(vec3){0.0f, GLM_PI / 2.0f, 0.0f},
 		(vec3){0.5f, 0.5f, 0.8f}
 	);
 	
-	c_putprop(
+	c_putpropat(
 		R_MWINDOW,
 		R_TWINDOW,
-		(vec3){5.5f, -0.3f, 14.5f},
+		'I',
+		(vec3){-2.5f, -0.3f, 0.5f},
 		(vec3){0.0f, GLM_PI / 2.0f, 0.0f},
 		(vec3){0.5f, 0.5f, 0.8f}
 	);
 	
-	c_putprop(
+	c_putpropat(
 		R_MLIGHTBULB,
 		R_TLIGHTBULB,
-		(vec3){14.0f, 0.5f, 7.0f},
+		'C',
+		(vec3){0.0f, 0.5f, 0.0f},
 		(vec3){0.0f, 0.0f, 0.0f},
 		(vec3){0.5f, 0.2f, 0.5f}
 	);
 	
-	c_putprop(
+	c_putpropat(
 		R_MLIGHTBULB,
 		R_TLIGHTBULB,
-		(vec3){9.0f, 0.5f, 8.0f},
+		'g',
+		(vec3){0.0f, 0.5f, 0.0f},
 		(vec3){0.0f, 0.0f, 0.0f},
 		(vec3){0.5f, 0.2f, 0.5f}
 	);
 	
-	c_putprop(
+	c_putpropat(
 		R_MLIGHTBULB,
 		R_TLIGHTBULB,
-		(vec3){6.0f, 0.5f, 12.0f},
+		'a',
+		(vec3){0.0f, 0.5f, 0.0f},
 		(vec3){0.0f, 0.0f, 0.0f},
 		(vec3){0.5f, 0.2f, 0.5f}
 	);
