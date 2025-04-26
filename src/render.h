@@ -12,7 +12,7 @@ typedef enum r_model
 	R_MLIGHTBULB,
 	R_CARDSTACK,
 	
-	R_MODEL_END__
+	R_MODEL_END
 } r_model;
 
 typedef enum r_shader
@@ -21,7 +21,7 @@ typedef enum r_shader
 	R_OVERLAY,
 	R_SHADOW,
 	
-	R_SHADER_END__
+	R_SHADER_END
 } r_shader;
 
 typedef enum r_tex
@@ -80,14 +80,14 @@ typedef enum r_tex
 	R_EYESDUMMY,
 	R_EYESDUMMYFACE,
 	
-	R_TEX_END__
+	R_TEX_END
 } r_tex;
 
 typedef enum r_font
 {
 	R_VCROSDMONO = 0,
 	
-	R_FONT_END__
+	R_FONT_END
 } r_font;
 
 typedef enum r_fadestatus

@@ -135,7 +135,7 @@ usize c_nprops;
 
 static void c_getpoint(char point, OUT vec2 pos);
 
-static c_actordata c_actors[C_ACTOR_END__] =
+static c_actordata c_actors[C_ACTOR_END] =
 {
 	// arkady (player).
 	{
@@ -734,7 +734,7 @@ void
 c_rendermodels(void)
 {
 	// draw all non-player characters.
-	for (usize i = C_ARKADY + 1; i < C_ACTOR_END__; ++i)
+	for (usize i = C_ARKADY + 1; i < C_ACTOR_END; ++i)
 	{
 		vec3 campos;
 		r_effcamstate(campos, NULL, NULL);

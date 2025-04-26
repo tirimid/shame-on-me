@@ -8,7 +8,7 @@ typedef enum t_sprite
 	T_MATTHEW,
 	T_GERASIM,
 	
-	T_SPRITE_END__
+	T_SPRITE_END
 } t_sprite;
 
 bool t_active(void);

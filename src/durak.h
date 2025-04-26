@@ -4,15 +4,11 @@
 // to represent a card, OR together a suit and a value.
 // e.g. 7 of clubs is (D_CLUBS | D_7).
 
-#define D_SUITMASK 0x70
-#define D_SUITSHIFT 4
-#define D_SPADES 0x10
-#define D_DIAMONDS 0x20
-#define D_CLUBS 0x30
-#define D_HEARTS 0x40
+#define D_SPADES 0x1
+#define D_DIAMONDS 0x2
+#define D_CLUBS 0x3
+#define D_HEARTS 0x4
 
-#define D_VALUEMASK 0xf
-#define D_VALUESHIFT 0
 #define D_6 0x1
 #define D_7 0x2
 #define D_8 0x3
@@ -33,7 +29,7 @@ typedef enum d_player
 	D_MATTHEW,
 	D_GERASIM,
 	
-	D_PLAYER_END__
+	D_PLAYER_END
 } d_player;
 
 typedef enum d_gamephase
@@ -46,22 +42,39 @@ typedef enum d_gamephase
 	D_FINISH
 } d_gamephase;
 
-typedef struct d_cardstack
+typedef enum d_cardflag
 {
-	u8 cards[D_NMAXCARDS];
+	D_SHOW = 0x1,
+	D_COVERUP = 0x2
+} d_cardflag;
+
+typedef struct d_carddata
+{
+	f32 x, y, rot;
+	f32 dstx, dsty, dstrot;
+	u16 flags;
+	u8 suit, value;
+} d_carddata;
+
+typedef struct d_pcards
+{
+	u8 pcards[D_NMAXCARDS];
 	u8 ncards;
-} d_cardstack;
+} d_pcards;
 
 typedef struct d_gamestate
 {
-	d_cardstack players[4];
-	d_cardstack draw;
-	d_cardstack active;
-	d_cardstack covered;
+	d_carddata data[D_NMAXCARDS];
+	
+	d_pcards players[D_PLAYER_END];
+	d_pcards draw;
+	d_pcards attack;
+	d_pcards defend;
+	d_pcards covered;
 	
 	u32 acttick;
+	u8 trumpsuit;
 	u8 attacker;
-	u8 trumpcard;
 	u8 gamephase;
 	u8 playersactive; // bit 0 = player 0 active, bit 1 = player 1, etc.
 	u8 selidx;
@@ -72,9 +85,5 @@ extern d_gamestate d_state;
 void d_setphase(d_gamephase phase);
 void d_renderoverlay(void);
 void d_update(void);
-void d_shuffle(d_cardstack *stack);
-void d_addcard(d_cardstack *stack, u8 card);
-void d_rmcard(d_cardstack *stack, usize idx);
-void d_sort(d_cardstack *stack);
 
 #endif

@@ -12,24 +12,29 @@ d_gamestate d_state =
 {
 	.attacker = D_MATTHEW,
 	.playersactive = 0xf,
-	.selidx = D_NDEALCARDS
+	.selidx = -1
 };
 
-static void d_aiattack(d_cardstack *src, d_ai ai);
-static void d_aidefend(d_cardstack *src);
-static void d_playattack(d_cardstack *src);
-static void d_playdefend(d_cardstack *src);
-static void d_rendercard(u8 card, f32 relx, f32 rely, f32 angle);
-static i32 d_power(u8 card);
-static i32 d_powercmp(u8 lhs, u8 rhs);
-static i32 d_next(i32 from);
+static void d_aiattack(d_pcards *pc, d_ai ai);
+static void d_aidefend(d_pcards *pc);
+static void d_playattack(d_pcards *pc);
+static void d_playdefend(d_pcards *pc);
+static i32 d_power(u8 pcard);
+static i32 d_powercmp(u8 plhs, u8 prhs);
+static i32 d_nextplayer(i32 from);
 static void d_allcovered(void);
 static void d_takeall(void);
-static void d_drawto(d_cardstack *dst, usize ncards);
-static i32 d_reattack(d_cardstack *src, bool hiattack);
+static void d_drawto(d_pcards *pc, usize ncards);
+static i32 d_reattack(d_pcards *pc, bool hiattack);
 static i32 d_activeplayers(void);
+static void d_updatecard(d_carddata *card);
+static void d_shuffle(d_pcards *pc);
+static void d_addcard(d_pcards *pc, u8 pcard);
+static void d_rmcard(d_pcards *pc, usize idx);
+static void d_sort(d_pcards *pc);
+static void d_rendercard(d_carddata const *card);
 
-static u8 d_playerai[D_PLAYER_END__] =
+static u8 d_playerai[D_PLAYER_END] =
 {
 	0, // arkady.
 	D_AGGRESSIVE, // peter.
@@ -44,27 +49,33 @@ d_setphase(d_gamephase phase)
 	switch (phase)
 	{
 	case D_START:
-		d_state.draw.ncards = D_NMAXCARDS;
-		for (i32 i = 0; i < D_NMAXCARDS; ++i)
+		for (usize i = 0; i < D_NMAXCARDS; ++i)
 		{
-			u8 val = i % 9 + 1, suit = i % 4 + 1;
-			d_state.draw.cards[i] = suit << D_SUITSHIFT | val << D_VALUESHIFT;
+			d_state.data[i] = (d_carddata)
+			{
+				.x = 0.5f,
+				.y = 1.5f,
+				.suit = i % 4 + 1,
+				.value = i % 9 + 1,
+				.flags = D_SHOW
+			};
+		}
+		
+		for (usize i = 0; i < D_NMAXCARDS; ++i)
+		{
+			d_addcard(&d_state.draw, i);
 		}
 		d_shuffle(&d_state.draw);
+		
 		break;
 	case D_CHOOSETRUMP:
-		for (i32 i = 0; i <= 4; ++i)
-		{
-			if ((d_state.draw.cards[i] & D_VALUEMASK) == D_A)
-			{
-				continue;
-			}
-			d_state.trumpcard = d_state.draw.cards[i];
-			d_rmcard(&d_state.draw, i);
-		}
+	{
+		d_carddata const *trump = &d_state.data[d_state.draw.pcards[D_NMAXCARDS - 1]];
+		d_state.trumpsuit = trump->suit;
 		break;
+	}
 	case D_DEALCARDS:
-		for (usize i = 0; i < D_PLAYER_END__; ++i)
+		for (usize i = 0; i < D_PLAYER_END; ++i)
 		{
 			d_drawto(&d_state.players[i], D_NDEALCARDS);
 		}
@@ -86,78 +97,150 @@ d_setphase(d_gamephase phase)
 void
 d_renderoverlay(void)
 {
-	if (!d_state.gamephase)
-	{
-		return;
-	}
-	
-	// render trump card.
-	if (d_state.trumpcard & D_VALUEMASK)
-	{
-		d_rendercard(d_state.trumpcard, 0.25f, 0.6f, 0.0f);
-	}
-	
 	// render draw stack.
-	if (d_state.draw.ncards)
+	for (i32 i = d_state.draw.ncards - 1; i >= 0; --i)
 	{
-		d_rendercard(0, 0.25f, 0.7f, GLM_PI / 2.0f);
+		d_rendercard(&d_state.data[d_state.draw.pcards[i]]);
 	}
 	
 	// render covered stack.
-	if (d_state.covered.ncards)
+	for (usize i = 0; i < d_state.covered.ncards; ++i)
 	{
-		d_rendercard(0, 0.55f, 0.7f, GLM_PI / 2.0f);
+		d_rendercard(&d_state.data[d_state.covered.pcards[i]]);
 	}
 	
 	// render AI player hands.
-	for (i32 i = 0; i < d_state.players[D_PETER].ncards; ++i)
+	for (usize i = 0; i < d_state.players[D_PETER].ncards; ++i)
 	{
-		f32 pos = (f32)i / d_state.players[D_PETER].ncards;
-		pos = 0.25f + 0.5f * pos;
-		d_rendercard(0, 0.0f, pos, GLM_PI / 2.0f);
+		d_rendercard(&d_state.data[d_state.players[D_PETER].pcards[i]]);
 	}
 	
-	for (i32 i = 0; i < d_state.players[D_MATTHEW].ncards; ++i)
+	for (usize i = 0; i < d_state.players[D_MATTHEW].ncards; ++i)
 	{
-		f32 pos = (f32)i / d_state.players[D_MATTHEW].ncards;
-		pos = 0.25f + 0.5f * pos;
-		d_rendercard(0, pos, 1.0f, 0.0f);
+		d_rendercard(&d_state.data[d_state.players[D_MATTHEW].pcards[i]]);
 	}
 	
-	for (i32 i = 0; i < d_state.players[D_GERASIM].ncards; ++i)
+	for (usize i = 0; i < d_state.players[D_GERASIM].ncards; ++i)
 	{
-		f32 pos = (f32)i / d_state.players[D_GERASIM].ncards;
-		pos = 0.25f + 0.5f * pos;
-		d_rendercard(0, 1.0f, pos, GLM_PI / 2.0f);
+		d_rendercard(&d_state.data[d_state.players[D_GERASIM].pcards[i]]);
 	}
 	
-	// render active cards.
-	for (i32 i = 0; i < d_state.active.ncards; i += 2)
+	// render attack / defend cards.
+	for (usize i = 0; i < d_state.attack.ncards; ++i)
 	{
-		f32 pos = (f32)(i / 2) / d_state.active.ncards;
-		pos = 0.4f + 0.45f * pos;
-		d_rendercard(d_state.active.cards[i], pos, 0.42f, 0.0f);
-		if (d_state.active.cards[i + 1])
+		d_rendercard(&d_state.data[d_state.attack.pcards[i]]);
+		if (i < d_state.defend.ncards)
 		{
-			d_rendercard(d_state.active.cards[i + 1], pos, 0.36f, 0.0f);
+			d_rendercard(&d_state.data[d_state.defend.pcards[i]]);
 		}
 	}
 	
-	// render arkady's hand.
-	for (i32 i = 0; i < d_state.players[D_ARKADY].ncards; ++i)
+	// render Arkady's hand.
+	for (usize i = 0; i < d_state.players[D_ARKADY].ncards; ++i)
 	{
-		f32 posx = (f32)i / d_state.players[D_ARKADY].ncards;
-		posx = 0.25f + 0.5f * posx;
-		
-		f32 posy = d_state.selidx == i ? 0.1f : 0.0f;
-		
-		d_rendercard(d_state.players[D_ARKADY].cards[i], posx, posy, 0.0f);
+		d_rendercard(&d_state.data[d_state.players[D_ARKADY].pcards[i]]);
 	}
 }
 
 void
 d_update(void)
 {
+	// update card stack destinations.
+	for (usize i = 0; i < d_state.draw.ncards; ++i)
+	{
+		u8 pcard = d_state.draw.pcards[i];
+		if (d_state.gamephase >= D_CHOOSETRUMP && i + 1 == d_state.draw.ncards)
+		{
+			d_state.data[pcard].flags &= ~D_COVERUP;
+			d_state.data[pcard].dstx = 0.25f;
+			d_state.data[pcard].dsty = 0.6f;
+			d_state.data[pcard].dstrot = 0.0f;
+		}
+		else
+		{
+			d_state.data[pcard].flags |= D_COVERUP;
+			d_state.data[pcard].dstx = 0.25f;
+			d_state.data[pcard].dsty = 0.7f;
+			d_state.data[pcard].dstrot = GLM_PI / 2.0f;
+		}
+	}
+	
+	for (usize i = 0; i < d_state.covered.ncards; ++i)
+	{
+		u8 pcard = d_state.covered.pcards[i];
+		
+		d_state.data[pcard].flags |= D_COVERUP;
+		d_state.data[pcard].dstx = 0.55f;
+		d_state.data[pcard].dsty = 0.7f;
+		d_state.data[pcard].dstrot = GLM_PI / 2.0f;
+	}
+	
+	for (usize i = 0; i < d_state.players[D_ARKADY].ncards; ++i)
+	{
+		u8 pcard = d_state.players[D_ARKADY].pcards[i];
+		
+		d_state.data[pcard].flags &= ~D_COVERUP;
+		d_state.data[pcard].dstx = 0.25f + 0.5f * ((f32)i / d_state.players[D_ARKADY].ncards);
+		d_state.data[pcard].dsty = d_state.selidx == i ? 0.1f : 0.0f;
+		d_state.data[pcard].dstrot = 0.0f;
+	}
+	
+	for (usize i = 0; i < d_state.players[D_PETER].ncards; ++i)
+	{
+		u8 pcard = d_state.players[D_PETER].pcards[i];
+		
+		d_state.data[pcard].flags |= D_COVERUP;
+		d_state.data[pcard].dstx = 0.0f;
+		d_state.data[pcard].dsty = 0.25f + 0.5f * ((f32)i / d_state.players[D_PETER].ncards);
+		d_state.data[pcard].dstrot = GLM_PI / 2.0f;
+	}
+	
+	for (usize i = 0; i < d_state.players[D_MATTHEW].ncards; ++i)
+	{
+		u8 pcard = d_state.players[D_MATTHEW].pcards[i];
+		
+		d_state.data[pcard].flags |= D_COVERUP;
+		d_state.data[pcard].dstx = 0.25f + 0.5f * ((f32)i / d_state.players[D_MATTHEW].ncards);
+		d_state.data[pcard].dsty = 1.0f;
+		d_state.data[pcard].dstrot = 0.0f;
+	}
+	
+	for (usize i = 0; i < d_state.players[D_GERASIM].ncards; ++i)
+	{
+		u8 pcard = d_state.players[D_GERASIM].pcards[i];
+		
+		d_state.data[pcard].flags |= D_COVERUP;
+		d_state.data[pcard].dstx = 1.0f;
+		d_state.data[pcard].dsty = 0.25f + 0.5f * ((f32)i / d_state.players[D_GERASIM].ncards);
+		d_state.data[pcard].dstrot = GLM_PI / 2.0f;
+	}
+	
+	for (usize i = 0; i < d_state.attack.ncards; ++i)
+	{
+		u8 pcardatk = d_state.attack.pcards[i];
+		
+		d_state.data[pcardatk].flags &= ~D_COVERUP;
+		d_state.data[pcardatk].dstx = 0.4f + 0.45f * ((f32)i / d_state.attack.ncards);
+		d_state.data[pcardatk].dsty = 0.42f;
+		d_state.data[pcardatk].dstrot = 0.0f;
+		
+		if (i < d_state.defend.ncards)
+		{
+			u8 pcarddef = d_state.defend.pcards[i];
+			
+			d_state.data[pcarddef].flags &= ~D_COVERUP;
+			d_state.data[pcarddef].dstx = 0.4f + 0.45f * ((f32)i / d_state.attack.ncards);
+			d_state.data[pcarddef].dsty = 0.36f;
+			d_state.data[pcarddef].dstrot = 0.0f;
+		}
+	}
+	
+	// update card data.
+	for (usize i = 0; i < D_NMAXCARDS; ++i)
+	{
+		d_updatecard(&d_state.data[i]);
+	}
+	
 	// update game state.
 	switch (d_state.gamephase)
 	{
@@ -177,7 +260,7 @@ d_update(void)
 		break;
 	case D_DEFEND:
 	{
-		i32 def = d_next(d_state.attacker);
+		i32 def = d_nextplayer(d_state.attacker);
 		if (def == -1)
 		{
 			break;
@@ -202,72 +285,24 @@ d_update(void)
 	}
 }
 
-void
-d_shuffle(d_cardstack *stack)
-{
-	for (i32 i = 0; i < stack->ncards; ++i)
-	{
-		usize other = randint(i, stack->ncards);
-		u8 tmp = stack->cards[other];
-		stack->cards[other] = stack->cards[i];
-		stack->cards[i] = tmp;
-	}
-}
-
-void
-d_addcard(d_cardstack *stack, u8 card)
-{
-	if (stack->ncards < D_NMAXCARDS)
-	{
-		stack->cards[stack->ncards] = card;
-		++stack->ncards;
-	}
-}
-
-void
-d_rmcard(d_cardstack *stack, usize idx)
-{
-	memmove(&stack->cards[idx], &stack->cards[idx + 1], --stack->ncards - idx);
-}
-
-void
-d_sort(d_cardstack *stack)
-{
-	for (usize i = 0; i < stack->ncards; ++i)
-	{
-		for (usize j = 1; j < stack->ncards; ++j)
-		{
-			if (d_power(stack->cards[j]) < d_power(stack->cards[j - 1]))
-			{
-				u8 tmp = stack->cards[j];
-				stack->cards[j] = stack->cards[j - 1];
-				stack->cards[j - 1] = tmp;
-			}
-		}
-	}
-}
-
 static void
-d_aiattack(d_cardstack *src, d_ai ai)
+d_aiattack(d_pcards *pc, d_ai ai)
 {
-	if (d_state.active.ncards)
+	if (d_state.attack.ncards)
 	{
 		switch (ai)
 		{
 		case D_AGGRESSIVE:
 		{
-			i32 idx = d_reattack(src, true);
+			i32 idx = d_reattack(pc, true);
 			if (idx == -1)
 			{
 				d_allcovered();
 				break;
 			}
 			
-			u8 card = src->cards[idx];
-			
-			d_addcard(&d_state.active, card);
-			d_addcard(&d_state.active, 0);
-			d_rmcard(src, idx);
+			d_addcard(&d_state.attack, pc->pcards[idx]);
+			d_rmcard(pc, idx);
 			
 			d_setphase(D_DEFEND);
 			
@@ -275,24 +310,21 @@ d_aiattack(d_cardstack *src, d_ai ai)
 		}
 		case D_MERCIFUL:
 		{
-			if (d_state.active.ncards >= 6)
+			if (d_state.attack.ncards >= 3)
 			{
 				d_allcovered();
 				break;
 			}
 			
-			i32 idx = d_reattack(src, false);
+			i32 idx = d_reattack(pc, false);
 			if (idx == -1)
 			{
 				d_allcovered();
 				break;
 			}
 			
-			u8 card = src->cards[idx];
-			
-			d_addcard(&d_state.active, card);
-			d_addcard(&d_state.active, 0);
-			d_rmcard(src, idx);
+			d_addcard(&d_state.attack, pc->pcards[idx]);
+			d_rmcard(pc, idx);
 			
 			d_setphase(D_DEFEND);
 			
@@ -306,18 +338,15 @@ d_aiattack(d_cardstack *src, d_ai ai)
 				break;
 			}
 			
-			i32 idx = d_reattack(src, randint(0, 100) < D_BALANCEDHIATTACK);
+			i32 idx = d_reattack(pc, randint(0, 100) < D_BALANCEDHIATTACK);
 			if (idx == -1)
 			{
 				d_allcovered();
 				break;
 			}
 			
-			u8 card = src->cards[idx];
-			
-			d_addcard(&d_state.active, card);
-			d_addcard(&d_state.active, 0);
-			d_rmcard(src, idx);
+			d_addcard(&d_state.attack, pc->pcards[idx]);
+			d_rmcard(pc, idx);
 			
 			d_setphase(D_DEFEND);
 			
@@ -333,20 +362,17 @@ d_aiattack(d_cardstack *src, d_ai ai)
 		{
 			i32 power = 0;
 			usize idx = 0;
-			for (usize i = 0; i < src->ncards; ++i)
+			for (usize i = 0; i < pc->ncards; ++i)
 			{
-				if (d_power(src->cards[i]) > power)
+				if (d_power(pc->pcards[i]) > power)
 				{
-					power = d_power(src->cards[i]);
+					power = d_power(pc->pcards[i]);
 					idx = i;
 				}
 			}
 			
-			u8 card = src->cards[idx];
-			
-			d_addcard(&d_state.active, card);
-			d_addcard(&d_state.active, 0);
-			d_rmcard(src, idx);
+			d_addcard(&d_state.attack, pc->pcards[idx]);
+			d_rmcard(pc, idx);
 			
 			d_setphase(D_DEFEND);
 			
@@ -356,20 +382,17 @@ d_aiattack(d_cardstack *src, d_ai ai)
 		{
 			i32 power = 1000;
 			usize idx = 0;
-			for (usize i = 0; i < src->ncards; ++i)
+			for (usize i = 0; i < pc->ncards; ++i)
 			{
-				if (d_power(src->cards[i]) < power)
+				if (d_power(pc->pcards[i]) < power)
 				{
-					power = d_power(src->cards[i]);
+					power = d_power(pc->pcards[i]);
 					idx = i;
 				}
 			}
 			
-			u8 card = src->cards[idx];
-			
-			d_addcard(&d_state.active, card);
-			d_addcard(&d_state.active, 0);
-			d_rmcard(src, idx);
+			d_addcard(&d_state.attack, pc->pcards[idx]);
+			d_rmcard(pc, idx);
 			
 			d_setphase(D_DEFEND);
 			
@@ -377,12 +400,10 @@ d_aiattack(d_cardstack *src, d_ai ai)
 		}
 		case D_BALANCED:
 		{
-			usize idx = randint(0, src->ncards);
-			u8 card = src->cards[idx];
+			usize idx = randint(0, pc->ncards);
 			
-			d_addcard(&d_state.active, card);
-			d_addcard(&d_state.active, 0);
-			d_rmcard(src, idx);
+			d_addcard(&d_state.attack, pc->pcards[idx]);
+			d_rmcard(pc, idx);
 			
 			d_setphase(D_DEFEND);
 			
@@ -393,78 +414,92 @@ d_aiattack(d_cardstack *src, d_ai ai)
 }
 
 static void
-d_aidefend(d_cardstack *src)
+d_aidefend(d_pcards *pc)
 {
-	if (!src->ncards)
+	if (!pc->ncards)
 	{
 		d_takeall();
 		return;
 	}
 	
-	for (usize i = 0; i < d_state.active.ncards; i += 2)
+	u8 pcardatk = d_state.attack.pcards[d_state.attack.ncards - 1];
+	
+	i32 idx = -1;
+	i32 power = 1000;
+	for (i32 i = 0; i < pc->ncards; ++i)
 	{
-		if (d_state.active.cards[i + 1])
+		if (d_powercmp(pc->pcards[i], pcardatk) <= 0)
 		{
 			continue;
 		}
 		
-		i32 idx = -1;
-		i32 power = 1000;
-		for (i32 j = 0; j < src->ncards; ++j)
+		if (d_power(pc->pcards[i]) < power)
 		{
-			if (d_powercmp(src->cards[j], d_state.active.cards[i]) <= 0)
-			{
-				continue;
-			}
-			
-			if (d_power(src->cards[j]) < power)
-			{
-				power = d_power(src->cards[j]);
-				idx = j;
-			}
+			power = d_power(pc->pcards[i]);
+			idx = i;
 		}
-		
-		if (idx == -1)
-		{
-			d_takeall();
-			return;
-		}
-		
-		d_state.active.cards[i + 1] = src->cards[idx];
-		d_rmcard(src, idx);
 	}
+	
+	if (idx == -1)
+	{
+		d_takeall();
+		return;
+	}
+	
+	d_addcard(&d_state.defend, pc->pcards[idx]);
+	d_rmcard(pc, idx);
 	
 	d_setphase(D_ATTACK);
 }
 
 static void
-d_playattack(d_cardstack *src)
+d_playattack(d_pcards *pc)
 {
-	d_state.selidx = d_state.selidx >= src->ncards ? 0 : d_state.selidx;
+	d_state.selidx = d_state.selidx >= pc->ncards ? 0 : d_state.selidx;
 	
 	if (i_kpressed(O_KRIGHT))
 	{
-		d_state.selidx = d_state.selidx + 1 >= src->ncards ? 0 : d_state.selidx + 1;
+		d_state.selidx = d_state.selidx + 1 >= pc->ncards ? 0 : d_state.selidx + 1;
 	}
 	
 	if (i_kpressed(O_KLEFT))
 	{
-		d_state.selidx = d_state.selidx == 0 ? src->ncards - 1 : d_state.selidx - 1;
+		d_state.selidx = d_state.selidx == 0 ? pc->ncards - 1 : d_state.selidx - 1;
 	}
 	
-	if (d_state.active.ncards)
+	if (d_state.attack.ncards)
 	{
-		if (src->ncards && i_kpressed(O_KSEL))
+		if (pc->ncards && i_kpressed(O_KSEL))
 		{
-			u8 card = src->cards[d_state.selidx];
+			u8 pcardsel = pc->pcards[d_state.selidx];
+			d_carddata const *cardsel = &d_state.data[pcardsel];
 			
-			for (usize i = 0; i < d_state.active.ncards; ++i)
+			for (usize i = 0; i < d_state.attack.ncards; ++i)
 			{
-				if ((d_state.active.cards[i] & D_VALUEMASK) == (card & D_VALUEMASK))
+				u8 pcardatk = d_state.attack.pcards[i];
+				d_carddata const *cardatk = &d_state.data[pcardatk];
+				
+				if (cardsel->value == cardatk->value)
 				{
-					d_addcard(&d_state.active, card);
-					d_addcard(&d_state.active, 0);
-					d_rmcard(src, d_state.selidx);
+					d_addcard(&d_state.attack, pcardsel);
+					d_rmcard(pc, d_state.selidx);
+					
+					d_state.selidx = -1;
+					d_setphase(D_DEFEND);
+					
+					break;
+				}
+			}
+			
+			for (usize i = 0; i < d_state.defend.ncards; ++i)
+			{
+				u8 pcarddef = d_state.defend.pcards[i];
+				d_carddata const *carddef = &d_state.data[pcarddef];
+				
+				if (cardsel->value == carddef->value)
+				{
+					d_addcard(&d_state.attack, pcardsel);
+					d_rmcard(pc, d_state.selidx);
 					
 					d_state.selidx = -1;
 					d_setphase(D_DEFEND);
@@ -473,7 +508,7 @@ d_playattack(d_cardstack *src)
 				}
 			}
 		}
-		else if (i_kpressed(O_KSKIP))
+		else if (!pc->ncards || i_kpressed(O_KSKIP))
 		{
 			d_state.selidx = -1;
 			d_allcovered();
@@ -483,11 +518,8 @@ d_playattack(d_cardstack *src)
 	{
 		if (i_kpressed(O_KSEL))
 		{
-			u8 card = src->cards[d_state.selidx];
-			
-			d_addcard(&d_state.active, card);
-			d_addcard(&d_state.active, 0);
-			d_rmcard(src, d_state.selidx);
+			d_addcard(&d_state.attack, pc->pcards[d_state.selidx]);
+			d_rmcard(pc, d_state.selidx);
 			
 			d_state.selidx = -1;
 			d_setphase(D_DEFEND);
@@ -496,118 +528,69 @@ d_playattack(d_cardstack *src)
 }
 
 static void
-d_playdefend(d_cardstack *src)
+d_playdefend(d_pcards *pc)
 {
-	d_state.selidx = d_state.selidx >= src->ncards ? 0 : d_state.selidx;
+	d_state.selidx = d_state.selidx >= pc->ncards ? 0 : d_state.selidx;
 	
 	if (i_kpressed(O_KRIGHT))
 	{
-		d_state.selidx = d_state.selidx + 1 >= src->ncards ? 0 : d_state.selidx + 1;
+		d_state.selidx = d_state.selidx + 1 >= pc->ncards ? 0 : d_state.selidx + 1;
 	}
 	
 	if (i_kpressed(O_KLEFT))
 	{
-		d_state.selidx = d_state.selidx == 0 ? src->ncards - 1 : d_state.selidx - 1;
+		d_state.selidx = d_state.selidx == 0 ? pc->ncards - 1 : d_state.selidx - 1;
 	}
 	
-	if (src->ncards && i_kpressed(O_KSEL))
+	if (pc->ncards && i_kpressed(O_KSEL))
 	{
-		u8 card = src->cards[d_state.selidx];
-		for (usize i = 0; i < d_state.active.ncards; i += 2)
+		u8 pcardsel = pc->pcards[d_state.selidx];
+		u8 pcardatk = d_state.attack.pcards[d_state.attack.ncards - 1];
+		
+		if (d_powercmp(pcardsel, pcardatk) > 0)
 		{
-			if (d_state.active.cards[i + 1])
-			{
-				continue;
-			}
+			d_addcard(&d_state.defend, pcardsel);
+			d_rmcard(pc, d_state.selidx);
 			
-			if (d_powercmp(card, d_state.active.cards[i]) > 0)
-			{
-				d_state.active.cards[i + 1] = card;
-				d_rmcard(src, d_state.selidx);
-				
-				d_state.selidx = -1;
-				d_setphase(D_ATTACK);
-				
-				break;
-			}
+			d_state.selidx = -1;
+			d_setphase(D_ATTACK);
 		}
 	}
-	else if (i_kpressed(O_KSKIP))
+	else if (!pc->ncards || i_kpressed(O_KSKIP))
 	{
 		d_state.selidx = -1;
 		d_takeall();
 	}
 }
 
-static void
-d_rendercard(u8 card, f32 relx, f32 rely, f32 angle)
-{
-	i32 rw, rh;
-	r_renderbounds(&rw, &rh);
-	
-	i32 absx = relx * rw - O_CARDWIDTH / 2;
-	i32 absy = rely * rh - O_CARDWIDTH / 2;
-	
-	u8 tex = R_CBACK;
-	if (card)
-	{
-		u8 suit = card & D_SUITMASK, value = card & D_VALUEMASK;
-		switch (suit)
-		{
-		case D_SPADES:
-			tex = R_CS6 + value - 1;
-			break;
-		case D_DIAMONDS:
-			tex = R_CD6 + value - 1;
-			break;
-		case D_CLUBS:
-			tex = R_CC6 + value - 1;
-			break;
-		case D_HEARTS:
-			tex = R_CH6 + value - 1;
-			break;
-		default:
-			break;
-		}
-	}
-	
-	r_renderrect(
-		R_BLACK50,
-		absx - O_CARDOUTLINE,
-		absy - O_CARDOUTLINE,
-		O_CARDWIDTH + 2 * O_CARDOUTLINE,
-		O_CARDHEIGHT + 2 * O_CARDOUTLINE,
-		angle
-	);
-	r_renderrect(tex, absx, absy, O_CARDWIDTH, O_CARDHEIGHT, angle);
-}
-
 static i32
-d_power(u8 card)
+d_power(u8 pcard)
 {
-	i32 val = card & D_VALUEMASK;
-	val += 256 * ((card & D_SUITMASK) == (d_state.trumpcard & D_SUITMASK));
+	d_carddata const *card = &d_state.data[pcard];
+	
+	i32 val = card->value;
+	val += 256 * (card->suit == d_state.trumpsuit);
+	
 	return val;
 }
 
 static i32
-d_powercmp(u8 lhs, u8 rhs)
+d_powercmp(u8 plhs, u8 prhs)
 {
-	u8 ls = lhs & D_SUITMASK, lv = lhs & D_VALUEMASK;
-	u8 rs = rhs & D_SUITMASK, rv = rhs & D_VALUEMASK;
-	u8 ts = d_state.trumpcard & D_SUITMASK;
+	d_carddata const *lhs = &d_state.data[plhs];
+	d_carddata const *rhs = &d_state.data[prhs];
 	
-	if (ls == ts && rs != ts)
+	if (lhs->suit == d_state.trumpsuit && rhs->suit != d_state.trumpsuit)
 	{
 		return 1;
 	}
-	else if (ls != ts && rs == ts)
+	else if (lhs->suit != d_state.trumpsuit && rhs->suit == d_state.trumpsuit)
 	{
 		return -1;
 	}
-	else if (ls == rs)
+	else if (lhs->suit == rhs->suit)
 	{
-		return lv - rv;
+		return lhs->value - rhs->value;
 	}
 	else
 	{
@@ -617,17 +600,17 @@ d_powercmp(u8 lhs, u8 rhs)
 }
 
 static i32
-d_next(i32 from)
+d_nextplayer(i32 from)
 {
-	// allow chaining of d_next.
+	// allow chaining of d_nextplayer.
 	if (from == -1)
 	{
 		return -1;
 	}
 	
-	for (i32 i = 1; i <= D_PLAYER_END__; ++i)
+	for (i32 i = 1; i <= D_PLAYER_END; ++i)
 	{
-		u8 player = (from + i) % D_PLAYER_END__;
+		u8 player = (from + i) % D_PLAYER_END;
 		if (d_state.playersactive & 1 << player)
 		{
 			return player;
@@ -640,21 +623,24 @@ d_next(i32 from)
 static void
 d_allcovered(void)
 {
-	i32 next = d_next(d_state.attacker);
+	i32 next = d_nextplayer(d_state.attacker);
 	if (next == -1)
 	{
 		return;
 	}
 	
-	// transfer active cards to covered pile.
-	while (d_state.active.ncards)
+	// transfer attack cards to covered pile.
+	while (d_state.attack.ncards)
 	{
-		u8 card = d_state.active.cards[0];
-		if (card)
-		{
-			d_addcard(&d_state.covered, card);
-		}
-		d_rmcard(&d_state.active, 0);
+		d_addcard(&d_state.covered, d_state.attack.pcards[0]);
+		d_rmcard(&d_state.attack, 0);
+	}
+	
+	// transfer defend cards to covered pile.
+	while (d_state.defend.ncards)
+	{
+		d_addcard(&d_state.covered, d_state.defend.pcards[0]);
+		d_rmcard(&d_state.defend, 0);
 	}
 	
 	// attacker draws to 6.
@@ -672,7 +658,7 @@ d_allcovered(void)
 	}
 	
 	// advance attacker.
-	next = d_next(d_state.attacker);
+	next = d_nextplayer(d_state.attacker);
 	if (next == -1)
 	{
 		return;
@@ -685,21 +671,24 @@ d_allcovered(void)
 static void
 d_takeall(void)
 {
-	i32 next = d_next(d_state.attacker);
+	i32 next = d_nextplayer(d_state.attacker);
 	if (next == -1)
 	{
 		return;
 	}
 	
-	// transfer active cards to defender.
-	while (d_state.active.ncards)
+	// transfer attack cards to defender.
+	while (d_state.attack.ncards)
 	{
-		u8 card = d_state.active.cards[0];
-		if (card)
-		{
-			d_addcard(&d_state.players[next], card);
-		}
-		d_rmcard(&d_state.active, 0);
+		d_addcard(&d_state.players[next], d_state.attack.pcards[0]);
+		d_rmcard(&d_state.attack, 0);
+	}
+	
+	// transfer defend cards to defender.
+	while (d_state.defend.ncards)
+	{
+		d_addcard(&d_state.players[next], d_state.defend.pcards[0]);
+		d_rmcard(&d_state.defend, 0);
 	}
 	
 	// attacker draws to deal cards.
@@ -713,7 +702,7 @@ d_takeall(void)
 	d_drawto(&d_state.players[next], D_NDEALCARDS);
 	
 	// advance attacker.
-	next = d_next(next);
+	next = d_nextplayer(next);
 	if (next == -1)
 	{
 		return;
@@ -724,33 +713,39 @@ d_takeall(void)
 }
 
 static void
-d_drawto(d_cardstack *dst, usize ncards)
+d_drawto(d_pcards *pc, usize ncards)
 {
-	while (dst->ncards < ncards && d_state.draw.ncards)
+	while (pc->ncards < ncards && d_state.draw.ncards)
 	{
-		d_addcard(dst, d_state.draw.cards[0]);
+		d_addcard(pc, d_state.draw.pcards[0]);
 		d_rmcard(&d_state.draw, 0);
 	}
 	
-	if (dst->ncards < ncards && d_state.trumpcard & D_VALUEMASK)
-	{
-		d_addcard(dst, d_state.trumpcard);
-		d_state.trumpcard &= ~D_VALUEMASK;
-	}
-	
-	d_sort(dst);
+	d_sort(pc);
 }
 
 static i32
-d_reattack(d_cardstack *src, bool hiattack)
+d_reattack(d_pcards *pc, bool hiattack)
 {
 	if (hiattack)
 	{
-		for (i32 i = src->ncards - 1; i >= 0; --i)
+		for (i32 i = pc->ncards - 1; i >= 0; --i)
 		{
-			for (usize j = 0; j < d_state.active.ncards; ++j)
+			d_carddata const *srccard = &d_state.data[pc->pcards[i]];
+			
+			for (usize j = 0; j < d_state.attack.ncards; ++j)
 			{
-				if ((d_state.active.cards[j] & D_VALUEMASK) == (src->cards[i] & D_VALUEMASK))
+				d_carddata const *atkcard = &d_state.data[d_state.attack.pcards[j]];
+				if (srccard->value == atkcard->value)
+				{
+					return i;
+				}
+			}
+			
+			for (usize j = 0; j < d_state.defend.ncards; ++j)
+			{
+				d_carddata const *defcard = &d_state.data[d_state.defend.pcards[j]];
+				if (srccard->value == defcard->value)
 				{
 					return i;
 				}
@@ -759,11 +754,23 @@ d_reattack(d_cardstack *src, bool hiattack)
 	}
 	else
 	{
-		for (i32 i = 0; i < src->ncards; ++i)
+		for (i32 i = 0; i < pc->ncards; ++i)
 		{
-			for (usize j = 0; j < d_state.active.ncards; ++j)
+			d_carddata const *srccard = &d_state.data[pc->pcards[i]];
+			
+			for (usize j = 0; j < d_state.attack.ncards; ++j)
 			{
-				if ((d_state.active.cards[j] & D_VALUEMASK) == (src->cards[i] & D_VALUEMASK))
+				d_carddata const *atkcard = &d_state.data[d_state.defend.pcards[j]];
+				if (srccard->value == atkcard->value)
+				{
+					return i;
+				}
+			}
+			
+			for (usize j = 0; j < d_state.defend.ncards; ++j)
+			{
+				d_carddata const *defcard = &d_state.data[d_state.defend.pcards[j]];
+				if (srccard->value == defcard->value)
 				{
 					return i;
 				}
@@ -783,4 +790,103 @@ d_activeplayers(void)
 		sum += !!(d_state.playersactive & 1 << i);
 	}
 	return sum;
+}
+
+static void
+d_updatecard(d_carddata *card)
+{
+	card->x = glm_lerp(card->x, card->dstx, O_CARDSPEED);
+	card->y = glm_lerp(card->y, card->dsty, O_CARDSPEED);
+	card->rot = interpangle(card->rot, card->dstrot, O_CARDSPEED);
+}
+
+static void
+d_shuffle(d_pcards *pc)
+{
+	for (i32 i = 0; i < pc->ncards; ++i)
+	{
+		usize other = randint(i, pc->ncards);
+		u8 tmp = pc->pcards[other];
+		pc->pcards[other] = pc->pcards[i];
+		pc->pcards[i] = tmp;
+	}
+}
+
+static void
+d_addcard(d_pcards *pc, u8 pcard)
+{
+	if (pc->ncards < D_NMAXCARDS)
+	{
+		pc->pcards[pc->ncards++] = pcard;
+	}
+}
+
+static void
+d_rmcard(d_pcards *pc, usize idx)
+{
+	memmove(&pc->pcards[idx], &pc->pcards[idx + 1], --pc->ncards - idx);
+}
+
+static void
+d_sort(d_pcards *pc)
+{
+	for (usize i = 0; i < pc->ncards; ++i)
+	{
+		for (usize j = 1; j < pc->ncards; ++j)
+		{
+			if (d_power(pc->pcards[j]) < d_power(pc->pcards[j - 1]))
+			{
+				u8 tmp = pc->pcards[j];
+				pc->pcards[j] = pc->pcards[j - 1];
+				pc->pcards[j - 1] = tmp;
+			}
+		}
+	}
+}
+
+static void
+d_rendercard(d_carddata const *card)
+{
+	if ((card->flags & D_SHOW) == 0)
+	{
+		return;
+	}
+	
+	i32 rw, rh;
+	r_renderbounds(&rw, &rh);
+	
+	i32 absx = card->x * rw - O_CARDWIDTH / 2;
+	i32 absy = card->y * rh - O_CARDHEIGHT / 2;
+	
+	u8 tex = R_CBACK;
+	if ((card->flags & D_COVERUP) == 0)
+	{
+		switch (card->suit)
+		{
+		case D_SPADES:
+			tex = R_CS6 + card->value - 1;
+			break;
+		case D_DIAMONDS:
+			tex = R_CD6 + card->value - 1;
+			break;
+		case D_CLUBS:
+			tex = R_CC6 + card->value - 1;
+			break;
+		case D_HEARTS:
+			tex = R_CH6 + card->value - 1;
+			break;
+		default:
+			break;
+		}
+	}
+	
+	r_renderrect(
+		R_BLACK,
+		absx - O_CARDOUTLINE,
+		absy - O_CARDOUTLINE,
+		O_CARDWIDTH + 2 * O_CARDOUTLINE,
+		O_CARDHEIGHT + 2 * O_CARDOUTLINE,
+		card->rot
+	);
+	r_renderrect(tex, absx, absy, O_CARDWIDTH, O_CARDHEIGHT, card->rot);
 }

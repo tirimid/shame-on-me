@@ -8,7 +8,7 @@ typedef enum c_actor
 	C_MATTHEW,
 	C_GERASIM,
 	
-	C_ACTOR_END__
+	C_ACTOR_END
 } c_actor;
 
 typedef struct c_mapdata

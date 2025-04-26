@@ -102,7 +102,7 @@ static r_renderstate r_state;
 static r_uniformdata r_uniforms;
 
 // data tables.
-static r_modeldata r_models[R_MODEL_END__] =
+static r_modeldata r_models[R_MODEL_END] =
 {
 	R_INCMODEL(plane),
 	R_INCMODEL(cube),
@@ -114,14 +114,14 @@ static r_modeldata r_models[R_MODEL_END__] =
 	R_INCMODEL(card_stack)
 };
 
-static r_shaderdata r_shaders[R_SHADER_END__] =
+static r_shaderdata r_shaders[R_SHADER_END] =
 {
 	R_INCSHADER(base),
 	R_INCSHADER(overlay),
 	R_INCGEOSHADER(shadow)
 };
 
-static r_texdata r_texs[R_TEX_END__] =
+static r_texdata r_texs[R_TEX_END] =
 {
 	R_INCTEX(something),
 	R_INCTEX(floor),
@@ -178,7 +178,7 @@ static r_texdata r_texs[R_TEX_END__] =
 	R_INCTEX(eyes_dummy_face)
 };
 
-static r_fontdata r_fonts[R_FONT_END__] =
+static r_fontdata r_fonts[R_FONT_END] =
 {
 	R_INCFONT(vcr_osd_mono)
 };
@@ -223,7 +223,7 @@ r_init(void)
 	}
 	
 	// set up models.
-	for (usize i = 0; i < R_MODEL_END__; ++i)
+	for (usize i = 0; i < R_MODEL_END; ++i)
 	{
 		// generate GL state.
 		glGenVertexArrays(1, &r_models[i].vao);
@@ -257,7 +257,7 @@ r_init(void)
 	
 	// set up shader programs.
 	char shaderlog[O_MAXLOGLEN];
-	for (usize i = 0; i < R_SHADER_END__; ++i)
+	for (usize i = 0; i < R_SHADER_END; ++i)
 	{
 		// create geometry shader if present.
 		u32 geo = 0;
@@ -345,7 +345,7 @@ r_init(void)
 	}
 	
 	// set up all textures.
-	for (usize i = 0; i < R_TEX_END__; ++i)
+	for (usize i = 0; i < R_TEX_END; ++i)
 	{
 		// load texture.
 		SDL_RWops *rwops = SDL_RWFromConstMem(r_texs[i].data, r_texs[i].size);
@@ -381,7 +381,7 @@ r_init(void)
 	}
 	
 	// set up all fonts.
-	for (usize i = 0; i < R_FONT_END__; ++i)
+	for (usize i = 0; i < R_FONT_END; ++i)
 	{
 		SDL_RWops *rwops = SDL_RWFromConstMem(r_fonts[i].data, r_fonts[i].size);
 		if (!rwops)

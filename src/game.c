@@ -28,6 +28,8 @@ static usize g_hallwaylight, g_entrylight, g_roomlight;
 void
 g_loop(void)
 {
+	(void)g_intro; // TODO: remove temporary warning suppression.
+	
 	NEWTIMER(largetimer);
 	NEWTIMER(stagetimer);
 	
@@ -406,7 +408,7 @@ g_tutorial(void)
 	c_speak(T_MATTHEW, "There are 36 cards - only 6-10s, face cards, and aces");
 	c_speak(T_MATTHEW, "...");
 	c_speak(T_MATTHEW, "The first step is to pick out a trump suit");
-	c_speak(T_MATTHEW, "We'll pick out the top card and select its suit");
+	c_speak(T_MATTHEW, "We'll pick out a card and select its suit");
 	c_wait(300);
 	c_setdurakphase(D_CHOOSETRUMP);
 	c_wait(400);

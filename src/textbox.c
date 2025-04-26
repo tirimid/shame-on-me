@@ -3,7 +3,7 @@ static u8 t_cursprite;
 static char const *t_curmsg;
 
 // data tables.
-static u8 t_spritetex[T_SPRITE_END__] =
+static u8 t_spritetex[T_SPRITE_END] =
 {
 	R_SOMETHING, // arkady.
 	R_EYESDUMMYFACE, // peter.
