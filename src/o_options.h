@@ -42,8 +42,12 @@
 #define O_TEXTSCROLL 1
 
 // render options.
-#define O_MAXLIGHTS 4
+#ifdef DYNAMICLIGHTS
 #define O_AMBIENTLIGHT 0.05f
+#else
+#define O_AMBIENTLIGHT 1.0f
+#endif
+#define O_MAXLIGHTS 4
 #define O_LIGHTSTEP 0.1f
 #define O_SHADOWBIAS 0.15f
 #define O_PIXELATION 4.0f

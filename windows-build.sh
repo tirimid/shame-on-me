@@ -1,7 +1,7 @@
 #!/bin/bash
 
 INCLUDE="-I. -Isrc"
-DEFINES=""
+DEFINES="-DDYNAMICLIGHTS"
 WARNINGS="-Wall -Wextra -Wshadow"
 LIBRARIES="$(pkg-config --cflags --libs sdl2 SDL2_mixer SDL2_ttf SDL2_image cglm) -lglew32 -lglu32 -lopengl32 -lm"
 CFLAGS="-std=c99 -pedantic -O3"

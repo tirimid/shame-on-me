@@ -649,6 +649,12 @@ r_rendermodel(r_model m, vec3 pos, vec3 rot, vec3 scale)
 i32
 r_putlight(vec3 pos, f32 intensity)
 {
+#ifndef DYNAMICLIGHTS
+	(void)pos;
+	(void)intensity;
+	
+	return -1;
+#else
 	if (r_state.nlights >= O_MAXLIGHTS)
 	{
 		return -1;
@@ -657,12 +663,18 @@ r_putlight(vec3 pos, f32 intensity)
 	vec4 new = {pos[0], pos[1], pos[2], intensity};
 	glm_vec4_copy(new, r_state.lights[r_state.nlights]);
 	return r_state.nlights++;
+#endif
 }
 
 void
 r_setlightintensity(usize idx, f32 intensity)
 {
+#ifndef DYNAMICLIGHTS
+	(void)idx;
+	(void)intensity;
+#else
 	r_state.lights[idx][3] = intensity;
+#endif
 }
 
 void
