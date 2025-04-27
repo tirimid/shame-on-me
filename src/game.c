@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #define G_MAPWIDTH 17
 #define G_MAPHEIGHT 15
 #define G_MAP \

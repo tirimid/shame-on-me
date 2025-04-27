@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // assume that 1024 represents a big enough number of keystates.
 static u8 i_kdownstates[1024 / 8];
 static u8 i_kpressstates[1024 / 8], i_kreleasestates[1024 / 8];

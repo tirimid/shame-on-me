@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 static bool t_curactive = false;
 static u8 t_cursprite;
 static char const *t_curmsg;

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // standard library.
 #include <stdlib.h>
 #include <time.h>
@@ -15,6 +17,7 @@
 #include "options.h"
 #include "util.h"
 #include "render.h"
+#include "sound.h"
 #include "textbox.h"
 #include "durak.h"
 #include "choreo.h"
@@ -98,6 +101,7 @@
 #include "game.c"
 #include "input.c"
 #include "render.c"
+#include "sound.c"
 #include "textbox.c"
 #include "util.c"
 

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #define D_BALANCEDYIELD 35
 #define D_BALANCEDHIATTACK 40
 #define D_BALANCEDMID 2
@@ -530,7 +532,7 @@ d_playattack(d_pcards *pc)
 					d_state.selidx = -1;
 					d_setphase(D_DEFEND);
 					
-					break;
+					return;
 				}
 			}
 			
@@ -547,7 +549,7 @@ d_playattack(d_pcards *pc)
 					d_state.selidx = -1;
 					d_setphase(D_DEFEND);
 					
-					break;
+					return;
 				}
 			}
 		}
@@ -701,12 +703,7 @@ d_allcovered(void)
 	}
 	
 	// advance attacker.
-	next = d_nextplayer(d_state.attacker);
-	if (next == -1)
-	{
-		return;
-	}
-	d_state.attacker = next;
+	d_state.attacker = d_nextplayer(d_state.attacker);
 	
 	d_setphase(d_activeplayers() == 1 ? D_FINISH : D_ATTACK);
 }
@@ -745,12 +742,7 @@ d_takeall(void)
 	d_drawto(&d_state.players[next], D_NDEALCARDS);
 	
 	// advance attacker.
-	next = d_nextplayer(next);
-	if (next == -1)
-	{
-		return;
-	}
-	d_state.attacker = next;
+	d_state.attacker = d_nextplayer(next);
 	
 	d_setphase(d_activeplayers() == 1 ? D_FINISH : D_ATTACK);
 }

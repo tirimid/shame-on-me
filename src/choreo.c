@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #define C_WALKTHRESHOLD 0.12f
 #define C_WALKTHRESHOLD2 (C_WALKTHRESHOLD * C_WALKTHRESHOLD)
 #define C_LOOKTHRESHOLD 0.005f
