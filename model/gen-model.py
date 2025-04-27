@@ -64,9 +64,9 @@ def genmodel(infile, outfile):
 
 	fname = os.path.splitext(os.path.basename(outfile))[0]
 	out = [
-		f"#define {fname}_VERT_CNT {len(verts)}\n",
-		f"#define {fname}_IDX_CNT {len(inds)}\n",
-		f"static float const {fname}_VertData[] =\n",
+		f"unsigned const {fname}_vert_cnt = {len(verts)};\n",
+		f"unsigned const {fname}_idx_cnt = {len(inds)};\n",
+		f"float const {fname}_verts[] =\n",
 		"{\n",
 	]
 
@@ -74,7 +74,7 @@ def genmodel(infile, outfile):
 		out.append(f"\t{i[0]}, {i[1]}, {i[2]}, {i[3]}, {i[4]}, {i[5]}, {i[6]}, {i[7]},\n")
 
 	out.append("};\n")
-	out.append(f"static unsigned const {fname}_IdxData[] =\n")
+	out.append(f"unsigned const {fname}_idxs[] =\n")
 	out.append("{\n")
 
 	for i in range(len(inds) // 3):

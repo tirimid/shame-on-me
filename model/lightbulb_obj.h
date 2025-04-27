@@ -1,6 +1,6 @@
-#define lightbulb_obj_VERT_CNT 80
-#define lightbulb_obj_IDX_CNT 132
-static float const lightbulb_obj_VertData[] =
+unsigned const lightbulb_obj_vert_cnt = 80;
+unsigned const lightbulb_obj_idx_cnt = 132;
+float const lightbulb_obj_verts[] =
 {
 	-0.160612, -0.330926, 0.160612, 0.147169, 0.9277, -0.0, -0.0, -1.0,
 	-0.160612, -0.330926, -0.160612, 0.147169, 0.9277, 1.0, -0.0, -0.0,
@@ -83,7 +83,7 @@ static float const lightbulb_obj_VertData[] =
 	-0.168328, -0.658611, 0.168328, 0.040941, 0.917014, -0.0, 1.0, -0.0,
 	-0.160612, -0.330926, -0.160612, 0.591337, 0.288256, -0.0, -0.7854, 0.619,
 };
-static unsigned const lightbulb_obj_IdxData[] =
+unsigned const lightbulb_obj_idxs[] =
 {
 	23, 37, 40,
 	0, 7, 14,

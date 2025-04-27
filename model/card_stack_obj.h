@@ -1,6 +1,6 @@
-#define card_stack_obj_VERT_CNT 24
-#define card_stack_obj_IDX_CNT 36
-static float const card_stack_obj_VertData[] =
+unsigned const card_stack_obj_vert_cnt = 24;
+unsigned const card_stack_obj_idx_cnt = 36;
+float const card_stack_obj_verts[] =
 {
 	-0.115528, 0.099634, -0.21461, 0.996701, 0.003937, -0.0, -1.0, -0.0,
 	-0.115528, -0.0, -0.21461, 0.38426, 0.50202, 1.0, -0.0, -0.0,
@@ -27,7 +27,7 @@ static float const card_stack_obj_VertData[] =
 	0.115528, 0.099634, -0.21461, 0.390858, 0.505148, -1.0, -0.0, -0.0,
 	-0.115528, 0.099634, -0.21461, 0.390858, 0.50202, 1.0, -0.0, -0.0,
 };
-static unsigned const card_stack_obj_IdxData[] =
+unsigned const card_stack_obj_idxs[] =
 {
 	19, 17, 5,
 	2, 6, 13,

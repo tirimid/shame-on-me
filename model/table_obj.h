@@ -1,6 +1,6 @@
-#define table_obj_VERT_CNT 295
-#define table_obj_IDX_CNT 468
-static float const table_obj_VertData[] =
+unsigned const table_obj_vert_cnt = 295;
+unsigned const table_obj_idx_cnt = 468;
+float const table_obj_verts[] =
 {
 	0.799687, 2.0, 1.0, 0.619602, 0.995034, -0.0, -1.0, -0.0,
 	1.0, -0.0, -1.0, 0.753962, 0.5, -0.0, 1.0, -0.0,
@@ -298,7 +298,7 @@ static float const table_obj_VertData[] =
 	-0.781591, 1.905617, 1.0, 0.619602, 0.995034, -0.0, 1.0, -0.0,
 	-1.06077, 2.248778, 1.075213, 0.991999, 0.628321, -0.0, -1.0, -0.0,
 };
-static unsigned const table_obj_IdxData[] =
+unsigned const table_obj_idxs[] =
 {
 	14, 204, 214,
 	166, 26, 153,

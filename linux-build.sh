@@ -9,14 +9,8 @@ CFLAGS="-std=c99 -pedantic -O3"
 CC=gcc
 CFLAGS_FULL="$INCLUDE $DEFINES $WARNINGS $CFLAGS $LIBRARIES"
 
-echo "[$0] build: resources" >&2
-make -s -C img > /dev/null
-make -s -C model > /dev/null
-make -s -C shader > /dev/null
-make -s -C font > /dev/null
-
 echo "[$0] build: compilation" >&2
-$CC -o shame-on-me src/main.c $CFLAGS_FULL
+$CC -o shame-on-me src/main.c resources.o $CFLAGS_FULL
 if [ $? -ne 0 ]
 then
 	echo "[$0] build: failed to compile!" >&2

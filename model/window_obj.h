@@ -1,6 +1,6 @@
-#define window_obj_VERT_CNT 86
-#define window_obj_IDX_CNT 132
-static float const window_obj_VertData[] =
+unsigned const window_obj_vert_cnt = 86;
+unsigned const window_obj_idx_cnt = 132;
+float const window_obj_verts[] =
 {
 	0.433948, 1.0, -0.644388, 0.556425, 0.006166, -0.0, -1.0, -0.0,
 	0.267892, -0.554429, -0.555411, 0.905288, 0.742975, -0.0, -0.0, -1.0,
@@ -89,7 +89,7 @@ static float const window_obj_VertData[] =
 	-0.433948, 1.0, 0.644388, 0.004704, 0.745546, -0.0, -1.0, -0.0,
 	0.433948, -0.554429, -0.555411, 0.646938, 0.742975, -0.0, -0.0, -1.0,
 };
-static unsigned const window_obj_IdxData[] =
+unsigned const window_obj_idxs[] =
 {
 	47, 28, 0,
 	39, 17, 26,

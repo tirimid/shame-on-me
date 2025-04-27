@@ -1,6 +1,6 @@
-#define door_open_obj_VERT_CNT 115
-#define door_open_obj_IDX_CNT 195
-static float const door_open_obj_VertData[] =
+unsigned const door_open_obj_vert_cnt = 115;
+unsigned const door_open_obj_idx_cnt = 195;
+float const door_open_obj_verts[] =
 {
 	-0.736986, 0.100902, -0.449549, 0.749554, 0.539244, 1.0, -0.0, -0.0,
 	0.5, 2.0, 0.5, 0.566304, 0.994137, -0.0, -0.0, -1.0,
@@ -118,7 +118,7 @@ static float const door_open_obj_VertData[] =
 	-0.736986, -0.0, -0.5, 0.569531, 0.994465, -0.0, 1.0, -0.0,
 	0.709748, 0.100902, 0.449549, 0.569531, 0.717784, -0.0, -1.0, -0.0,
 };
-static unsigned const door_open_obj_IdxData[] =
+unsigned const door_open_obj_idxs[] =
 {
 	38, 84, 58,
 	96, 9, 1,

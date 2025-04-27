@@ -1,6 +1,6 @@
-#define cube_obj_VERT_CNT 24
-#define cube_obj_IDX_CNT 36
-static float const cube_obj_VertData[] =
+unsigned const cube_obj_vert_cnt = 24;
+unsigned const cube_obj_idx_cnt = 36;
+float const cube_obj_verts[] =
 {
 	1.0, 1.0, -1.0, 0.625, 0.5, 1.0, -0.0, -0.0,
 	1.0, 1.0, 1.0, 0.625, 0.75, -0.0, -0.0, 1.0,
@@ -27,7 +27,7 @@ static float const cube_obj_VertData[] =
 	1.0, -1.0, -1.0, 0.375, 0.5, -0.0, -0.0, -1.0,
 	1.0, 1.0, 1.0, 0.625, 0.75, -0.0, 1.0, -0.0,
 };
-static unsigned const cube_obj_IdxData[] =
+unsigned const cube_obj_idxs[] =
 {
 	9, 23, 18,
 	1, 16, 3,

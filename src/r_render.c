@@ -2,18 +2,18 @@
 
 #define R_INCMODEL(name) \
 	{ \
-		.verts = name##_obj_VertData, \
-		.idxs = name##_obj_IdxData, \
-		.nverts = name##_obj_VERT_CNT, \
-		.nidxs = name##_obj_IDX_CNT \
+		.verts = name##_obj_verts, \
+		.idxs = name##_obj_idxs, \
+		.nverts = &name##_obj_vert_cnt, \
+		.nidxs = &name##_obj_idx_cnt \
 	}
 
 #define R_INCSHADER(name) \
 	{ \
 		.vertsrc = (char *)name##_vert_glsl, \
 		.fragsrc = (char *)name##_frag_glsl, \
-		.vertlen = sizeof(name##_vert_glsl), \
-		.fraglen = sizeof(name##_frag_glsl) \
+		.vertlen = &name##_vert_glsl_len, \
+		.fraglen = &name##_frag_glsl_len \
 	}
 
 #define R_INCGEOSHADER(name) \
@@ -21,43 +21,42 @@
 		.geosrc = (char *)name##_geo_glsl, \
 		.vertsrc = (char *)name##_vert_glsl, \
 		.fragsrc = (char *)name##_frag_glsl, \
-		.geolen = sizeof(name##_geo_glsl), \
-		.vertlen = sizeof(name##_vert_glsl), \
-		.fraglen = sizeof(name##_frag_glsl) \
+		.geolen = &name##_geo_glsl_len, \
+		.vertlen = &name##_vert_glsl_len, \
+		.fraglen = &name##_frag_glsl_len \
 	}
 
 #define R_INCTEX(name) \
 	{ \
 		.data = name##_png, \
-		.size = sizeof(name##_png) \
+		.size = &name##_png_len \
 	}
 
 #define R_INCFONT(name) \
 	{ \
 		.data = name##_ttf, \
-		.size = sizeof(name##_ttf) \
+		.size = &name##_ttf_len \
 	}
 
 typedef struct r_modeldata
 {
 	f32 const *verts;
-	usize nverts;
 	u32 const *idxs;
-	usize nidxs;
+	u32 const *nverts, *nidxs;
 	u32 vbo, ibo, vao;
 } r_modeldata;
 
 typedef struct r_shaderdata
 {
 	char *geosrc, *vertsrc, *fragsrc;
-	i32 geolen, vertlen, fraglen;
+	u32 const *geolen, *vertlen, *fraglen;
 	u32 prog;
 } r_shaderdata;
 
 typedef struct r_texdata
 {
 	u8 const *data;
-	usize size;
+	u32 const *size;
 	SDL_Surface *surf;
 	u32 tex;
 } r_texdata;
@@ -65,7 +64,7 @@ typedef struct r_texdata
 typedef struct r_fontdata
 {
 	u8 const *data;
-	usize size;
+	u32 const *size;
 	TTF_Font *font;
 } r_fontdata;
 
@@ -238,13 +237,13 @@ r_init(void)
 		
 		glBufferData(
 			GL_ARRAY_BUFFER,
-			8 * sizeof(f32) * r_models[i].nverts,
+			8 * sizeof(f32) * *r_models[i].nverts,
 			r_models[i].verts,
 			GL_STATIC_DRAW
 		);
 		glBufferData(
 			GL_ELEMENT_ARRAY_BUFFER,
-			sizeof(u32) * r_models[i].nidxs,
+			sizeof(u32) * *r_models[i].nidxs,
 			r_models[i].idxs,
 			GL_STATIC_DRAW
 		);
@@ -265,13 +264,13 @@ r_init(void)
 		u32 geo = 0;
 		if (r_shaders[i].geosrc)
 		{
-			r_preproc(r_shaders[i].geosrc, r_shaders[i].geolen);
+			r_preproc(r_shaders[i].geosrc, *r_shaders[i].geolen);
 			geo = glCreateShader(GL_GEOMETRY_SHADER);
 			glShaderSource(
 				geo,
 				1,
 				(char const *const *)&r_shaders[i].geosrc,
-				&r_shaders[i].geolen
+				(i32 *)r_shaders[i].geolen
 			);
 			glCompileShader(geo);
 			glGetShaderiv(geo, GL_COMPILE_STATUS, &rc);
@@ -284,13 +283,13 @@ r_init(void)
 		}
 
 		// create vertex shader.
-		r_preproc(r_shaders[i].vertsrc, r_shaders[i].vertlen);
+		r_preproc(r_shaders[i].vertsrc, *r_shaders[i].vertlen);
 		u32 vert = glCreateShader(GL_VERTEX_SHADER);
 		glShaderSource(
 			vert,
 			1,
 			(char const *const *)&r_shaders[i].vertsrc,
-			&r_shaders[i].vertlen
+			(i32 *)r_shaders[i].vertlen
 		);
 		glCompileShader(vert);
 		glGetShaderiv(vert, GL_COMPILE_STATUS, &rc);
@@ -302,13 +301,13 @@ r_init(void)
 		}
 		
 		// create fragment shader.
-		r_preproc(r_shaders[i].fragsrc, r_shaders[i].fraglen);
+		r_preproc(r_shaders[i].fragsrc, *r_shaders[i].fraglen);
 		u32 frag = glCreateShader(GL_FRAGMENT_SHADER);
 		glShaderSource(
 			frag,
 			1,
 			(char const *const *)&r_shaders[i].fragsrc,
-			&r_shaders[i].fraglen
+			(i32 *)r_shaders[i].fraglen
 		);
 		glCompileShader(frag);
 		glGetShaderiv(frag, GL_COMPILE_STATUS, &rc);
@@ -350,7 +349,7 @@ r_init(void)
 	for (usize i = 0; i < R_TEX_END; ++i)
 	{
 		// load texture.
-		SDL_RWops *rwops = SDL_RWFromConstMem(r_texs[i].data, r_texs[i].size);
+		SDL_RWops *rwops = SDL_RWFromConstMem(r_texs[i].data, *r_texs[i].size);
 		if (!rwops)
 		{
 			showerr("render: failed to create image texture RWops - %s!", SDL_GetError());
@@ -385,7 +384,7 @@ r_init(void)
 	// set up all fonts.
 	for (usize i = 0; i < R_FONT_END; ++i)
 	{
-		SDL_RWops *rwops = SDL_RWFromConstMem(r_fonts[i].data, r_fonts[i].size);
+		SDL_RWops *rwops = SDL_RWFromConstMem(r_fonts[i].data, *r_fonts[i].size);
 		if (!rwops)
 		{
 			showerr("render: failed to create font RWops - %s!", SDL_GetError());
@@ -644,7 +643,7 @@ r_rendermodel(r_model m, vec3 pos, vec3 rot, vec3 scale)
 	glUniformMatrix4fv(r_uniforms.modelmats, 1, GL_FALSE, (f32 *)modelmat);
 	glUniformMatrix3fv(r_uniforms.normalmats, 1, GL_FALSE, (f32 *)normmat);
 	glBindVertexArray(r_models[m].vao);
-	glDrawElements(GL_TRIANGLES, r_models[m].nidxs, GL_UNSIGNED_INT, 0);
+	glDrawElements(GL_TRIANGLES, *r_models[m].nidxs, GL_UNSIGNED_INT, 0);
 }
 
 i32
@@ -743,7 +742,7 @@ r_rendertext(r_font f, char const *text, i32 x, i32 y, i32 w, i32 h)
 	glUniformMatrix4fv(r_uniforms.modelmats, 1, GL_FALSE, (f32 *)modelmat);
 	glUniform1i(r_uniforms.tex, GL_TEXTURE0);
 	glBindVertexArray(r_models[R_PLANE].vao);
-	glDrawElements(GL_TRIANGLES, r_models[R_PLANE].nidxs, GL_UNSIGNED_INT, NULL);
+	glDrawElements(GL_TRIANGLES, *r_models[R_PLANE].nidxs, GL_UNSIGNED_INT, NULL);
 	
 	glDeleteTextures(1, &tex);
 	SDL_FreeSurface(rgba);
@@ -773,7 +772,7 @@ r_flushtiles(void)
 	glUniformMatrix4fv(r_uniforms.modelmats, r_state.batchsize, GL_FALSE, (f32 *)r_state.batchmodelmats);
 	glUniformMatrix3fv(r_uniforms.normalmats, r_state.batchsize, GL_FALSE, (f32 *)r_state.batchnormmats);
 	glBindVertexArray(r_models[R_PLANE].vao);
-	glDrawElementsInstanced(GL_TRIANGLES, r_models[R_PLANE].nidxs, GL_UNSIGNED_INT, NULL, r_state.batchsize);
+	glDrawElementsInstanced(GL_TRIANGLES, *r_models[R_PLANE].nidxs, GL_UNSIGNED_INT, NULL, r_state.batchsize);
 	r_state.batchsize = 0;
 }
 
