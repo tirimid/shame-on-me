@@ -27,13 +27,13 @@ static usize g_hallwaylight, g_entrylight, g_roomlight;
 void
 g_loop(void)
 {
-	(void)g_fastintroseq; // TODO: remove temporary warning suppression.
+	(void)g_introseq; // TODO: remove temporary warning suppression.
 	
 	NEWTIMER(largetimer);
 	NEWTIMER(stagetimer);
 	
 	g_setupenv();
-	g_introseq();
+	g_fastintroseq();
 	g_tutorialseq();
 	
 	for (;;)
@@ -351,12 +351,11 @@ g_introseq(void)
 	c_speak(T_PETER, "\"Not the slaughterhouse, the casino\"");
 	c_speak(T_ARKADY, "\"I don't understand\"");
 	c_wait(500);
-	c_speak(T_PETER, "\"We're going to play cards - the loser dies\"");
+	c_speak(T_PETER, "\"We're going to play some special 'high stakes' cards\"");
 	c_speak(T_ARKADY, "(How sick)");
 	c_speak(T_ARKADY, "\"I don't suppose I have much of a choice\"");
 	c_wait(800);
 	c_speak(T_PETER, "\"No, Arkady, you don't have a choice\"");
-	c_speak(T_PETER, "\"Try to leave, and we'll just kill you on the spot\"");
 	c_wait(1500);
 	c_speak(T_MATTHEW, "\"Well then, take a seat\"");
 	c_wait(600);
@@ -430,7 +429,7 @@ g_tutorialseq(void)
 	c_wait(400);
 	c_speak(T_ARKADY, "\"So, how do we play?\"");
 	c_speak(T_MATTHEW, "\"Fool is a game where you need to get rid of your held cards\"");
-	c_speak(T_MATTHEW, "\"On my turn, I'll 'attack' Gerasim, the player to my left, by laying out cards\"");
+	c_speak(T_MATTHEW, "\"On my turn, I'll 'attack' Gerasim, the player to my left, by laying out a card of my choice\"");
 	c_speak(T_MATTHEW, "\"He must then cover them by playing a card of higher value...\"");
 	c_speak(T_MATTHEW, "\"That's...\"");
 	c_speak(T_MATTHEW, "\"Basically, card values ascend from 6 to 10, then Jack, Queen, King, and finally Ace\"");
