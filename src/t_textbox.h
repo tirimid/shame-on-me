@@ -9,6 +9,10 @@ typedef enum t_sprite
 	T_PETER,
 	T_MATTHEW,
 	T_GERASIM,
+	T_MUTEARKADY,
+	T_MUTEPETER,
+	T_MUTEMATTHEW,
+	T_MUTEGERASIM,
 	
 	T_SPRITE_END
 } t_sprite;

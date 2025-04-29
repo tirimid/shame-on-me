@@ -2,9 +2,10 @@
 
 static bool t_curactive = false;
 static u8 t_cursprite;
-static char const *t_curmsg;
-static usize t_curmsglen;
-static usize t_curscroll;
+static char const *t_msg;
+static usize t_msglen;
+static usize t_scroll;
+static u16 t_voicetick;
 
 // data tables.
 static u8 t_spritetex[T_SPRITE_END] =
@@ -12,7 +13,23 @@ static u8 t_spritetex[T_SPRITE_END] =
 	R_SOMETHING, // arkady.
 	R_EYESDUMMYFACE, // peter.
 	R_GLASSESDUMMYFACE, // matthew.
-	R_DUMMYFACE // gerasim.
+	R_DUMMYFACE, // gerasim.
+	R_SOMETHING, // mute arkady.
+	R_EYESDUMMYFACE, // mute peter.
+	R_GLASSESDUMMYFACE, // mute matthew.
+	R_DUMMYFACE // mute gerasim.
+};
+
+static u8 t_voices[T_SPRITE_END] =
+{
+	S_SPEAKARKADY, // arkady.
+	S_SPEAKPETER, // peter.
+	S_SPEAKMATTHEW, // matthew.
+	S_SPEAKGERASIM, // gerasim.
+	S_SFX_END, // mute arkady.
+	S_SFX_END, // mute peter.
+	S_SFX_END, // mute matthew.
+	S_SFX_END // mute gerasim.
 };
 
 bool
@@ -24,7 +41,7 @@ t_active(void)
 bool
 t_scrolldone(void)
 {
-	return t_curscroll >= t_curmsglen;
+	return t_scroll >= t_msglen;
 }
 
 void
@@ -37,9 +54,10 @@ t_show(t_sprite sprite, char const *msg)
 	
 	t_curactive = true;
 	t_cursprite = sprite;
-	t_curmsg = msg;
-	t_curmsglen = strlen(msg);
-	t_curscroll = 1; // need to start at 1 char to not crash SDL2 TTF.
+	t_msg = msg;
+	t_msglen = strlen(msg);
+	t_scroll = 1; // need to start at 1 char to not crash SDL2 TTF.
+	t_voicetick = 0;
 }
 
 void
@@ -50,14 +68,27 @@ t_update(void)
 		return;
 	}
 	
-	t_curscroll += O_TEXTSCROLL;
-	t_curscroll = t_curscroll > t_curmsglen ? t_curmsglen : t_curscroll;
+	// update scroll.
+	t_scroll += O_TEXTSCROLL;
+	t_scroll = t_scroll > t_msglen ? t_msglen : t_scroll;
 	
+	// update speech SFX.
+	if (t_voices[t_cursprite] != T_SPRITE_END && t_scroll < t_msglen)
+	{
+		if (!t_voicetick)
+		{
+			s_playsfx(t_voices[t_cursprite]);
+			t_voicetick = O_VOICETICK + 1;
+		}
+		--t_voicetick;
+	}
+	
+	// update textbox update.
 	if (i_kpressed(O_KSEL))
 	{
-		if (t_curscroll < t_curmsglen)
+		if (t_scroll < t_msglen)
 		{
-			t_curscroll = t_curmsglen;
+			t_scroll = t_msglen;
 		}
 		else
 		{
@@ -88,9 +119,9 @@ t_renderoverlay(void)
 	);
 	r_renderrect(R_BLACK, 10, 5, rw - 20, O_TEXTBOXSIZE, 0.0f);
 	
-	char *msg = malloc(t_curscroll + 1);
-	memcpy(msg, t_curmsg, t_curscroll);
-	msg[t_curscroll] = 0;
+	char *msg = malloc(t_scroll + 1);
+	memcpy(msg, t_msg, t_scroll);
+	msg[t_scroll] = 0;
 	r_rendertext(R_VCROSDMONO, msg, 15, 10, rw - 30, O_TEXTBOXSIZE - 10);
 	free(msg);
 }

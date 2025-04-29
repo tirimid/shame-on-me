@@ -10,6 +10,7 @@
 #include <GL/gl.h>
 #include <SDL.h>
 #include <SDL_image.h>
+#include <SDL_mixer.h>
 #include <SDL_ttf.h>
 #include <sys/time.h>
 
@@ -65,7 +66,19 @@ main(int argc, char *argv[])
 	}
 	atexit(TTF_Quit);
 	
+	if (Mix_Init(O_MIXFLAGS) != O_MIXFLAGS)
+	{
+		showerr("main: failed to init SDL2 mixer!");
+		return 1;
+	}
+	atexit(Mix_Quit);
+	
 	if (r_init())
+	{
+		return 1;
+	}
+	
+	if (s_init())
 	{
 		return 1;
 	}

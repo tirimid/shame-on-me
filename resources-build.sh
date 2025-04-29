@@ -41,6 +41,14 @@ then
 	exit 1
 fi
 
+echo "[$0] resources: make sounds" >&2
+make -B -s -C sound > /dev/null
+if [ $? -ne 0 ]
+then
+	echo "[$0] resources: failed to make sounds!" >&2
+	exit 1
+fi
+
 echo "[$0] resources: compilation" >&2
 $CC -o resources.o -c src/resources.c $CFLAGS_FULL
 if [ $? -ne 0 ]

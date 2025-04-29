@@ -36,6 +36,7 @@ static void d_addcard(d_pcards *pc, u8 pcard);
 static void d_rmcard(d_pcards *pc, usize idx);
 static void d_sort(d_pcards *pc);
 static void d_rendercard(d_carddata const *card);
+static void d_randcardsfx(void);
 
 static u8 d_playerai[D_PLAYER_END] =
 {
@@ -69,12 +70,14 @@ d_setphase(d_gamephase phase)
 			d_addcard(&d_state.draw, i);
 		}
 		d_shuffle(&d_state.draw);
+		s_playsfx(S_CARDSHUFFLE);
 		
 		break;
 	case D_CHOOSETRUMP:
 	{
 		d_carddata const *trump = &d_state.data[d_state.draw.pcards[D_NMAXCARDS - 1]];
 		d_state.trumpsuit = trump->suit;
+		d_randcardsfx();
 		break;
 	}
 	case D_DEALCARDS:
@@ -82,6 +85,7 @@ d_setphase(d_gamephase phase)
 		{
 			d_drawto(&d_state.players[i], D_NDEALCARDS);
 		}
+		d_randcardsfx();
 		break;
 	case D_ATTACK:
 		d_state.acttick = O_ATTACKTICK + randint(0, O_VARYTICK);
@@ -94,6 +98,7 @@ d_setphase(d_gamephase phase)
 		d_state.covered.ncards = 0;
 		d_state.attack.ncards = 0;
 		d_state.defend.ncards = 0;
+		d_randcardsfx();
 		
 		for (usize i = 0; i < D_PLAYER_END; ++i)
 		{
@@ -348,6 +353,7 @@ d_aiattack(d_pcards *pc, d_ai ai)
 			
 			d_addcard(&d_state.attack, pc->pcards[idx]);
 			d_rmcard(pc, idx);
+			d_randcardsfx();
 			
 			d_setphase(D_DEFEND);
 			
@@ -370,6 +376,7 @@ d_aiattack(d_pcards *pc, d_ai ai)
 			
 			d_addcard(&d_state.attack, pc->pcards[idx]);
 			d_rmcard(pc, idx);
+			d_randcardsfx();
 			
 			d_setphase(D_DEFEND);
 			
@@ -392,6 +399,7 @@ d_aiattack(d_pcards *pc, d_ai ai)
 			
 			d_addcard(&d_state.attack, pc->pcards[idx]);
 			d_rmcard(pc, idx);
+			d_randcardsfx();
 			
 			d_setphase(D_DEFEND);
 			
@@ -418,6 +426,7 @@ d_aiattack(d_pcards *pc, d_ai ai)
 			
 			d_addcard(&d_state.attack, pc->pcards[idx]);
 			d_rmcard(pc, idx);
+			d_randcardsfx();
 			
 			d_setphase(D_DEFEND);
 			
@@ -438,6 +447,7 @@ d_aiattack(d_pcards *pc, d_ai ai)
 			
 			d_addcard(&d_state.attack, pc->pcards[idx]);
 			d_rmcard(pc, idx);
+			d_randcardsfx();
 			
 			d_setphase(D_DEFEND);
 			
@@ -449,6 +459,7 @@ d_aiattack(d_pcards *pc, d_ai ai)
 			
 			d_addcard(&d_state.attack, pc->pcards[idx]);
 			d_rmcard(pc, idx);
+			d_randcardsfx();
 			
 			d_setphase(D_DEFEND);
 			
@@ -493,6 +504,7 @@ d_aidefend(d_pcards *pc)
 	
 	d_addcard(&d_state.defend, pc->pcards[idx]);
 	d_rmcard(pc, idx);
+	d_randcardsfx();
 	
 	d_setphase(D_ATTACK);
 }
@@ -528,6 +540,7 @@ d_playattack(d_pcards *pc)
 				{
 					d_addcard(&d_state.attack, pcardsel);
 					d_rmcard(pc, d_state.selidx);
+					d_randcardsfx();
 					
 					d_state.selidx = -1;
 					d_setphase(D_DEFEND);
@@ -545,6 +558,7 @@ d_playattack(d_pcards *pc)
 				{
 					d_addcard(&d_state.attack, pcardsel);
 					d_rmcard(pc, d_state.selidx);
+					d_randcardsfx();
 					
 					d_state.selidx = -1;
 					d_setphase(D_DEFEND);
@@ -565,6 +579,7 @@ d_playattack(d_pcards *pc)
 		{
 			d_addcard(&d_state.attack, pc->pcards[d_state.selidx]);
 			d_rmcard(pc, d_state.selidx);
+			d_randcardsfx();
 			
 			d_state.selidx = -1;
 			d_setphase(D_DEFEND);
@@ -596,6 +611,7 @@ d_playdefend(d_pcards *pc)
 		{
 			d_addcard(&d_state.defend, pcardsel);
 			d_rmcard(pc, d_state.selidx);
+			d_randcardsfx();
 			
 			d_state.selidx = -1;
 			d_setphase(D_ATTACK);
@@ -674,6 +690,8 @@ d_allcovered(void)
 		return;
 	}
 	
+	d_randcardsfx();
+	
 	// transfer attack cards to covered pile.
 	while (d_state.attack.ncards)
 	{
@@ -705,7 +723,7 @@ d_allcovered(void)
 	// advance attacker.
 	d_state.attacker = d_nextplayer(d_state.attacker);
 	
-	d_setphase(d_activeplayers() == 1 ? D_FINISH : D_ATTACK);
+	d_setphase(d_activeplayers() <= 1 ? D_FINISH : D_ATTACK);
 }
 
 static void
@@ -716,6 +734,8 @@ d_takeall(void)
 	{
 		return;
 	}
+	
+	d_randcardsfx();
 	
 	// transfer attack cards to defender.
 	while (d_state.attack.ncards)
@@ -744,7 +764,7 @@ d_takeall(void)
 	// advance attacker.
 	d_state.attacker = d_nextplayer(next);
 	
-	d_setphase(d_activeplayers() == 1 ? D_FINISH : D_ATTACK);
+	d_setphase(d_activeplayers() <= 1 ? D_FINISH : D_ATTACK);
 }
 
 static void
@@ -924,4 +944,11 @@ d_rendercard(d_carddata const *card)
 		card->rot
 	);
 	r_renderrect(tex, absx, absy, O_CARDWIDTH, O_CARDHEIGHT, card->rot);
+}
+
+static void
+d_randcardsfx(void)
+{
+	s_sfx sfx = randint(S_CARD0, S_CARD8 + 1);
+	s_playsfx(sfx);
 }

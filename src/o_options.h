@@ -6,6 +6,7 @@
 // windowing and setup options.
 #define O_SDLFLAGS (SDL_INIT_VIDEO | SDL_INIT_AUDIO)
 #define O_IMGFLAGS IMG_INIT_PNG
+#define O_MIXFLAGS MIX_INIT_OGG
 #define O_WNDTITLE "Shame on Me"
 #define O_WNDFLAGS (SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN_DESKTOP)
 #define O_WNDWIDTH 800
@@ -40,6 +41,7 @@
 #define O_CARDOUTLINE 1
 #define O_CARDSPEED 0.2f
 #define O_TEXTSCROLL 1
+#define O_VOICETICK 9
 
 // render options.
 #ifdef DYNAMICLIGHTS
