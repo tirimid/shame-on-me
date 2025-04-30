@@ -1,8 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#ifndef TEXTBOX_H
-#define TEXTBOX_H
-
 typedef enum t_sprite
 {
 	T_ARKADY = 0,
@@ -22,5 +19,3 @@ bool t_scrolldone(void);
 void t_show(t_sprite sprite, char const *msg);
 void t_update(void);
 void t_renderoverlay(void);
-
-#endif

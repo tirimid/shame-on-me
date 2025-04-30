@@ -29,25 +29,24 @@ unixus(void)
 	return (u64)tv.tv_sec * 1000000 + (u64)tv.tv_usec;
 }
 
-u64
-unixms(void)
-{
-	return unixus() / 1000;
-}
-
 void
 begintick(void)
 {
-	u_tickstart = unixms();
+	u_tickstart = unixus();
 }
 
 void
 endtick(void)
 {
-	u64 tickend = unixms();
-	i64 timeleft = O_TICKMS - tickend + u_tickstart;
+	u64 tickend = unixus();
+	i64 timeleft = O_TICKUS - tickend + u_tickstart;
 	timeleft *= (timeleft > 0);
-	SDL_Delay(timeleft);
+	
+	struct timespec ts =
+	{
+		.tv_nsec = 1000 * timeleft
+	};
+	nanosleep(&ts, NULL);
 }
 
 f32

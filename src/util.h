@@ -1,8 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#ifndef UTIL_H
-#define UTIL_H
-
 // use for microsecond profiling.
 // compile debug code with -DPROFILE, and release code without.
 #ifdef PROFILE
@@ -33,7 +30,6 @@ typedef double f64;
 
 void showerr(char const *fmt, ...);
 u64 unixus(void);
-u64 unixms(void);
 void begintick(void);
 void endtick(void);
 f32 interpangle(f32 a, f32 b, f32 t);
@@ -43,5 +39,3 @@ void makenorm(mat4 xform, OUT mat3 out);
 void begintimer(OUT u64 *timer);
 void endtimer(u64 timer, char const *name);
 i32 randint(i32 lb, i32 ub);
-
-#endif

@@ -877,6 +877,11 @@ r_preproc(char *src, usize len)
 			usize cl = snprintf(&src[i], 15, "%u", O_MAXTILEBATCH);
 			memset(&src[i + cl], ' ', 15 - cl);
 		}
+		else if (len - i >= 14 && !strncmp(&src[i], "$O_GLOBALSHADE", 14))
+		{
+			usize cl = snprintf(&src[i], 14, "%s", O_GLOBALSHADE);
+			memset(&src[i + cl], ' ', 14 - cl);
+		}
 	}
 }
 

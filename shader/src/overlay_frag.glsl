@@ -1,5 +1,7 @@
 #version 430 core
 
+#define GLOBALSHADE vec3($O_GLOBALSHADE)
+
 in vec2 texcoord;
 
 uniform sampler2D tex;
@@ -14,5 +16,6 @@ main()
 	{
 		discard;
 	}
+	pix.rgb = GLOBALSHADE * pix.rgb;
 	col = pix;
 }

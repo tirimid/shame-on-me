@@ -56,8 +56,16 @@ t_show(t_sprite sprite, char const *msg)
 	t_cursprite = sprite;
 	t_msg = msg;
 	t_msglen = strlen(msg);
-	t_scroll = 1; // need to start at 1 char to not crash SDL2 TTF.
 	t_voicetick = 0;
+	
+	if (t_voices[sprite] != S_SFX_END)
+	{
+		t_scroll = 1; // need to start at 1 char to not crash SDL2 TTF.
+	}
+	else
+	{
+		t_scroll = t_msglen;
+	}
 }
 
 void
@@ -73,12 +81,12 @@ t_update(void)
 	t_scroll = t_scroll > t_msglen ? t_msglen : t_scroll;
 	
 	// update speech SFX.
-	if (t_voices[t_cursprite] != T_SPRITE_END && t_scroll < t_msglen)
+	if (t_voices[t_cursprite] != S_SFX_END && t_scroll < t_msglen)
 	{
 		if (!t_voicetick)
 		{
 			s_playsfx(t_voices[t_cursprite]);
-			t_voicetick = O_VOICETICK + 1;
+			t_voicetick = O_VOICETICK;
 		}
 		--t_voicetick;
 	}

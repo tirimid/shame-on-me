@@ -1,8 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#ifndef SOUND_H
-#define SOUND_H
-
 typedef enum s_sfx
 {
 	S_SPEAKARKADY = 0,
@@ -27,5 +24,3 @@ i32 s_init(void);
 void s_quit(void);
 void s_sfxvolume(f32 vol);
 void s_playsfx(s_sfx id);
-
-#endif

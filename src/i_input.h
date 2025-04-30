@@ -1,8 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#ifndef INPUT_H
-#define INPUT_H
-
 typedef enum i_input
 {
 	I_RELEASE = 0,
@@ -14,5 +11,3 @@ void i_prepare(void);
 bool i_kdown(SDL_Keycode k);
 bool i_kpressed(SDL_Keycode k);
 bool i_kreleased(SDL_Keycode k);
-
-#endif

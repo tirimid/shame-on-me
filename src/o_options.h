@@ -1,8 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#ifndef OPTIONS_H
-#define OPTIONS_H
-
 // windowing and setup options.
 #define O_SDLFLAGS (SDL_INIT_VIDEO | SDL_INIT_AUDIO)
 #define O_IMGFLAGS IMG_INIT_PNG
@@ -21,6 +18,7 @@
 
 // game system options.
 #define O_TICKMS 20
+#define O_TICKUS (1000 * O_TICKMS)
 #define O_MAXACTIONS 512
 #define O_MAXPROPS 64
 #define O_MAXLOGLEN 512
@@ -41,7 +39,7 @@
 #define O_CARDOUTLINE 1
 #define O_CARDSPEED 0.2f
 #define O_TEXTSCROLL 1
-#define O_VOICETICK 9
+#define O_VOICETICK 10
 
 // render options.
 #ifdef DYNAMICLIGHTS
@@ -60,6 +58,7 @@
 #define O_FONTCOLOR {255, 255, 255, 255}
 #define O_SHADOWMAPSIZE 1024
 #define O_MAXTILEBATCH 64
+#define O_GLOBALSHADE "1.0,0.9,0.8"
 
 // durak options.
 #define O_ATTACKTICK 50
@@ -68,5 +67,3 @@
 
 // sound options.
 #define O_VOLUME 0.4f
-
-#endif

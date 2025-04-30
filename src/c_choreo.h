@@ -1,8 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#ifndef CHOREO_H
-#define CHOREO_H
-
 typedef enum c_actor
 {
 	C_ARKADY = 0,
@@ -50,5 +47,3 @@ void c_rendermodels(void);
 i64 c_putprop(r_model m, r_tex t, vec3 pos, vec3 rot, vec3 scale);
 i64 c_putpropat(r_model m, r_tex t, char point, vec3 trans, vec3 rot, vec3 scale);
 i32 c_putlightat(char point, vec3 trans, f32 intensity);
-
-#endif

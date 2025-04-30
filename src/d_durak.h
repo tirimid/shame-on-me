@@ -1,8 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#ifndef DURAK_H
-#define DURAK_H
-
 // to represent a card, OR together a suit and a value.
 // e.g. 7 of clubs is (D_CLUBS | D_7).
 
@@ -88,5 +85,3 @@ extern d_gamestate d_state;
 void d_setphase(d_gamephase phase);
 void d_renderoverlay(void);
 void d_update(void);
-
-#endif

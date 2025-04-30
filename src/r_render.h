@@ -1,8 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#ifndef RENDER_H
-#define RENDER_H
-
 typedef enum r_model
 {
 	R_PLANE = 0,
@@ -140,5 +137,3 @@ void r_update(void);
 void r_fade(r_fadestatus fs);
 void r_pancam(vec3 pos, f32 pitch, f32 yaw);
 void r_effcamstate(OUT vec3 pos, OUT f32 *pitch, OUT f32 *yaw);
-
-#endif

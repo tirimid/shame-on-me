@@ -7,7 +7,7 @@
 	}
 
 #define S_FREQ 44100
-#define S_CHUNKSIZE 2048
+#define S_CHUNKSIZE 256
 
 typedef struct s_sound
 {
@@ -64,6 +64,7 @@ s_init(void)
 	}
 	
 	// set mix parameters.
+	Mix_AllocateChannels(16);
 	s_sfxvolume(O_VOLUME);
 	
 	return 0;
