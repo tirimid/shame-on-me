@@ -20,7 +20,7 @@ typedef enum c_actiontype
 	C_SETLIGHTINTENSITY,
 	C_PANCAMERA,
 	C_SETDURAKPHASE
-} c_actiontype;
+} c_actiontype_t;
 
 typedef union c_action
 {
@@ -119,9 +119,9 @@ typedef union c_action
 	struct
 	{
 		u8 type;
-		d_gamephase phase;
+		d_phase_t phase;
 	} setdurakphase;
-} c_action;
+} c_action_t;
 
 typedef struct c_actordata
 {
@@ -129,15 +129,15 @@ typedef struct c_actordata
 	f32 pitch, yaw;
 	f32 bobtime;
 	u8 activetex;
-} c_actordata;
+} c_actordata_t;
 
-c_mapdata c_map;
-c_prop c_props[O_MAXPROPS];
+c_map_t c_map;
+c_prop_t c_props[O_MAXPROPS];
 usize c_nprops;
 
 static void c_getpoint(char point, OUT vec2 pos);
 
-static c_actordata c_actors[C_ACTOR_END] =
+static c_actordata_t c_actors[C_ACTOR_END] =
 {
 	// arkady (player).
 	{
@@ -160,17 +160,17 @@ static c_actordata c_actors[C_ACTOR_END] =
 	}
 };
 
-static c_action c_actions[O_MAXACTIONS];
+static c_action_t c_actions[O_MAXACTIONS];
 static usize c_nactions;
 
 void
-c_teleport(c_actor a, vec2 pos)
+c_teleport(c_actor_t a, vec2 pos)
 {
 	if (c_nactions >= O_MAXACTIONS)
 	{
 		return;
 	}
-	c_actions[c_nactions++] = (c_action)
+	c_actions[c_nactions++] = (c_action_t)
 	{
 		.teleport =
 		{
@@ -182,13 +182,13 @@ c_teleport(c_actor a, vec2 pos)
 }
 
 void
-c_teleportto(c_actor a, char point)
+c_teleportto(c_actor_t a, char point)
 {
 	if (c_nactions >= O_MAXACTIONS)
 	{
 		return;
 	}
-	c_actions[c_nactions++] = (c_action)
+	c_actions[c_nactions++] = (c_action_t)
 	{
 		.teleportto =
 		{
@@ -200,13 +200,13 @@ c_teleportto(c_actor a, char point)
 }
 
 void
-c_walk(c_actor a, vec2 pos)
+c_walk(c_actor_t a, vec2 pos)
 {
 	if (c_nactions >= O_MAXACTIONS)
 	{
 		return;
 	}
-	c_actions[c_nactions++] = (c_action)
+	c_actions[c_nactions++] = (c_action_t)
 	{
 		.walk =
 		{
@@ -218,13 +218,13 @@ c_walk(c_actor a, vec2 pos)
 }
 
 void
-c_walkto(c_actor a, char point)
+c_walkto(c_actor_t a, char point)
 {
 	if (c_nactions >= O_MAXACTIONS)
 	{
 		return;
 	}
-	c_actions[c_nactions++] = (c_action)
+	c_actions[c_nactions++] = (c_action_t)
 	{
 		.walkto =
 		{
@@ -236,13 +236,13 @@ c_walkto(c_actor a, char point)
 }
 
 void
-c_look(c_actor a, f32 pitchdeg, f32 yawdeg)
+c_look(c_actor_t a, f32 pitchdeg, f32 yawdeg)
 {
 	if (c_nactions >= O_MAXACTIONS)
 	{
 		return;
 	}
-	c_actions[c_nactions++] = (c_action)
+	c_actions[c_nactions++] = (c_action_t)
 	{
 		.look =
 		{
@@ -255,13 +255,13 @@ c_look(c_actor a, f32 pitchdeg, f32 yawdeg)
 }
 
 void
-c_lookat(c_actor a, char point)
+c_lookat(c_actor_t a, char point)
 {
 	if (c_nactions >= O_MAXACTIONS)
 	{
 		return;
 	}
-	c_actions[c_nactions++] = (c_action)
+	c_actions[c_nactions++] = (c_action_t)
 	{
 		.lookat =
 		{
@@ -273,13 +273,13 @@ c_lookat(c_actor a, char point)
 }
 
 void
-c_lookwalkto(c_actor a, char point)
+c_lookwalkto(c_actor_t a, char point)
 {
 	if (c_nactions >= O_MAXACTIONS)
 	{
 		return;
 	}
-	c_actions[c_nactions++] = (c_action)
+	c_actions[c_nactions++] = (c_action_t)
 	{
 		.lookwalkto =
 		{
@@ -291,13 +291,13 @@ c_lookwalkto(c_actor a, char point)
 }
 
 void
-c_settexture(c_actor a, r_tex t)
+c_settexture(c_actor_t a, r_tex_t t)
 {
 	if (c_nactions >= O_MAXACTIONS)
 	{
 		return;
 	}
-	c_actions[c_nactions++] = (c_action)
+	c_actions[c_nactions++] = (c_action_t)
 	{
 		.settexture =
 		{
@@ -315,7 +315,7 @@ c_wait(u64 ms)
 	{
 		return;
 	}
-	c_actions[c_nactions++] = (c_action)
+	c_actions[c_nactions++] = (c_action_t)
 	{
 		.wait =
 		{
@@ -326,13 +326,13 @@ c_wait(u64 ms)
 }
 
 void
-c_speak(t_sprite t, char const *msg)
+c_speak(t_sprite_t t, char const *msg)
 {
 	if (c_nactions >= O_MAXACTIONS)
 	{
 		return;
 	}
-	c_actions[c_nactions++] = (c_action)
+	c_actions[c_nactions++] = (c_action_t)
 	{
 		.speak =
 		{
@@ -344,13 +344,13 @@ c_speak(t_sprite t, char const *msg)
 }
 
 void
-c_swapmodel(usize idx, r_model newmodel)
+c_swapmodel(usize idx, r_model_t newmodel)
 {
 	if (c_nactions >= O_MAXACTIONS)
 	{
 		return;
 	}
-	c_actions[c_nactions++] = (c_action)
+	c_actions[c_nactions++] = (c_action_t)
 	{
 		.swapmodel =
 		{
@@ -368,7 +368,7 @@ c_setlightintensity(usize idx, f32 intensity)
 	{
 		return;
 	}
-	c_actions[c_nactions++] = (c_action)
+	c_actions[c_nactions++] = (c_action_t)
 	{
 		.setlightintensity =
 		{
@@ -386,7 +386,7 @@ c_pancamera(vec3 pos, f32 pitchdeg, f32 yawdeg)
 	{
 		return;
 	}
-	c_actions[c_nactions++] = (c_action)
+	c_actions[c_nactions++] = (c_action_t)
 	{
 		.pancamera =
 		{
@@ -399,13 +399,13 @@ c_pancamera(vec3 pos, f32 pitchdeg, f32 yawdeg)
 }
 
 void
-c_setdurakphase(d_gamephase phase)
+c_setdurakphase(d_phase_t phase)
 {
 	if (c_nactions >= O_MAXACTIONS)
 	{
 		return;
 	}
-	c_actions[c_nactions++] = (c_action)
+	c_actions[c_nactions++] = (c_action_t)
 	{
 		.setdurakphase =
 		{
@@ -434,26 +434,26 @@ c_update(void)
 		return;
 	}
 	
-	c_action *action = &c_actions[0];
+	c_action_t *action = &c_actions[0];
 	
 	switch (action->type)
 	{
 	case C_TELEPORT:
 	{
-		c_actordata *actor = &c_actors[action->teleport.actor];
+		c_actordata_t *actor = &c_actors[action->teleport.actor];
 		actor->pos[0] = action->teleport.dst[0];
 		actor->pos[1] = action->teleport.dst[1];
 		break;
 	}
 	case C_TELEPORTTO:
 	{
-		c_actordata *actor = &c_actors[action->teleportto.actor];
+		c_actordata_t *actor = &c_actors[action->teleportto.actor];
 		c_getpoint(action->teleportto.point, actor->pos);
 		break;
 	}
 	case C_WALK:
 	{
-		c_actordata *actor = &c_actors[action->walk.actor];
+		c_actordata_t *actor = &c_actors[action->walk.actor];
 		
 		if (glm_vec2_distance2(actor->pos, action->walk.dst) < C_WALKTHRESHOLD2)
 		{
@@ -473,7 +473,7 @@ c_update(void)
 	}
 	case C_WALKTO:
 	{
-		c_actordata *actor = &c_actors[action->walkto.actor];
+		c_actordata_t *actor = &c_actors[action->walkto.actor];
 		
 		vec2 dst = {0};
 		c_getpoint(action->walkto.point, dst);
@@ -496,7 +496,7 @@ c_update(void)
 	}
 	case C_LOOK:
 	{
-		c_actordata *actor = &c_actors[action->look.actor];
+		c_actordata_t *actor = &c_actors[action->look.actor];
 		
 		if (fabs(shortestangle(action->look.pitch, actor->pitch)) < C_LOOKTHRESHOLD
 			&& fabs(shortestangle(action->look.yaw, actor->yaw)) < C_LOOKTHRESHOLD)
@@ -513,7 +513,7 @@ c_update(void)
 	}
 	case C_LOOKAT:
 	{
-		c_actordata *actor = &c_actors[action->lookat.actor];
+		c_actordata_t *actor = &c_actors[action->lookat.actor];
 		
 		vec2 dir = {0};
 		c_getpoint(action->lookat.point, dir);
@@ -537,7 +537,7 @@ c_update(void)
 	}
 	case C_LOOKWALKTO:
 	{
-		c_actordata *actor = &c_actors[action->lookwalkto.actor];
+		c_actordata_t *actor = &c_actors[action->lookwalkto.actor];
 		
 		vec2 dst = {0}, dir = {0};
 		c_getpoint(action->lookwalkto.point, dst);
@@ -588,7 +588,7 @@ c_update(void)
 	}
 	case C_SETTEXTURE:
 	{
-		c_actordata *actor = &c_actors[action->settexture.actor];
+		c_actordata_t *actor = &c_actors[action->settexture.actor];
 		actor->activetex = action->settexture.tex;
 		break;
 	}
@@ -624,7 +624,7 @@ c_update(void)
 	}
 	
 	// dequeue completed action.
-	memmove(&c_actions[0], &c_actions[1], sizeof(c_action) * --c_nactions);
+	memmove(&c_actions[0], &c_actions[1], sizeof(c_action_t) * --c_nactions);
 }
 
 void
@@ -742,7 +742,7 @@ c_rendermodels(void)
 		r_effcamstate(campos, NULL, NULL);
 		
 		vec2 lookpos = {campos[0], campos[2]};
-		c_actordata *a = &c_actors[i];
+		c_actordata_t *a = &c_actors[i];
 		
 		vec2 dir;
 		glm_vec2_sub(lookpos, a->pos, dir);
@@ -769,13 +769,13 @@ c_rendermodels(void)
 }
 
 i64
-c_putprop(r_model m, r_tex t, vec3 pos, vec3 rot, vec3 scale)
+c_putprop(r_model_t m, r_tex_t t, vec3 pos, vec3 rot, vec3 scale)
 {
 	if (c_nprops >= O_MAXPROPS)
 	{
 		return -1;
 	}
-	c_props[c_nprops] = (c_prop)
+	c_props[c_nprops] = (c_prop_t)
 	{
 		.model = m,
 		.tex = t,
@@ -787,7 +787,7 @@ c_putprop(r_model m, r_tex t, vec3 pos, vec3 rot, vec3 scale)
 }
 
 i64
-c_putpropat(r_model m, r_tex t, char point, vec3 trans, vec3 rot, vec3 scale)
+c_putpropat(r_model_t m, r_tex_t t, char point, vec3 trans, vec3 rot, vec3 scale)
 {
 	if (c_nprops >= O_MAXPROPS)
 	{
@@ -795,7 +795,7 @@ c_putpropat(r_model m, r_tex t, char point, vec3 trans, vec3 rot, vec3 scale)
 	}
 	vec2 pos = {0};
 	c_getpoint(point, pos);
-	c_props[c_nprops] = (c_prop)
+	c_props[c_nprops] = (c_prop_t)
 	{
 		.model = m,
 		.tex = t,

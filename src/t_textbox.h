@@ -12,10 +12,10 @@ typedef enum t_sprite
 	T_MUTEGERASIM,
 	
 	T_SPRITE_END
-} t_sprite;
+} t_sprite_t;
 
 bool t_active(void);
 bool t_scrolldone(void);
-void t_show(t_sprite sprite, char const *msg);
+void t_show(t_sprite_t sprite, char const *msg);
 void t_update(void);
 void t_renderoverlay(void);

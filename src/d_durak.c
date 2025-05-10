@@ -9,33 +9,33 @@ typedef enum d_ai
 	D_AGGRESSIVE = 1,
 	D_MERCIFUL,
 	D_BALANCED
-} d_ai;
+} d_ai_t;
 
-d_gamestate d_state =
+d_state_t d_state =
 {
 	.attacker = D_MATTHEW,
 	.playersactive = 0xf,
 	.selidx = -1
 };
 
-static void d_aiattack(d_pcards *pc, d_ai ai);
-static void d_aidefend(d_pcards *pc);
-static void d_playattack(d_pcards *pc);
-static void d_playdefend(d_pcards *pc);
+static void d_aiattack(d_pcards_t *pc, d_ai_t ai);
+static void d_aidefend(d_pcards_t *pc);
+static void d_playattack(d_pcards_t *pc);
+static void d_playdefend(d_pcards_t *pc);
 static i32 d_power(u8 pcard);
 static i32 d_powercmp(u8 plhs, u8 prhs);
 static i32 d_nextplayer(i32 from);
 static void d_allcovered(void);
 static void d_takeall(void);
-static void d_drawto(d_pcards *pc, usize ncards);
-static i32 d_reattack(d_pcards *pc, bool hiattack);
+static void d_drawto(d_pcards_t *pc, usize ncards);
+static i32 d_reattack(d_pcards_t *pc, bool hiattack);
 static i32 d_activeplayers(void);
-static void d_updatecard(d_carddata *card);
-static void d_shuffle(d_pcards *pc);
-static void d_addcard(d_pcards *pc, u8 pcard);
-static void d_rmcard(d_pcards *pc, usize idx);
-static void d_sort(d_pcards *pc);
-static void d_rendercard(d_carddata const *card);
+static void d_updatecard(d_card_t *card);
+static void d_shuffle(d_pcards_t *pc);
+static void d_addcard(d_pcards_t *pc, u8 pcard);
+static void d_rmcard(d_pcards_t *pc, usize idx);
+static void d_sort(d_pcards_t *pc);
+static void d_rendercard(d_card_t const *card);
 static void d_randcardsfx(void);
 
 static u8 d_playerai[D_PLAYER_END] =
@@ -47,15 +47,15 @@ static u8 d_playerai[D_PLAYER_END] =
 };
 
 void
-d_setphase(d_gamephase phase)
+d_setphase(d_phase_t phase)
 {
-	d_state.gamephase = phase;
+	d_state.phase = phase;
 	switch (phase)
 	{
 	case D_START:
 		for (usize i = 0; i < D_NMAXCARDS; ++i)
 		{
-			d_state.data[i] = (d_carddata)
+			d_state.data[i] = (d_card_t)
 			{
 				.x = 0.5f,
 				.y = 1.5f,
@@ -75,7 +75,7 @@ d_setphase(d_gamephase phase)
 		break;
 	case D_CHOOSETRUMP:
 	{
-		d_carddata const *trump = &d_state.data[d_state.draw.pcards[D_NMAXCARDS - 1]];
+		d_card_t const *trump = &d_state.data[d_state.draw.pcards[D_NMAXCARDS - 1]];
 		d_state.trumpsuit = trump->suit;
 		d_randcardsfx();
 		break;
@@ -178,7 +178,7 @@ d_renderoverlay(void)
 	}
 	
 	// at end of round, all cards need to be drawn leaving the screen.
-	if (d_state.gamephase >= D_FINISH)
+	if (d_state.phase >= D_FINISH)
 	{
 		for (usize i = 0; i < D_NMAXCARDS; ++i)
 		{
@@ -194,7 +194,7 @@ d_update(void)
 	for (usize i = 0; i < d_state.draw.ncards; ++i)
 	{
 		u8 pcard = d_state.draw.pcards[i];
-		if (d_state.gamephase >= D_CHOOSETRUMP && i + 1 == d_state.draw.ncards)
+		if (d_state.phase >= D_CHOOSETRUMP && i + 1 == d_state.draw.ncards)
 		{
 			d_state.data[pcard].flags &= ~D_COVERUP;
 			d_state.data[pcard].dstx = 0.25f;
@@ -292,7 +292,7 @@ d_update(void)
 	}
 	
 	// update game state.
-	switch (d_state.gamephase)
+	switch (d_state.phase)
 	{
 	case D_ATTACK:
 		if (!d_playerai[d_state.attacker])
@@ -336,7 +336,7 @@ d_update(void)
 }
 
 static void
-d_aiattack(d_pcards *pc, d_ai ai)
+d_aiattack(d_pcards_t *pc, d_ai_t ai)
 {
 	if (d_state.attack.ncards)
 	{
@@ -470,7 +470,7 @@ d_aiattack(d_pcards *pc, d_ai ai)
 }
 
 static void
-d_aidefend(d_pcards *pc)
+d_aidefend(d_pcards_t *pc)
 {
 	if (!pc->ncards)
 	{
@@ -510,7 +510,7 @@ d_aidefend(d_pcards *pc)
 }
 
 static void
-d_playattack(d_pcards *pc)
+d_playattack(d_pcards_t *pc)
 {
 	d_state.selidx = d_state.selidx >= pc->ncards ? 0 : d_state.selidx;
 	
@@ -529,12 +529,12 @@ d_playattack(d_pcards *pc)
 		if (pc->ncards && i_kpressed(O_KSEL))
 		{
 			u8 pcardsel = pc->pcards[d_state.selidx];
-			d_carddata const *cardsel = &d_state.data[pcardsel];
+			d_card_t const *cardsel = &d_state.data[pcardsel];
 			
 			for (usize i = 0; i < d_state.attack.ncards; ++i)
 			{
 				u8 pcardatk = d_state.attack.pcards[i];
-				d_carddata const *cardatk = &d_state.data[pcardatk];
+				d_card_t const *cardatk = &d_state.data[pcardatk];
 				
 				if (cardsel->value == cardatk->value)
 				{
@@ -552,7 +552,7 @@ d_playattack(d_pcards *pc)
 			for (usize i = 0; i < d_state.defend.ncards; ++i)
 			{
 				u8 pcarddef = d_state.defend.pcards[i];
-				d_carddata const *carddef = &d_state.data[pcarddef];
+				d_card_t const *carddef = &d_state.data[pcarddef];
 				
 				if (cardsel->value == carddef->value)
 				{
@@ -588,7 +588,7 @@ d_playattack(d_pcards *pc)
 }
 
 static void
-d_playdefend(d_pcards *pc)
+d_playdefend(d_pcards_t *pc)
 {
 	d_state.selidx = d_state.selidx >= pc->ncards ? 0 : d_state.selidx;
 	
@@ -627,7 +627,7 @@ d_playdefend(d_pcards *pc)
 static i32
 d_power(u8 pcard)
 {
-	d_carddata const *card = &d_state.data[pcard];
+	d_card_t const *card = &d_state.data[pcard];
 	
 	i32 val = card->value;
 	val += 256 * (card->suit == d_state.trumpsuit);
@@ -638,8 +638,8 @@ d_power(u8 pcard)
 static i32
 d_powercmp(u8 plhs, u8 prhs)
 {
-	d_carddata const *lhs = &d_state.data[plhs];
-	d_carddata const *rhs = &d_state.data[prhs];
+	d_card_t const *lhs = &d_state.data[plhs];
+	d_card_t const *rhs = &d_state.data[prhs];
 	
 	if (lhs->suit == d_state.trumpsuit && rhs->suit != d_state.trumpsuit)
 	{
@@ -768,7 +768,7 @@ d_takeall(void)
 }
 
 static void
-d_drawto(d_pcards *pc, usize ncards)
+d_drawto(d_pcards_t *pc, usize ncards)
 {
 	while (pc->ncards < ncards && d_state.draw.ncards)
 	{
@@ -780,17 +780,17 @@ d_drawto(d_pcards *pc, usize ncards)
 }
 
 static i32
-d_reattack(d_pcards *pc, bool hiattack)
+d_reattack(d_pcards_t *pc, bool hiattack)
 {
 	if (hiattack)
 	{
 		for (i32 i = pc->ncards - 1; i >= 0; --i)
 		{
-			d_carddata const *srccard = &d_state.data[pc->pcards[i]];
+			d_card_t const *srccard = &d_state.data[pc->pcards[i]];
 			
 			for (usize j = 0; j < d_state.attack.ncards; ++j)
 			{
-				d_carddata const *atkcard = &d_state.data[d_state.attack.pcards[j]];
+				d_card_t const *atkcard = &d_state.data[d_state.attack.pcards[j]];
 				if (srccard->value == atkcard->value)
 				{
 					return i;
@@ -799,7 +799,7 @@ d_reattack(d_pcards *pc, bool hiattack)
 			
 			for (usize j = 0; j < d_state.defend.ncards; ++j)
 			{
-				d_carddata const *defcard = &d_state.data[d_state.defend.pcards[j]];
+				d_card_t const *defcard = &d_state.data[d_state.defend.pcards[j]];
 				if (srccard->value == defcard->value)
 				{
 					return i;
@@ -811,11 +811,11 @@ d_reattack(d_pcards *pc, bool hiattack)
 	{
 		for (i32 i = 0; i < pc->ncards; ++i)
 		{
-			d_carddata const *srccard = &d_state.data[pc->pcards[i]];
+			d_card_t const *srccard = &d_state.data[pc->pcards[i]];
 			
 			for (usize j = 0; j < d_state.attack.ncards; ++j)
 			{
-				d_carddata const *atkcard = &d_state.data[d_state.defend.pcards[j]];
+				d_card_t const *atkcard = &d_state.data[d_state.defend.pcards[j]];
 				if (srccard->value == atkcard->value)
 				{
 					return i;
@@ -824,7 +824,7 @@ d_reattack(d_pcards *pc, bool hiattack)
 			
 			for (usize j = 0; j < d_state.defend.ncards; ++j)
 			{
-				d_carddata const *defcard = &d_state.data[d_state.defend.pcards[j]];
+				d_card_t const *defcard = &d_state.data[d_state.defend.pcards[j]];
 				if (srccard->value == defcard->value)
 				{
 					return i;
@@ -848,7 +848,7 @@ d_activeplayers(void)
 }
 
 static void
-d_updatecard(d_carddata *card)
+d_updatecard(d_card_t *card)
 {
 	card->x = glm_lerp(card->x, card->dstx, O_CARDSPEED);
 	card->y = glm_lerp(card->y, card->dsty, O_CARDSPEED);
@@ -856,7 +856,7 @@ d_updatecard(d_carddata *card)
 }
 
 static void
-d_shuffle(d_pcards *pc)
+d_shuffle(d_pcards_t *pc)
 {
 	for (i32 i = 0; i < pc->ncards; ++i)
 	{
@@ -868,7 +868,7 @@ d_shuffle(d_pcards *pc)
 }
 
 static void
-d_addcard(d_pcards *pc, u8 pcard)
+d_addcard(d_pcards_t *pc, u8 pcard)
 {
 	if (pc->ncards < D_NMAXCARDS)
 	{
@@ -877,13 +877,13 @@ d_addcard(d_pcards *pc, u8 pcard)
 }
 
 static void
-d_rmcard(d_pcards *pc, usize idx)
+d_rmcard(d_pcards_t *pc, usize idx)
 {
 	memmove(&pc->pcards[idx], &pc->pcards[idx + 1], --pc->ncards - idx);
 }
 
 static void
-d_sort(d_pcards *pc)
+d_sort(d_pcards_t *pc)
 {
 	for (usize i = 0; i < pc->ncards; ++i)
 	{
@@ -900,7 +900,7 @@ d_sort(d_pcards *pc)
 }
 
 static void
-d_rendercard(d_carddata const *card)
+d_rendercard(d_card_t const *card)
 {
 	if ((card->flags & D_SHOW) == 0)
 	{
@@ -949,6 +949,6 @@ d_rendercard(d_carddata const *card)
 static void
 d_randcardsfx(void)
 {
-	s_sfx sfx = randint(S_CARD0, S_CARD8 + 1);
+	s_sfx_t sfx = randint(S_CARD0, S_CARD8 + 1);
 	s_playsfx(sfx);
 }

@@ -29,9 +29,9 @@ typedef enum d_player
 	D_GERASIM,
 	
 	D_PLAYER_END
-} d_player;
+} d_player_t;
 
-typedef enum d_gamephase
+typedef enum d_phase
 {
 	D_START = 1,
 	D_CHOOSETRUMP,
@@ -39,49 +39,49 @@ typedef enum d_gamephase
 	D_ATTACK,
 	D_DEFEND,
 	D_FINISH
-} d_gamephase;
+} d_phase_t;
 
 typedef enum d_cardflag
 {
 	D_SHOW = 0x1,
 	D_COVERUP = 0x2
-} d_cardflag;
+} d_cardflag_t;
 
-typedef struct d_carddata
+typedef struct d_card
 {
 	f32 x, y, rot;
 	f32 dstx, dsty, dstrot;
 	u16 flags;
 	u8 suit, value;
-} d_carddata;
+} d_card_t;
 
 typedef struct d_pcards
 {
 	u8 pcards[D_NMAXCARDS];
 	u8 ncards;
-} d_pcards;
+} d_pcards_t;
 
-typedef struct d_gamestate
+typedef struct d_state
 {
-	d_carddata data[D_NMAXCARDS];
+	d_card_t data[D_NMAXCARDS];
 	
-	d_pcards players[D_PLAYER_END];
-	d_pcards draw;
-	d_pcards attack;
-	d_pcards defend;
-	d_pcards covered;
+	d_pcards_t players[D_PLAYER_END];
+	d_pcards_t draw;
+	d_pcards_t attack;
+	d_pcards_t defend;
+	d_pcards_t covered;
 	
 	u32 acttick;
 	u8 losses[D_PLAYER_END];
 	u8 trumpsuit;
 	u8 attacker;
-	u8 round, gamephase;
+	u8 round, phase;
 	u8 playersactive; // bit 0 = player 0 active, bit 1 = player 1, etc.
 	u8 selidx;
-} d_gamestate;
+} d_state_t;
 
-extern d_gamestate d_state;
+extern d_state_t d_state;
 
-void d_setphase(d_gamephase phase);
+void d_setphase(d_phase_t phase);
 void d_renderoverlay(void);
 void d_update(void);

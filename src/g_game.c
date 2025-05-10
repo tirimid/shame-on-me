@@ -118,7 +118,7 @@ static void
 g_setupenv(void)
 {
 	// set map.
-	c_map = (c_mapdata)
+	c_map = (c_map_t)
 	{
 		.data = G_MAP,
 		.w = G_MAPWIDTH,

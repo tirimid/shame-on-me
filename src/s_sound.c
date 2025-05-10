@@ -14,9 +14,9 @@ typedef struct s_sound
 	u8 const *data;
 	u32 const *size;
 	Mix_Chunk *chunk;
-} s_sound;
+} s_sound_t;
 
-static s_sound s_sfxsounds[S_SFX_END] =
+static s_sound_t s_sfxsounds[S_SFX_END] =
 {
 	S_INCOGG(speak_arkady),
 	S_INCOGG(speak_gerasim),
@@ -91,7 +91,7 @@ s_sfxvolume(f32 vol)
 }
 
 void
-s_playsfx(s_sfx id)
+s_playsfx(s_sfx_t id)
 {
 	Mix_PlayChannel(-1, s_sfxsounds[id].chunk, 0);
 }

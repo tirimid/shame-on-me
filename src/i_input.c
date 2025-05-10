@@ -5,7 +5,7 @@ static u8 i_kdownstates[1024 / 8];
 static u8 i_kpressstates[1024 / 8], i_kreleasestates[1024 / 8];
 
 void
-i_setkstate(SDL_Event const *e, i_input input)
+i_setkstate(SDL_Event const *e, i_input_t input)
 {
 	if (e->key.repeat)
 	{

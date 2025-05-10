@@ -18,9 +18,9 @@ typedef enum s_sfx
 	S_CARDSHUFFLE,
 	
 	S_SFX_END
-} s_sfx;
+} s_sfx_t;
 
 i32 s_init(void);
 void s_quit(void);
 void s_sfxvolume(f32 vol);
-void s_playsfx(s_sfx id);
+void s_playsfx(s_sfx_t id);

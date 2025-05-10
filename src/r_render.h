@@ -12,7 +12,7 @@ typedef enum r_model
 	R_CARDSTACK,
 	
 	R_MODEL_END
-} r_model;
+} r_model_t;
 
 typedef enum r_shader
 {
@@ -21,7 +21,7 @@ typedef enum r_shader
 	R_SHADOW,
 	
 	R_SHADER_END
-} r_shader;
+} r_shader_t;
 
 typedef enum r_tex
 {
@@ -80,22 +80,22 @@ typedef enum r_tex
 	R_EYESDUMMYFACE,
 	
 	R_TEX_END
-} r_tex;
+} r_tex_t;
 
 typedef enum r_font
 {
 	R_VCROSDMONO = 0,
 	
 	R_FONT_END
-} r_font;
+} r_font_t;
 
 typedef enum r_fadestatus
 {
 	R_FADEOUT = 0,
 	R_FADEIN
-} r_fadestatus;
+} r_fadestatus_t;
 
-typedef struct r_camera
+typedef struct r_cam
 {
 	// handled by other modules.
 	struct
@@ -112,9 +112,9 @@ typedef struct r_camera
 		vec3 dstpos;
 		f32 dstpitch, dstyaw;
 	} pan;
-} r_camera;
+} r_cam_t;
 
-extern r_camera r_cam;
+extern r_cam_t r_cam;
 
 i32 r_init(void);
 bool r_lightenabled(usize idx);
@@ -124,16 +124,16 @@ void r_beginbase(void);
 void r_beginoverlay(void);
 void r_present(void);
 void r_resize(i32 x, i32 y);
-void r_setshader(r_shader s);
-void r_settex(r_tex t);
-void r_rendermodel(r_model m, vec3 pos, vec3 rot, vec3 scale);
+void r_setshader(r_shader_t s);
+void r_settex(r_tex_t t);
+void r_rendermodel(r_model_t m, vec3 pos, vec3 rot, vec3 scale);
 i32 r_putlight(vec3 pos, f32 intensity);
 void r_setlightintensity(usize idx, f32 intensity);
-void r_renderrect(r_tex t, i32 x, i32 y, i32 w, i32 h, f32 angle);
-void r_rendertext(r_font f, char const *text, i32 x, i32 y, i32 w, i32 h);
+void r_renderrect(r_tex_t t, i32 x, i32 y, i32 w, i32 h, f32 angle);
+void r_rendertext(r_font_t f, char const *text, i32 x, i32 y, i32 w, i32 h);
 void r_batchtile(vec3 pos, vec3 rot, vec3 scale);
 void r_flushtiles(void);
 void r_update(void);
-void r_fade(r_fadestatus fs);
+void r_fade(r_fadestatus_t fs);
 void r_pancam(vec3 pos, f32 pitch, f32 yaw);
 void r_effcamstate(OUT vec3 pos, OUT f32 *pitch, OUT f32 *yaw);

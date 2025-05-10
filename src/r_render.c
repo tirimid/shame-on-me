@@ -44,14 +44,14 @@ typedef struct r_modeldata
 	u32 const *idxs;
 	u32 const *nverts, *nidxs;
 	u32 vbo, ibo, vao;
-} r_modeldata;
+} r_modeldata_t;
 
 typedef struct r_shaderdata
 {
 	char *geosrc, *vertsrc, *fragsrc;
 	u32 const *geolen, *vertlen, *fraglen;
 	u32 prog;
-} r_shaderdata;
+} r_shaderdata_t;
 
 typedef struct r_texdata
 {
@@ -59,16 +59,16 @@ typedef struct r_texdata
 	u32 const *size;
 	SDL_Surface *surf;
 	u32 tex;
-} r_texdata;
+} r_texdata_t;
 
 typedef struct r_fontdata
 {
 	u8 const *data;
 	u32 const *size;
 	TTF_Font *font;
-} r_fontdata;
+} r_fontdata_t;
 
-typedef struct r_uniformdata
+typedef struct r_uniforms
 {
 	u32 modelmats, normalmats;
 	u32 viewmat, projmat;
@@ -76,9 +76,9 @@ typedef struct r_uniformdata
 	u32 lights, shadowmaps;
 	u32 lightpos, shadowviewmats;
 	u32 fadebrightness;
-} r_uniformdata;
+} r_uniforms_t;
 
-typedef struct r_renderstate
+typedef struct r_state
 {
 	u32 framebuf, colorbuf, depthbuf;
 	vec4 lights[O_MAXLIGHTS];
@@ -86,24 +86,24 @@ typedef struct r_renderstate
 	u32 shadowfbos[O_MAXLIGHTS];
 	usize nlights;
 	f32 fadebrightness;
-	r_fadestatus fadestatus;
+	r_fadestatus_t fadestatus;
 	mat4 batchmodelmats[O_MAXTILEBATCH];
 	mat3 batchnormmats[O_MAXTILEBATCH];
 	usize batchsize;
-} r_renderstate;
+} r_state_t;
 
-r_camera r_cam;
+r_cam_t r_cam;
 
 static void r_preproc(char *src, usize len);
 static void r_deleteglctx(void);
 
 static SDL_Window *r_wnd;
 static SDL_GLContext r_glctx;
-static r_renderstate r_state;
-static r_uniformdata r_uniforms;
+static r_state_t r_state;
+static r_uniforms_t r_uniforms;
 
 // data tables.
-static r_modeldata r_models[R_MODEL_END] =
+static r_modeldata_t r_models[R_MODEL_END] =
 {
 	R_INCMODEL(plane),
 	R_INCMODEL(cube),
@@ -115,14 +115,14 @@ static r_modeldata r_models[R_MODEL_END] =
 	R_INCMODEL(card_stack)
 };
 
-static r_shaderdata r_shaders[R_SHADER_END] =
+static r_shaderdata_t r_shaders[R_SHADER_END] =
 {
 	R_INCSHADER(base),
 	R_INCSHADER(overlay),
 	R_INCGEOSHADER(shadow)
 };
 
-static r_texdata r_texs[R_TEX_END] =
+static r_texdata_t r_texs[R_TEX_END] =
 {
 	R_INCTEX(something),
 	R_INCTEX(floor),
@@ -179,7 +179,7 @@ static r_texdata r_texs[R_TEX_END] =
 	R_INCTEX(eyes_dummy_face)
 };
 
-static r_fontdata r_fonts[R_FONT_END] =
+static r_fontdata_t r_fonts[R_FONT_END] =
 {
 	R_INCFONT(vcr_osd_mono)
 };
@@ -602,7 +602,7 @@ r_resize(i32 x, i32 y)
 }
 
 void
-r_setshader(r_shader s)
+r_setshader(r_shader_t s)
 {
 	u32 p = r_shaders[s].prog;
 	
@@ -622,7 +622,7 @@ r_setshader(r_shader s)
 }
 
 void
-r_settex(r_tex t)
+r_settex(r_tex_t t)
 {
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, r_texs[t].tex);
@@ -630,7 +630,7 @@ r_settex(r_tex t)
 }
 
 void
-r_rendermodel(r_model m, vec3 pos, vec3 rot, vec3 scale)
+r_rendermodel(r_model_t m, vec3 pos, vec3 rot, vec3 scale)
 {
 	// create transformation matrices.
 	mat4 modelmat;
@@ -678,7 +678,7 @@ r_setlightintensity(usize idx, f32 intensity)
 }
 
 void
-r_renderrect(r_tex t, i32 x, i32 y, i32 w, i32 h, f32 angle)
+r_renderrect(r_tex_t t, i32 x, i32 y, i32 w, i32 h, f32 angle)
 {
 	vec3 pos = {x + w / 2.0f, y + h / 2.0f, 0.0f};
 	vec3 rot = {GLM_PI / 2.0f, GLM_PI + angle, GLM_PI};
@@ -689,7 +689,7 @@ r_renderrect(r_tex t, i32 x, i32 y, i32 w, i32 h, f32 angle)
 }
 
 void
-r_rendertext(r_font f, char const *text, i32 x, i32 y, i32 w, i32 h)
+r_rendertext(r_font_t f, char const *text, i32 x, i32 y, i32 w, i32 h)
 {
 	// TTF render out text to create texture.
 	SDL_Surface *solid = TTF_RenderUTF8_Solid_Wrapped(
@@ -810,7 +810,7 @@ r_update(void)
 }
 
 void
-r_fade(r_fadestatus fs)
+r_fade(r_fadestatus_t fs)
 {
 	r_state.fadestatus = fs;
 }

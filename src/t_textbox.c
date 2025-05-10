@@ -45,7 +45,7 @@ t_scrolldone(void)
 }
 
 void
-t_show(t_sprite sprite, char const *msg)
+t_show(t_sprite_t sprite, char const *msg)
 {
 	if (t_curactive)
 	{
