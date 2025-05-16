@@ -72,6 +72,22 @@ d_setphase(d_phase_t phase)
 		d_shuffle(&d_state.draw);
 		s_playsfx(S_CARDSHUFFLE);
 		
+		d_state.playersactive = 0;
+		for (usize i = 0; i < D_PLAYER_END; ++i)
+		{
+			if (d_state.losses[i] < O_DEATHLOSSES)
+			{
+				d_state.playersactive |= 1 << i;
+			}
+			else
+			{
+				d_state.losses[i] = D_DEAD;
+			}
+		}
+		
+		++d_state.round;
+		d_state.attacker = d_nextplayer(D_PETER);
+		
 		break;
 	case D_CHOOSETRUMP:
 	{
@@ -83,7 +99,10 @@ d_setphase(d_phase_t phase)
 	case D_DEALCARDS:
 		for (usize i = 0; i < D_PLAYER_END; ++i)
 		{
-			d_drawto(&d_state.players[i], D_NDEALCARDS);
+			if (d_state.playersactive & 1 << i)
+			{
+				d_drawto(&d_state.players[i], D_NDEALCARDS);
+			}
 		}
 		d_randcardsfx();
 		break;
@@ -103,6 +122,10 @@ d_setphase(d_phase_t phase)
 		for (usize i = 0; i < D_PLAYER_END; ++i)
 		{
 			d_state.players[i].ncards = 0;
+			if (d_state.playersactive & 1 << i)
+			{
+				++d_state.losses[i];
+			}
 		}
 		
 		for (usize i = 0; i < D_NMAXCARDS; ++i)
@@ -112,17 +135,7 @@ d_setphase(d_phase_t phase)
 			d_state.data[i].dstrot = 0.0f;
 		}
 		
-		if (d_state.round == 0)
-		{
-			// tutorial round.
-			g_posttutorialseq();
-		}
-		else
-		{
-			// TODO: handle non-tutorial round end logic.
-		}
-		
-		++d_state.round;
+		g_roundendseq();
 		
 		break;
 	default:

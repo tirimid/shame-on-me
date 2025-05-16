@@ -27,14 +27,15 @@ static usize g_hallwaylight, g_entrylight, g_roomlight;
 void
 g_loop(void)
 {
-	(void)g_fastintroseq; // TODO: remove temporary warning suppression.
-	
 	NEWTIMER(largetimer);
 	NEWTIMER(stagetimer);
 	
 	g_setupenv();
-	g_introseq();
-	g_tutorialseq();
+	//g_introseq();
+	//g_tutorialseq();
+	d_state.round = 1;
+	g_fastintroseq();
+	g_roundendseq();
 	
 	for (;;)
 	{
@@ -352,7 +353,6 @@ g_introseq(void)
 	c_speak(T_ARKADY, "\"I don't understand\"");
 	c_wait(500);
 	c_speak(T_PETER, "\"We're going to play some special 'high stakes' cards\"");
-	c_speak(T_MUTEARKADY, "(How sick)");
 	c_speak(T_ARKADY, "\"I don't suppose I have much of a choice\"");
 	c_wait(800);
 	c_speak(T_PETER, "\"No, Arkady, you don't have a choice\"");
@@ -374,14 +374,29 @@ g_introseq(void)
 	c_lookat(C_ARKADY, 'I');
 	c_wait(500);
 	c_lookat(C_ARKADY, 'J');
-	c_wait(500);
+	c_speak(T_PETER, "\"Hey, Arkady\"");
+	c_speak(T_ARKADY, "\"Yes?\"");
+	c_speak(T_PETER, "\"Put this around your neck\"");
+	c_speak(T_MUTEPETER, "He holds out a dodgily-built metal collar");
+	c_speak(T_MUTEARKADY, "...");
+	c_speak(T_ARKADY, "\"Wait, what?\"");
+	c_speak(T_PETER, "\"We've gotta keep you honest if you lose\"");
+	c_speak(T_PETER, "\"Us three've already got ours on\"");
+	c_lookat(C_ARKADY, 'L');
+	c_wait(100);
+	c_lookat(C_ARKADY, 'J');
+	c_speak(T_MUTEARKADY, "(I glance under their coats, indeed they do)");
+	c_speak(T_PETER, "\"Put it on, Arkady.\"");
+	c_speak(T_MUTEARKADY, "(As I clasp it around my neck, the weight of the situation dawns on me)");
+	c_speak(T_MUTEARKADY, "...");
+	c_speak(T_MUTEPETER, "Peter chuckles lightly under his breath");
+	c_wait(1500);
 	c_lookat(C_ARKADY, 'I');
-	c_speak(T_ARKADY, "\"So, what are we going to play?\"");
+	c_speak(T_ARKADY, "\"What are we going to play?\"");
 	c_speak(T_MATTHEW, "\"Do you know how to play Fool?\"");
 	c_speak(T_ARKADY, "\"No, I can't say I do...\"");
 	c_speak(T_MATTHEW, "\"That's alright, we'll show you how to play a simplified variant\"");
 	c_wait(800);
-	c_speak(T_MATTHEW, "\"Well then, shall we start?\"");
 }
 
 void
@@ -405,12 +420,12 @@ g_fastintroseq(void)
 	c_wait(600);
 	c_setlightintensity(g_roomlight, 1.5f);
 	c_wait(500);
-	c_speak(T_MATTHEW, "\"Well then, shall we start?\"");
 }
 
 void
 g_tutorialseq(void)
 {
+	c_speak(T_MATTHEW, "\"Well then, shall we start?\"");
 	c_pancamera((vec3){0.0f, 0.0f, 2.0f}, -90.0f, 0.0f);
 	c_wait(1200);
 	c_setdurakphase(D_START);
@@ -459,6 +474,7 @@ g_tutorialseq(void)
 	c_speak(T_MATTHEW, "\"You all ready?\"");
 	c_speak(T_MUTEGERASIM, "Gerasim picks up his cards, he has clearly played before");
 	c_speak(T_ARKADY, "\"I think so\"");
+	c_speak(T_MUTEARKADY, "(The cards in my hands go from weakest to strongest, I can't forget how the power order works)");
 	c_speak(T_PETER, "\"What difference does it make?\"");
 	c_speak(T_MATTHEW, "\"I suppose that's true\"");
 	c_speak(T_MATTHEW, "\"Let's just get started\"");
@@ -467,16 +483,51 @@ g_tutorialseq(void)
 }
 
 void
-g_posttutorialseq(void)
+g_roundendseq(void)
 {
-	c_wait(800);
-	c_pancamera((vec3){0.0f, 0.0f, 0.0f}, 0.0f, 0.0f);
-	c_wait(1200);
-	c_speak(T_MATTHEW, "\"Since that was just a practice round, nothing happens\"");
-	c_speak(T_MATTHEW, "\"Are the rules of the game clearer now, Arkady?\"");
-	c_speak(T_ARKADY, "\"Yeah, I think so...\"");
-	c_speak(T_MUTEMATTHEW, "...");
-	c_speak(T_MATTHEW, "\"That's great, probably\"");
+	if (d_state.round == 1)
+	{
+		c_wait(800);
+		c_pancamera((vec3){0.0f, 0.0f, 0.0f}, 0.0f, 0.0f);
+		c_wait(1200);
+		c_speak(T_MATTHEW, "\"Since that was just a practice round, nothing happens\"");
+		c_speak(T_MATTHEW, "\"Are the rules of the game clearer now, Arkady?\"");
+		c_speak(T_ARKADY, "\"Yeah, I think so...\"");
+		c_speak(T_MUTEMATTHEW, "...");
+		c_speak(T_MATTHEW, "\"That's great, probably\"");
+		c_wait(2000);
+		c_speak(T_MATTHEW, "\"I guess we should really get started...\"");
+		c_speak(T_MATTHEW, "\"For real\"");
+		c_wait(400);
+	}
 	
-	// TODO: finish post-tutorial sequence.
+	c_pancamera((vec3){0.0f, 0.0f, 2.0f}, -90.0f, 0.0f);
+	c_wait(1200);
+	c_setdurakphase(D_START);
+	c_wait(400);
+	c_setdurakphase(D_CHOOSETRUMP);
+	c_wait(400);
+	c_setdurakphase(D_DEALCARDS);
+	c_wait(400);
+	c_setdurakphase(D_ATTACK);
+}
+
+void
+g_arkadydeathseq(void)
+{
+}
+
+void
+g_peterdeathseq(void)
+{
+}
+
+void
+g_matthewdeathseq(void)
+{
+}
+
+void
+g_gerasimdeathseq(void)
+{
 }

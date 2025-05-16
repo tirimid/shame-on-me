@@ -64,6 +64,7 @@
 #define O_ATTACKTICK 50
 #define O_DEFENDTICK 30
 #define O_VARYTICK 50
+#define O_DEATHLOSSES 2
 
 // sound options.
 #define O_VOLUME 0.4f

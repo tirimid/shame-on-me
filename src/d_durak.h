@@ -21,6 +21,8 @@
 #define D_NMAXCARDS 36
 #define D_NDEALCARDS 6
 
+#define D_DEAD 0xff
+
 typedef enum d_player
 {
 	D_ARKADY = 0,
@@ -72,12 +74,12 @@ typedef struct d_state
 	d_pcards_t covered;
 	
 	u32 acttick;
-	u8 losses[D_PLAYER_END];
+	u8 losses[D_PLAYER_END]; // set to D_DEAD upon next round after loss.
 	u8 trumpsuit;
 	u8 attacker;
 	u8 round, phase;
-	u8 playersactive; // bit 0 = player 0 active, bit 1 = player 1, etc.
 	u8 selidx;
+	u8 playersactive; // bit 0 = player 0 active, bit 1 = player 1, etc.
 } d_state_t;
 
 extern d_state_t d_state;
