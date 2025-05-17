@@ -40,6 +40,11 @@
 #define O_CARDSPEED 0.2f
 #define O_TEXTSCROLL 1
 #define O_VOICETICK 10
+#define O_BASEGLOBALSHADE {1.0f, 0.9f, 0.8f}
+#define O_DEATHGLOBALSHADE {1.0f, 0.0f, 0.0f}
+#define O_QUAKESHAKE 2.5f
+#define O_DEATHSHAKE 1.0f
+#define O_PLAYERDEATHSHAKE 4.0f
 
 // render options.
 #ifdef DYNAMICLIGHTS
@@ -58,7 +63,9 @@
 #define O_FONTCOLOR {255, 255, 255, 255}
 #define O_SHADOWMAPSIZE 1024
 #define O_MAXTILEBATCH 64
-#define O_GLOBALSHADE "1.0,0.9,0.8"
+#define O_SHAKEATTEN 0.98f
+#define O_SHAKEINTENSITY 0.6f
+#define O_SHAKERETSPEED 0.9f
 
 // durak options.
 #define O_ATTACKTICK 50

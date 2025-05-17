@@ -76,6 +76,7 @@ typedef struct r_uniforms
 	u32 lights, shadowmaps;
 	u32 lightpos, shadowviewmats;
 	u32 fadebrightness;
+	u32 globalshade;
 } r_uniforms_t;
 
 typedef struct r_state
@@ -90,6 +91,7 @@ typedef struct r_state
 	mat4 batchmodelmats[O_MAXTILEBATCH];
 	mat3 batchnormmats[O_MAXTILEBATCH];
 	usize batchsize;
+	vec3 globalshade;
 } r_state_t;
 
 r_cam_t r_cam;
@@ -436,6 +438,8 @@ r_init(void)
 		glReadBuffer(GL_NONE);
 	}
 	
+	r_globalshade((vec3)O_BASEGLOBALSHADE);
+	
 	// set GL state.
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glFrontFace(GL_CW);
@@ -619,6 +623,9 @@ r_setshader(r_shader_t s)
 	r_uniforms.lightpos = glGetUniformLocation(p, "lightpos");
 	r_uniforms.shadowviewmats = glGetUniformLocation(p, "shadowviewmats");
 	r_uniforms.fadebrightness = glGetUniformLocation(p, "fadebrightness");
+	r_uniforms.globalshade = glGetUniformLocation(p, "globalshade");
+	
+	glUniform3fv(r_uniforms.globalshade, 1, r_state.globalshade);
 }
 
 void
@@ -807,6 +814,13 @@ r_update(void)
 	r_cam.pan.pitch = interpangle(r_cam.pan.pitch, r_cam.pan.dstpitch, O_PANROTSPEED);
 	r_cam.pan.yaw = interpangle(r_cam.pan.yaw, r_cam.pan.dstyaw, O_PANROTSPEED);
 	glm_vec3_lerp(r_cam.pan.pos, r_cam.pan.dstpos, O_PANPOSSPEED, r_cam.pan.pos);
+	
+	// update camera shake.
+	r_cam.shake.pos[0] += O_SHAKEINTENSITY * randfloat(-r_cam.base.shake, r_cam.base.shake);
+	r_cam.shake.pos[1] += O_SHAKEINTENSITY * randfloat(-r_cam.base.shake, r_cam.base.shake);
+	r_cam.shake.pos[2] += O_SHAKEINTENSITY * randfloat(-r_cam.base.shake, r_cam.base.shake);
+	glm_vec3_lerp(r_cam.shake.pos, (vec3){0}, O_SHAKERETSPEED, r_cam.shake.pos);
+	r_cam.base.shake *= O_SHAKEATTEN;
 }
 
 void
@@ -830,6 +844,7 @@ r_effcamstate(OUT vec3 pos, OUT f32 *pitch, OUT f32 *yaw)
 	{
 		glm_vec3_copy(r_cam.base.pos, pos);
 		glm_vec3_add(r_cam.pan.pos, pos, pos);
+		glm_vec3_add(r_cam.shake.pos, pos, pos);
 	}
 	if (pitch)
 	{
@@ -839,6 +854,12 @@ r_effcamstate(OUT vec3 pos, OUT f32 *pitch, OUT f32 *yaw)
 	{
 		*yaw = r_cam.base.yaw + r_cam.pan.yaw;
 	}
+}
+
+void
+r_globalshade(vec3 shade)
+{
+	glm_vec3_copy(shade, r_state.globalshade);
 }
 
 static void
@@ -876,11 +897,6 @@ r_preproc(char *src, usize len)
 		{
 			usize cl = snprintf(&src[i], 15, "%u", O_MAXTILEBATCH);
 			memset(&src[i + cl], ' ', 15 - cl);
-		}
-		else if (len - i >= 14 && !strncmp(&src[i], "$O_GLOBALSHADE", 14))
-		{
-			usize cl = snprintf(&src[i], 14, "%s", O_GLOBALSHADE);
-			memset(&src[i + cl], ' ', 14 - cl);
 		}
 	}
 }

@@ -31,11 +31,11 @@ g_loop(void)
 	NEWTIMER(stagetimer);
 	
 	g_setupenv();
-	g_introseq();
-	g_tutorialseq();
-	//d_state.round = 1;
-	//g_fastintroseq();
-	//g_roundendseq();
+	//g_introseq();
+	//g_tutorialseq();
+	d_state.round = 1;
+	g_fastintroseq();
+	g_roundendseq();
 	
 	for (;;)
 	{
@@ -502,9 +502,11 @@ g_roundendseq(void)
 		c_speak(T_ARKADY, "\"Yeah, I think so...\"");
 		c_speak(T_MUTEMATTHEW, "...");
 		c_speak(T_MATTHEW, "\"That's great, probably\"");
+		c_wait(600);
+		c_shakecamera(O_QUAKESHAKE);
 		c_wait(2000);
 		c_speak(T_MATTHEW, "\"I guess we should really get started...\"");
-		c_speak(T_MATTHEW, "\"For real\"");
+		c_speak(T_MATTHEW, "\"This time, we're not just practicing\"");
 		c_wait(400);
 	}
 	else if (d_state.losses[D_ARKADY] == O_DEATHLOSSES)
@@ -579,11 +581,22 @@ g_arkadydeathseq(void)
 		c_lookat(C_ARKADY, 'I');
 		c_speak(T_MUTEARKADY, "(Please, do something)");
 		c_speak(T_PETER, "\"Son of a...\"");
+		c_shakecamera(O_PLAYERDEATHSHAKE);
 		c_playsfx(S_EXPLODE);
+		c_globalshade((vec3)O_DEATHGLOBALSHADE);
 		c_wait(100);
 		c_quit();
 		break;
 	case 2:
+		if (d_state.losses[D_PETER] == D_DEAD)
+		{
+		}
+		else if (d_state.losses[D_MATTHEW] == D_DEAD)
+		{
+		}
+		else // gerasim.
+		{
+		}
 		break;
 	case 3:
 		break;
@@ -626,6 +639,7 @@ g_peterdeathseq(void)
 		c_speak(T_PETER, "\"I didn't think it would go this way\"");
 		c_walkto(C_PETER, 'F');
 		c_wait(1300);
+		c_shakecamera(O_DEATHSHAKE);
 		c_playsfx(S_EXPLODEMUFFLED);
 		c_wait(600);
 		c_speak(T_MUTEARKADY, "(I feel nauseous)");
@@ -638,6 +652,12 @@ g_peterdeathseq(void)
 		c_speak(T_MUTEARKADY, "(I probably look so pathetic right now)");
 		break;
 	case 2:
+		if (d_state.losses[D_MATTHEW] == D_DEAD)
+		{
+		}
+		else // gerasim.
+		{
+		}
 		break;
 	case 3:
 		break;
@@ -671,7 +691,7 @@ g_matthewdeathseq(void)
 		c_speak(T_MUTEARKADY, "(It's the unmistakable expression a person makes when they know they're about to die)");
 		c_speak(T_PETER, "\"Fuck outta here!\"");
 		c_lookat(C_ARKADY, 'J');
-		c_speak(T_PETER, "\"You better not leave your goddamn brain fractions on the table when you die!\"");
+		c_speak(T_PETER, "\"You better not leave your goddamn brain juices on the table when you die!\"");
 		c_speak(T_MATTHEW, "\"I can't take this\"");
 		c_lookat(C_ARKADY, 'I');
 		c_walkto(C_MATTHEW, 'O');
@@ -680,6 +700,7 @@ g_matthewdeathseq(void)
 		c_lookat(C_ARKADY, 'H');
 		c_speak(T_ARKADY, "\"I'm sorr-\"");
 		c_walkto(C_MATTHEW, 'F');
+		c_shakecamera(O_DEATHSHAKE);
 		c_playsfx(S_EXPLODEMUFFLED);
 		c_wait(1800);
 		c_speak(T_PETER, "\"I'll deal the cards this time\"");
@@ -688,6 +709,12 @@ g_matthewdeathseq(void)
 		c_lookat(C_ARKADY, 'I');
 		break;
 	case 2:
+		if (d_state.losses[D_PETER] == D_DEAD)
+		{
+		}
+		else // gerasim.
+		{
+		}
 		break;
 	case 3:
 		break;
@@ -722,6 +749,7 @@ g_gerasimdeathseq(void)
 		c_wait(900);
 		c_walkto(C_GERASIM, 'F');
 		c_wait(600);
+		c_shakecamera(O_DEATHSHAKE);
 		c_playsfx(S_EXPLODEMUFFLED);
 		c_wait(1300);
 		c_speak(T_MATTHEW, "\"The truth is, I know he isn't that upset about it\"");
@@ -736,6 +764,12 @@ g_gerasimdeathseq(void)
 		c_speak(T_MUTEARKADY, "(I'm so scared, I just wish this were all over)");
 		break;
 	case 2:
+		if (d_state.losses[D_PETER] == D_DEAD)
+		{
+		}
+		else // matthew.
+		{
+		}
 		break;
 	case 3:
 		break;

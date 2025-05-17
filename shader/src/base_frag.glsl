@@ -5,7 +5,6 @@
 #define LIGHTSTEP $O_LIGHTSTEP
 #define CAMCLIPFAR $O_CAMCLIPFAR
 #define SHADOWBIAS $O_SHADOWBIAS
-#define GLOBALSHADE vec3($O_GLOBALSHADE)
 
 in vec2 texcoord;
 in vec3 normal;
@@ -15,6 +14,7 @@ uniform vec4 lights[MAXLIGHTS];
 uniform samplerCube shadowmaps[MAXLIGHTS];
 uniform sampler2D tex;
 uniform float fadebrightness;
+uniform vec3 globalshade;
 
 out vec4 col;
 
@@ -55,5 +55,5 @@ main()
 	brightness -= brightness - LIGHTSTEP * floor(brightness / LIGHTSTEP);
 	brightness += AMBIENTLIGHT;
 
-	col = vec4(fadebrightness * brightness * GLOBALSHADE * pix.rgb, 1.0);
+	col = vec4(fadebrightness * brightness * globalshade * pix.rgb, 1.0);
 }

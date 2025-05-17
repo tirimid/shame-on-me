@@ -39,3 +39,4 @@ void makenorm(mat4 xform, OUT mat3 out);
 void begintimer(OUT u64 *timer);
 void endtimer(u64 timer, char const *name);
 i32 randint(i32 lb, i32 ub);
+f32 randfloat(f32 lb, f32 ub);

@@ -102,5 +102,20 @@ endtimer(u64 timer, char const *name)
 i32
 randint(i32 lb, i32 ub)
 {
-	return rand() % (ub - lb) + lb;
+	if (ub - lb)
+	{
+		return rand() % (ub - lb) + lb;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+f32
+randfloat(f32 lb, f32 ub)
+{
+	i32 iub = 100.0f * (ub - lb);
+	f32 rand = randint(0, iub) / 100.0f;
+	return rand + lb;
 }

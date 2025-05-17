@@ -21,7 +21,9 @@ typedef enum c_actiontype
 	C_PANCAMERA,
 	C_SETDURAKPHASE,
 	C_QUIT,
-	C_PLAYSFX
+	C_PLAYSFX,
+	C_GLOBALSHADE,
+	C_SHAKECAMERA
 } c_actiontype_t;
 
 typedef union c_action
@@ -129,6 +131,18 @@ typedef union c_action
 		u8 type;
 		s_sfx_t sfx;
 	} playsfx;
+	
+	struct
+	{
+		u8 type;
+		vec3 shade;
+	} globalshade;
+	
+	struct
+	{
+		u8 type;
+		f32 intensity;
+	} shakecamera;
 } c_action_t;
 
 typedef struct c_actordata
@@ -174,283 +188,299 @@ static usize c_nactions;
 void
 c_teleport(c_actor_t a, vec2 pos)
 {
-	if (c_nactions >= O_MAXACTIONS)
+	if (c_nactions < O_MAXACTIONS)
 	{
-		return;
-	}
-	c_actions[c_nactions++] = (c_action_t)
-	{
-		.teleport =
+		c_actions[c_nactions++] = (c_action_t)
 		{
-			.type = C_TELEPORT,
-			.dst = {pos[0], pos[1]},
-			.actor = a
-		}
-	};
+			.teleport =
+			{
+				.type = C_TELEPORT,
+				.dst = {pos[0], pos[1]},
+				.actor = a
+			}
+		};
+	}
 }
 
 void
 c_teleportto(c_actor_t a, char point)
 {
-	if (c_nactions >= O_MAXACTIONS)
+	if (c_nactions < O_MAXACTIONS)
 	{
-		return;
-	}
-	c_actions[c_nactions++] = (c_action_t)
-	{
-		.teleportto =
+		c_actions[c_nactions++] = (c_action_t)
 		{
-			.type = C_TELEPORTTO,
-			.point = point,
-			.actor = a
-		}
-	};
+			.teleportto =
+			{
+				.type = C_TELEPORTTO,
+				.point = point,
+				.actor = a
+			}
+		};
+	}
 }
 
 void
 c_walk(c_actor_t a, vec2 pos)
 {
-	if (c_nactions >= O_MAXACTIONS)
+	if (c_nactions < O_MAXACTIONS)
 	{
-		return;
-	}
-	c_actions[c_nactions++] = (c_action_t)
-	{
-		.walk =
+		c_actions[c_nactions++] = (c_action_t)
 		{
-			.type = C_WALK,
-			.dst = {pos[0], pos[1]},
-			.actor = a
-		}
-	};
+			.walk =
+			{
+				.type = C_WALK,
+				.dst = {pos[0], pos[1]},
+				.actor = a
+			}
+		};
+	}
 }
 
 void
 c_walkto(c_actor_t a, char point)
 {
-	if (c_nactions >= O_MAXACTIONS)
+	if (c_nactions < O_MAXACTIONS)
 	{
-		return;
-	}
-	c_actions[c_nactions++] = (c_action_t)
-	{
-		.walkto =
+		c_actions[c_nactions++] = (c_action_t)
 		{
-			.type = C_WALKTO,
-			.point = point,
-			.actor = a
-		}
-	};
+			.walkto =
+			{
+				.type = C_WALKTO,
+				.point = point,
+				.actor = a
+			}
+		};
+	}
 }
 
 void
 c_look(c_actor_t a, f32 pitchdeg, f32 yawdeg)
 {
-	if (c_nactions >= O_MAXACTIONS)
+	if (c_nactions < O_MAXACTIONS)
 	{
-		return;
-	}
-	c_actions[c_nactions++] = (c_action_t)
-	{
-		.look =
+		c_actions[c_nactions++] = (c_action_t)
 		{
-			.type = C_LOOK,
-			.pitch = glm_rad(pitchdeg),
-			.yaw = glm_rad(yawdeg),
-			.actor = a
-		}
-	};
+			.look =
+			{
+				.type = C_LOOK,
+				.pitch = glm_rad(pitchdeg),
+				.yaw = glm_rad(yawdeg),
+				.actor = a
+			}
+		};
+	}
 }
 
 void
 c_lookat(c_actor_t a, char point)
 {
-	if (c_nactions >= O_MAXACTIONS)
+	if (c_nactions < O_MAXACTIONS)
 	{
-		return;
-	}
-	c_actions[c_nactions++] = (c_action_t)
-	{
-		.lookat =
+		c_actions[c_nactions++] = (c_action_t)
 		{
-			.type = C_LOOKAT,
-			.point = point,
-			.actor = a
-		}
-	};
+			.lookat =
+			{
+				.type = C_LOOKAT,
+				.point = point,
+				.actor = a
+			}
+		};
+	}
 }
 
 void
 c_lookwalkto(c_actor_t a, char point)
 {
-	if (c_nactions >= O_MAXACTIONS)
+	if (c_nactions < O_MAXACTIONS)
 	{
-		return;
-	}
-	c_actions[c_nactions++] = (c_action_t)
-	{
-		.lookwalkto =
+		c_actions[c_nactions++] = (c_action_t)
 		{
-			.type = C_LOOKWALKTO,
-			.point = point,
-			.actor = a
-		}
-	};
+			.lookwalkto =
+			{
+				.type = C_LOOKWALKTO,
+				.point = point,
+				.actor = a
+			}
+		};
+	}
 }
 
 void
 c_settexture(c_actor_t a, r_tex_t t)
 {
-	if (c_nactions >= O_MAXACTIONS)
+	if (c_nactions < O_MAXACTIONS)
 	{
-		return;
-	}
-	c_actions[c_nactions++] = (c_action_t)
-	{
-		.settexture =
+		c_actions[c_nactions++] = (c_action_t)
 		{
-			.type = C_SETTEXTURE,
-			.tex = t,
-			.actor = a
-		}
-	};
+			.settexture =
+			{
+				.type = C_SETTEXTURE,
+				.tex = t,
+				.actor = a
+			}
+		};
+	}
 }
 
 void
 c_wait(u64 ms)
 {
-	if (c_nactions >= O_MAXACTIONS)
+	if (c_nactions < O_MAXACTIONS)
 	{
-		return;
-	}
-	c_actions[c_nactions++] = (c_action_t)
-	{
-		.wait =
+		c_actions[c_nactions++] = (c_action_t)
 		{
-			.type = C_WAIT,
-			.ms = ms
-		}
-	};
+			.wait =
+			{
+				.type = C_WAIT,
+				.ms = ms
+			}
+		};
+	}
 }
 
 void
 c_speak(t_sprite_t t, char const *msg)
 {
-	if (c_nactions >= O_MAXACTIONS)
+	if (c_nactions < O_MAXACTIONS)
 	{
-		return;
-	}
-	c_actions[c_nactions++] = (c_action_t)
-	{
-		.speak =
+		c_actions[c_nactions++] = (c_action_t)
 		{
-			.type = C_SPEAK,
-			.msg = msg,
-			.textsprite = t
-		}
-	};
+			.speak =
+			{
+				.type = C_SPEAK,
+				.msg = msg,
+				.textsprite = t
+			}
+		};
+	}
 }
 
 void
 c_swapmodel(usize idx, r_model_t newmodel)
 {
-	if (c_nactions >= O_MAXACTIONS)
+	if (c_nactions < O_MAXACTIONS)
 	{
-		return;
-	}
-	c_actions[c_nactions++] = (c_action_t)
-	{
-		.swapmodel =
+		c_actions[c_nactions++] = (c_action_t)
 		{
-			.type = C_SWAPMODEL,
-			.propidx = idx,
-			.newmodel = newmodel
-		}
-	};
+			.swapmodel =
+			{
+				.type = C_SWAPMODEL,
+				.propidx = idx,
+				.newmodel = newmodel
+			}
+		};
+	}
 }
 
 void
 c_setlightintensity(usize idx, f32 intensity)
 {
-	if (c_nactions >= O_MAXACTIONS)
+	if (c_nactions < O_MAXACTIONS)
 	{
-		return;
-	}
-	c_actions[c_nactions++] = (c_action_t)
-	{
-		.setlightintensity =
+		c_actions[c_nactions++] = (c_action_t)
 		{
-			.type = C_SETLIGHTINTENSITY,
-			.lightidx = idx,
-			.newintensity = intensity
-		}
-	};
+			.setlightintensity =
+			{
+				.type = C_SETLIGHTINTENSITY,
+				.lightidx = idx,
+				.newintensity = intensity
+			}
+		};
+	}
 }
 
 void
 c_pancamera(vec3 pos, f32 pitchdeg, f32 yawdeg)
 {
-	if (c_nactions >= O_MAXACTIONS)
+	if (c_nactions < O_MAXACTIONS)
 	{
-		return;
-	}
-	c_actions[c_nactions++] = (c_action_t)
-	{
-		.pancamera =
+		c_actions[c_nactions++] = (c_action_t)
 		{
-			.type = C_PANCAMERA,
-			.pos = {pos[0], pos[1], pos[2]},
-			.pitch = glm_rad(pitchdeg),
-			.yaw = glm_rad(yawdeg)
-		}
-	};
+			.pancamera =
+			{
+				.type = C_PANCAMERA,
+				.pos = {pos[0], pos[1], pos[2]},
+				.pitch = glm_rad(pitchdeg),
+				.yaw = glm_rad(yawdeg)
+			}
+		};
+	}
 }
 
 void
 c_setdurakphase(d_phase_t phase)
 {
-	if (c_nactions >= O_MAXACTIONS)
+	if (c_nactions < O_MAXACTIONS)
 	{
-		return;
-	}
-	c_actions[c_nactions++] = (c_action_t)
-	{
-		.setdurakphase =
+		c_actions[c_nactions++] = (c_action_t)
 		{
-			.type = C_SETDURAKPHASE,
-			.phase = phase
-		}
-	};
+			.setdurakphase =
+			{
+				.type = C_SETDURAKPHASE,
+				.phase = phase
+			}
+		};
+	}
 }
 
 void
 c_quit(void)
 {
-	if (c_nactions >= O_MAXACTIONS)
+	if (c_nactions < O_MAXACTIONS)
 	{
-		return;
+		c_actions[c_nactions++] = (c_action_t)
+		{
+			.type = C_QUIT
+		};
 	}
-	c_actions[c_nactions++] = (c_action_t)
-	{
-		.type = C_QUIT
-	};
 }
 
 void
 c_playsfx(s_sfx_t sfx)
 {
-	if (c_nactions >= O_MAXACTIONS)
+	if (c_nactions < O_MAXACTIONS)
 	{
-		return;
-	}
-	c_actions[c_nactions++] = (c_action_t)
-	{
-		.playsfx =
+		c_actions[c_nactions++] = (c_action_t)
 		{
-			.type = C_PLAYSFX,
-			.sfx = sfx
-		}
-	};
+			.playsfx =
+			{
+				.type = C_PLAYSFX,
+				.sfx = sfx
+			}
+		};
+	}
+}
+
+void
+c_globalshade(vec3 shade)
+{
+	if (c_nactions < O_MAXACTIONS)
+	{
+		c_actions[c_nactions++] = (c_action_t)
+		{
+			.globalshade =
+			{
+				.type = C_GLOBALSHADE,
+				.shade = {shade[0], shade[1], shade[2]}
+			}
+		};
+	}
+}
+
+void
+c_shakecamera(f32 intensity)
+{
+	if (c_nactions < O_MAXACTIONS)
+	{
+		c_actions[c_nactions++] = (c_action_t)
+		{
+			.shakecamera =
+			{
+				.type = C_SHAKECAMERA,
+				.intensity = intensity
+			}
+		};
+	}
 }
 
 void
@@ -664,6 +694,12 @@ c_update(void)
 		break;
 	case C_PLAYSFX:
 		s_playsfx(action->playsfx.sfx);
+		break;
+	case C_GLOBALSHADE:
+		r_globalshade(action->globalshade.shade);
+		break;
+	case C_SHAKECAMERA:
+		r_cam.base.shake = action->shakecamera.intensity;
 		break;
 	}
 	

@@ -43,6 +43,8 @@ void c_pancamera(vec3 pos, f32 pitchdeg, f32 yawdeg);
 void c_setdurakphase(d_phase_t phase);
 void c_quit(void);
 void c_playsfx(s_sfx_t sfx);
+void c_globalshade(vec3 shade);
+void c_shakecamera(f32 intensity);
 void c_update(void);
 void c_rendertiles(void);
 void c_rendermodels(void);
