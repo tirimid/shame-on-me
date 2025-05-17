@@ -31,11 +31,11 @@ g_loop(void)
 	NEWTIMER(stagetimer);
 	
 	g_setupenv();
-	//g_introseq();
-	//g_tutorialseq();
-	d_state.round = 1;
-	g_fastintroseq();
-	g_roundendseq();
+	g_introseq();
+	g_tutorialseq();
+	//d_state.round = 1;
+	//g_fastintroseq();
+	//g_roundendseq();
 	
 	for (;;)
 	{
@@ -287,6 +287,7 @@ g_introseq(void)
 	c_walkto(C_ARKADY, 'C');
 	c_lookat(C_ARKADY, 'D');
 	c_wait(1500);
+	c_playsfx(S_KNOCK);
 	c_speak(T_MUTEARKADY, "...");
 	c_wait(2500);
 	c_teleportto(C_GERASIM, 'D');
