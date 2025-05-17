@@ -9,3 +9,4 @@ void g_arkadydeathseq(void);
 void g_peterdeathseq(void);
 void g_matthewdeathseq(void);
 void g_gerasimdeathseq(void);
+void g_winseq(void);

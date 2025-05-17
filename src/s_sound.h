@@ -16,6 +16,8 @@ typedef enum s_sfx
 	S_CARD7,
 	S_CARD8,
 	S_CARDSHUFFLE,
+	S_EXPLODE,
+	S_EXPLODEMUFFLED,
 	
 	S_SFX_END
 } s_sfx_t;

@@ -82,6 +82,8 @@
 #include "sound/card7_ogg.h"
 #include "sound/card8_ogg.h"
 #include "sound/card_shuffle_ogg.h"
+#include "sound/explode_ogg.h"
+#include "sound/explode_muffled_ogg.h"
 #include "sound/speak_arkady_ogg.h"
 #include "sound/speak_gerasim_ogg.h"
 #include "sound/speak_matthew_ogg.h"

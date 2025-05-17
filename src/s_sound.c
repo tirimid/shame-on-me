@@ -31,7 +31,9 @@ static s_sound_t s_sfxsounds[S_SFX_END] =
 	S_INCOGG(card6),
 	S_INCOGG(card7),
 	S_INCOGG(card8),
-	S_INCOGG(card_shuffle)
+	S_INCOGG(card_shuffle),
+	S_INCOGG(explode),
+	S_INCOGG(explode_muffled)
 };
 
 i32

@@ -19,7 +19,9 @@ typedef enum c_actiontype
 	C_SWAPMODEL,
 	C_SETLIGHTINTENSITY,
 	C_PANCAMERA,
-	C_SETDURAKPHASE
+	C_SETDURAKPHASE,
+	C_QUIT,
+	C_PLAYSFX
 } c_actiontype_t;
 
 typedef union c_action
@@ -121,6 +123,12 @@ typedef union c_action
 		u8 type;
 		d_phase_t phase;
 	} setdurakphase;
+	
+	struct
+	{
+		u8 type;
+		s_sfx_t sfx;
+	} playsfx;
 } c_action_t;
 
 typedef struct c_actordata
@@ -416,6 +424,36 @@ c_setdurakphase(d_phase_t phase)
 }
 
 void
+c_quit(void)
+{
+	if (c_nactions >= O_MAXACTIONS)
+	{
+		return;
+	}
+	c_actions[c_nactions++] = (c_action_t)
+	{
+		.type = C_QUIT
+	};
+}
+
+void
+c_playsfx(s_sfx_t sfx)
+{
+	if (c_nactions >= O_MAXACTIONS)
+	{
+		return;
+	}
+	c_actions[c_nactions++] = (c_action_t)
+	{
+		.playsfx =
+		{
+			.type = C_PLAYSFX,
+			.sfx = sfx
+		}
+	};
+}
+
+void
 c_update(void)
 {
 	// update render camera.
@@ -620,6 +658,12 @@ c_update(void)
 		break;
 	case C_SETDURAKPHASE:
 		d_setphase(action->setdurakphase.phase);
+		break;
+	case C_QUIT:
+		exit(0);
+		break;
+	case C_PLAYSFX:
+		s_playsfx(action->playsfx.sfx);
 		break;
 	}
 	
