@@ -128,7 +128,7 @@ t_renderoverlay(void)
 	r_renderrect(R_BLACK, 10, 5, rw - 20, O_TEXTBOXSIZE, 0.0f);
 	
 	char *msg = malloc(t_scroll + 1);
-	memcpy(msg, t_msg, t_scroll);
+	hmemcpy(msg, t_msg, t_scroll);
 	msg[t_scroll] = 0;
 	r_rendertext(R_VCROSDMONO, msg, 15, 10, rw - 30, O_TEXTBOXSIZE - 10);
 	free(msg);

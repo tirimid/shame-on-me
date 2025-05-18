@@ -119,3 +119,25 @@ randfloat(f32 lb, f32 ub)
 	f32 rand = randint(0, iub) / 100.0f;
 	return rand + lb;
 }
+
+void *
+hmemcpy(void *dst, void const *src, usize n)
+{
+	if (!n)
+	{
+		return dst;
+	}
+	
+	return memcpy(dst, src, n);
+}
+
+void *
+hmemmove(void *dst, void const *src, usize n)
+{
+	if (!n)
+	{
+		return dst;
+	}
+	
+	return memmove(dst, src, n);
+}

@@ -892,7 +892,7 @@ d_addcard(d_pcards_t *pc, u8 pcard)
 static void
 d_rmcard(d_pcards_t *pc, usize idx)
 {
-	memmove(&pc->pcards[idx], &pc->pcards[idx + 1], --pc->ncards - idx);
+	hmemmove(&pc->pcards[idx], &pc->pcards[idx + 1], --pc->ncards - idx);
 }
 
 static void

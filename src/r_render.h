@@ -118,6 +118,7 @@ typedef struct r_cam
 	struct
 	{
 		vec3 pos;
+		f32 pitch, yaw;
 	} shake;
 } r_cam_t;
 

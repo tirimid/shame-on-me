@@ -64,8 +64,10 @@
 #define O_SHADOWMAPSIZE 1024
 #define O_MAXTILEBATCH 64
 #define O_SHAKEATTEN 0.98f
-#define O_SHAKEINTENSITY 0.6f
-#define O_SHAKERETSPEED 0.9f
+#define O_SHAKEPOS 0.6f
+#define O_SHAKEROT 0.5f
+#define O_SHAKEPOSRET 0.93f
+#define O_SHAKEROTRET 0.95f
 
 // durak options.
 #define O_ATTACKTICK 50

@@ -507,7 +507,16 @@ g_roundendseq(void)
 		c_wait(2000);
 		c_speak(T_MATTHEW, "\"I guess we should really get started...\"");
 		c_speak(T_MATTHEW, "\"This time, we're not just practicing\"");
-		c_wait(400);
+		c_speak(T_MATTHEW, "\"Let's say you need to lose twice to get out\"");
+		c_speak(T_MATTHEW, "\"Count your losses, you won't get a second chance\"");
+		c_speak(T_ARKADY, "\"Wait, will it reset between games?\"");
+		c_wait(600);
+		c_speak(T_MATTHEW, "\"Hmm\"");
+		c_wait(600);
+		c_shakecamera(O_QUAKESHAKE);
+		c_wait(1700);
+		c_speak(T_MATTHEW, "\"No it won't, we need to hurry up\"");
+		c_wait(700);
 	}
 	else if (d_state.losses[D_ARKADY] == O_DEATHLOSSES)
 	{
@@ -599,6 +608,15 @@ g_arkadydeathseq(void)
 		}
 		break;
 	case 3:
+		if (d_state.losses[D_PETER] != D_DEAD)
+		{
+		}
+		else if (d_state.losses[D_MATTHEW] != D_DEAD)
+		{
+		}
+		else // gerasim.
+		{
+		}
 		break;
 	}
 	

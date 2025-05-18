@@ -704,7 +704,7 @@ c_update(void)
 	}
 	
 	// dequeue completed action.
-	memmove(&c_actions[0], &c_actions[1], sizeof(c_action_t) * --c_nactions);
+	hmemmove(&c_actions[0], &c_actions[1], sizeof(c_action_t) * --c_nactions);
 }
 
 void

@@ -40,3 +40,5 @@ void begintimer(OUT u64 *timer);
 void endtimer(u64 timer, char const *name);
 i32 randint(i32 lb, i32 ub);
 f32 randfloat(f32 lb, f32 ub);
+void *hmemcpy(void *dst, void const *src, usize n);
+void *hmemmove(void *dst, void const *src, usize n);

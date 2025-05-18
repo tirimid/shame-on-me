@@ -816,10 +816,19 @@ r_update(void)
 	glm_vec3_lerp(r_cam.pan.pos, r_cam.pan.dstpos, O_PANPOSSPEED, r_cam.pan.pos);
 	
 	// update camera shake.
-	r_cam.shake.pos[0] += O_SHAKEINTENSITY * randfloat(-r_cam.base.shake, r_cam.base.shake);
-	r_cam.shake.pos[1] += O_SHAKEINTENSITY * randfloat(-r_cam.base.shake, r_cam.base.shake);
-	r_cam.shake.pos[2] += O_SHAKEINTENSITY * randfloat(-r_cam.base.shake, r_cam.base.shake);
-	glm_vec3_lerp(r_cam.shake.pos, (vec3){0}, O_SHAKERETSPEED, r_cam.shake.pos);
+	r_cam.shake.pos[0] += O_SHAKEPOS * randfloat(-r_cam.base.shake, r_cam.base.shake);
+	r_cam.shake.pos[1] += O_SHAKEPOS * randfloat(-r_cam.base.shake, r_cam.base.shake);
+	r_cam.shake.pos[2] += O_SHAKEPOS * randfloat(-r_cam.base.shake, r_cam.base.shake);
+	r_cam.shake.pitch += O_SHAKEROT * randfloat(-r_cam.base.shake, r_cam.base.shake);
+	r_cam.shake.yaw += O_SHAKEROT * randfloat(-r_cam.base.shake, r_cam.base.shake);
+	
+	glm_vec3_lerp(r_cam.shake.pos, (vec3){0}, O_SHAKEPOSRET, r_cam.shake.pos);
+	
+	r_cam.shake.pitch = interpangle(r_cam.shake.pitch, 0.0f, O_SHAKEROTRET);
+	r_cam.shake.yaw = interpangle(r_cam.shake.yaw, 0.0f, O_SHAKEROTRET);
+	r_cam.shake.pitch = fabs(r_cam.shake.pitch) < 0.01f ? 0.0f : r_cam.shake.pitch;
+	r_cam.shake.yaw = fabs(r_cam.shake.yaw) < 0.01f ? 0.0f : r_cam.shake.yaw;
+	
 	r_cam.base.shake *= O_SHAKEATTEN;
 }
 
@@ -848,11 +857,11 @@ r_effcamstate(OUT vec3 pos, OUT f32 *pitch, OUT f32 *yaw)
 	}
 	if (pitch)
 	{
-		*pitch = r_cam.base.pitch + r_cam.pan.pitch;
+		*pitch = r_cam.base.pitch + r_cam.pan.pitch + r_cam.shake.pitch;
 	}
 	if (yaw)
 	{
-		*yaw = r_cam.base.yaw + r_cam.pan.yaw;
+		*yaw = r_cam.base.yaw + r_cam.pan.yaw + r_cam.shake.yaw;
 	}
 }
 
