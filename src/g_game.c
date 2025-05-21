@@ -13,8 +13,8 @@
 	"h..F......D.c.C.#" \
 	".........g..#...#" \
 	"###b#########...#" \
-	"...H..K...#.#.f.#" \
-	"..........#.#####" \
+	"...H..K.P.#.#.f.#" \
+	"........Q.#.#####" \
 	"....L.a.J.#......" \
 	"..........#......" \
 	"..NO..I.M.#......"
@@ -494,8 +494,10 @@ g_roundendseq(void)
 			d_state.losses[i] = 0;
 		}
 		
+		// TODO: reenable after development.
+#if 0
 		c_wait(800);
-		c_pancamera((vec3){0.0f, 0.0f, 0.0f}, 0.0f, 0.0f);
+		c_pancamera((vec3){0}, 0.0f, 0.0f);
 		c_wait(1200);
 		c_speak(T_MATTHEW, "\"Since that was just a practice round, nothing happens\"");
 		c_speak(T_MATTHEW, "\"Are the rules of the game clearer now, Arkady?\"");
@@ -517,6 +519,7 @@ g_roundendseq(void)
 		c_wait(1700);
 		c_speak(T_MATTHEW, "\"No it won't, we need to hurry up\"");
 		c_wait(700);
+#endif
 	}
 	else if (d_state.losses[D_ARKADY] == O_DEATHLOSSES)
 	{
@@ -571,7 +574,7 @@ g_arkadydeathseq(void)
 	switch (whichdeath)
 	{
 	case 1:
-		c_pancamera((vec3){0.0f, 0.0f, 0.0f}, 0.0f, 0.0f);
+		c_pancamera((vec3){0}, 0.0f, 0.0f);
 		c_wait(3000);
 		c_speak(T_MUTEARKADY, "(I feel a sense of surreal forgetting wash over me)");
 		c_speak(T_MUTEARKADY, "(The words I want to say evade me; and even if I could speak, I don't think I would)");
@@ -599,12 +602,99 @@ g_arkadydeathseq(void)
 	case 2:
 		if (d_state.losses[D_PETER] == D_DEAD)
 		{
+			c_pancamera((vec3){0}, 0.0f, 0.0f);
+			c_wait(1400);
+			c_lookat(C_ARKADY, 'L');
+			c_wait(800);
+			c_lookat(C_ARKADY, 'I');
+			c_wait(1600);
+			c_speak(T_MATTHEW, "\"I'm sorry Arkady\"");
+			c_speak(T_MUTEARKADY, "(I try to raise my voice but I can't)");
+			c_speak(T_MATTHEW, "\"I thought this would end differently...\"");
+			c_speak(T_MATTHEW, "\"Or...\"");
+			c_speak(T_MATTHEW, "\"No, I don't know how I thought this would end\"");
+			c_wait(1800);
+			c_lookat(C_ARKADY, 'L');
+			c_speak(T_MUTEGERASIM, "Gerasim knows he can't do anything, he stares void of any emotion");
+			c_wait(300);
+			c_lookat(C_ARKADY, 'I');
+			c_speak(T_ARKADY, "\"I'll leave\"");
+			c_speak(T_MUTEARKADY, "(It's pressing into my neck, It hurts so much)");
+			c_speak(T_MUTEARKADY, "(I need to hurry)");
+			c_lookwalkto(C_ARKADY, 'H');
+			c_lookat(C_ARKADY, 'F');
+			c_wait(400);
+			c_setlightintensity(g_entrylight, 1.5f);
+			c_swapmodel(g_roomdoor, R_DOOROPEN);
+			c_wait(300);
+			c_pancamera((vec3){0}, -20.0f, 0.0f);
+			c_wait(800);
+			c_speak(T_MUTEARKADY, "(Oh my god)");
+			c_shakecamera(O_PLAYERDEATHSHAKE);
+			c_playsfx(S_EXPLODE);
+			c_globalshade((vec3)O_DEATHGLOBALSHADE);
+			c_wait(100);
+			c_quit();
 		}
 		else if (d_state.losses[D_MATTHEW] == D_DEAD)
 		{
+			c_pancamera((vec3){0}, 0.0f, 0.0f);
+			c_wait(1700);
+			c_speak(T_PETER, "\"You know what to do, scram\"");
+			c_lookat(C_ARKADY, 'J');
+			c_speak(T_MUTEARKADY, "(I feel a boiling rage)");
+			c_speak(T_ARKADY, "\"How could you just move on so fucking easily?\"");
+			c_speak(T_PETER, "\"I'm not sure what you mean, Arkady\"");
+			c_speak(T_ARKADY, "\"First Matthew, now me, you just sit idly by?\"");
+			c_speak(T_PETER, "\"I-\"");
+			c_speak(T_ARKADY, "\"No, not even idly, you don't even give us the courtesy to die in dignity\"");
+			c_speak(T_ARKADY, "\"I never fucking liked you, I never cared for anything you ever did\"");
+			c_speak(T_ARKADY, "\"You were always a cancer on our group\"");
+			c_speak(T_MUTEARKADY, "(The collar is digging into my flesh)");
+			c_speak(T_MUTEARKADY, "(I know it'll go off at any moment)");
+			c_speak(T_ARKADY, "\"I'll take you with me, you worthless fucking parasite\"");
+			c_lookwalkto(C_ARKADY, 'P');
+			c_lookwalkto(C_ARKADY, 'Q');
+			c_wait(300);
+			c_speak(T_PETER, "\"Get the hell off me!\"");
+			c_lookat(C_ARKADY, 'L');
+			c_speak(T_ARKADY, "\"Gerasim, run!\"");
+			c_lookat(C_ARKADY, 'J');
+			c_wait(400);
+			c_speak(T_PETER, "\"Wait-\"");
+			c_shakecamera(O_PLAYERDEATHSHAKE);
+			c_playsfx(S_EXPLODE);
+			c_globalshade((vec3)O_DEATHGLOBALSHADE);
+			c_wait(100);
+			c_quit();
 		}
 		else // gerasim.
 		{
+			c_pancamera((vec3){0}, 0.0f, 0.0f);
+			c_wait(2700);
+			c_speak(T_ARKADY, "\"Matthew, I'm scared\"");
+			c_wait(1800);
+			c_speak(T_MATTHEW, "\"Arkady, we all are\"");
+			c_speak(T_ARKADY, "\"Gerasim was so accepting of it, but how? I don't want to die...\"");
+			c_speak(T_MATTHEW, "\"Well, he was mute, we'll never get the answer\"");
+			c_speak(T_MATTHEW, "\"He was never the particularly 'emotional' type\"");
+			c_speak(T_MATTHEW, "\"With how he reacted to his loss, I can't help but think that was a front\"");
+			c_speak(T_ARKADY, "\"Why? He knows... knew... we were his friends\"");
+			c_speak(T_MATTHEW, "\"Arkady, I don't know\"");
+			c_speak(T_MATTHEW, "\"Maybe he was confused in the moment, or he knew that nothing could be done\"");
+			c_wait(800);
+			c_speak(T_ARKADY, "\"I'm scared\"");
+			c_speak(T_MUTEMATTHEW, "...");
+			c_speak(T_ARKADY, "\"I don't want to die, I don't\"");
+			c_speak(T_MUTEARKADY, "(Well, I say this, but I'm not sure if it's true - I'm too muddled in the head right now to form judgements on what I really do or don't want)");
+			c_speak(T_MUTEARKADY, "(Hmm, maybe this is how he felt...)");
+			c_speak(T_MUTEARKADY, "(What am I even thinking about? Have I forgotten what's happening?)");
+			c_speak(T_MATTHEW, "\"Arkady, your collar, it's-\"");
+			c_shakecamera(O_PLAYERDEATHSHAKE);
+			c_playsfx(S_EXPLODE);
+			c_globalshade((vec3)O_DEATHGLOBALSHADE);
+			c_wait(100);
+			c_quit();
 		}
 		break;
 	case 3:
@@ -635,7 +725,7 @@ g_peterdeathseq(void)
 	switch (whichdeath)
 	{
 	case 1:
-		c_pancamera((vec3){0.0f, 0.0f, 0.0f}, 0.0f, 0.0f);
+		c_pancamera((vec3){0}, 0.0f, 0.0f);
 		c_wait(900);
 		c_lookat(C_ARKADY, 'J');
 		c_wait(1200);
@@ -696,7 +786,7 @@ g_matthewdeathseq(void)
 	switch (whichdeath)
 	{
 	case 1:
-		c_pancamera((vec3){0.0f, 0.0f, 0.0f}, 0.0f, 0.0f);
+		c_pancamera((vec3){0}, 0.0f, 0.0f);
 		c_wait(900);
 		c_speak(T_MUTEMATTHEW, "As the last attack finishes, Matthew's face pales");
 		c_speak(T_MUTEMATTHEW, "He looks around at the others, as if expecting them to help");
@@ -753,7 +843,7 @@ g_gerasimdeathseq(void)
 	switch (whichdeath)
 	{
 	case 1:
-		c_pancamera((vec3){0.0f, 0.0f, 0.0f}, 0.0f, 0.0f);
+		c_pancamera((vec3){0}, 0.0f, 0.0f);
 		c_wait(900);
 		c_lookat(C_ARKADY, 'L');
 		c_wait(2000);
