@@ -70,18 +70,10 @@
 #define O_SHAKEROTRET 0.95f
 
 // durak options.
-// TODO: change back to normal parameters for release.
-#if 1
 #define O_ATTACKTICK 50
 #define O_DEFENDTICK 30
 #define O_VARYTICK 50
 #define O_DEATHLOSSES 2
-#else
-#define O_ATTACKTICK 1
-#define O_DEFENDTICK 1
-#define O_VARYTICK 1
-#define O_DEATHLOSSES 1
-#endif
 
 // sound options.
 #define O_VOLUME 0.4f

@@ -49,6 +49,16 @@ typedef enum d_cardflag
 	D_COVERUP = 0x2
 } d_cardflag_t;
 
+typedef enum d_handpos
+{
+	// arkady's hand (always bottom) is drawn independently.
+	// this is just a mechanism to allow the AI players to move around the table
+	// and still maintain a logical rendered position for their card hands.
+	D_LEFT = 1,
+	D_TOP,
+	D_RIGHT
+} d_handpos;
+
 typedef struct d_card
 {
 	f32 x, y, rot;
@@ -75,6 +85,7 @@ typedef struct d_state
 	
 	u32 acttick;
 	u8 losses[D_PLAYER_END]; // set to D_DEAD upon next round after loss.
+	u8 handpos[D_PLAYER_END];
 	u8 trumpsuit;
 	u8 attacker;
 	u8 round, phase;

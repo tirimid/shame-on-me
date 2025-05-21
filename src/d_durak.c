@@ -14,6 +14,7 @@ typedef enum d_ai
 d_state_t d_state =
 {
 	.attacker = D_MATTHEW,
+	.handpos = {0, D_LEFT, D_TOP, D_RIGHT},
 	.playersactive = 0xf,
 	.selidx = -1
 };
@@ -82,11 +83,23 @@ d_setphase(d_phase_t phase)
 			else
 			{
 				d_state.losses[i] = D_DEAD;
+				d_state.handpos[i] = 0;
 			}
 		}
 		
 		++d_state.round;
+		
+		for (usize i = 0; i < D_PLAYER_END; ++i)
+		{
+			if (d_state.handpos[i] == D_TOP)
+			{
+				d_state.attacker = i;
+				goto chosefirstattacker;
+			}
+		}
+		
 		d_state.attacker = d_nextplayer(D_PETER);
+	chosefirstattacker:
 		
 		break;
 	case D_CHOOSETRUMP:
@@ -203,6 +216,35 @@ d_renderoverlay(void)
 void
 d_update(void)
 {
+	// only intended for debug / dev purposes.
+	// may break shit if used incorrectly.
+#ifdef CHEATING
+	if (i_kpressed(SDLK_1) && d_state.playersactive & 0x1)
+	{
+		d_state.playersactive &= 0x1;
+		d_setphase(D_FINISH);
+		return;
+	}
+	else if (i_kpressed(SDLK_2) && d_state.playersactive & 0x2)
+	{
+		d_state.playersactive &= 0x2;
+		d_setphase(D_FINISH);
+		return;
+	}
+	else if (i_kpressed(SDLK_3) && d_state.playersactive & 0x4)
+	{
+		d_state.playersactive &= 0x4;
+		d_setphase(D_FINISH);
+		return;
+	}
+	else if (i_kpressed(SDLK_4) && d_state.playersactive & 0x8)
+	{
+		d_state.playersactive &= 0x8;
+		d_setphase(D_FINISH);
+		return;
+	}
+#endif
+	
 	// update card stack destinations.
 	for (usize i = 0; i < d_state.draw.ncards; ++i)
 	{
@@ -243,34 +285,32 @@ d_update(void)
 		d_state.data[pcard].dstrot = 0.0f;
 	}
 	
-	for (usize i = 0; i < d_state.players[D_PETER].ncards; ++i)
+	for (usize i = D_ARKADY + 1; i < D_PLAYER_END; ++i)
 	{
-		u8 pcard = d_state.players[D_PETER].pcards[i];
-		
-		d_state.data[pcard].flags |= D_COVERUP;
-		d_state.data[pcard].dstx = 0.0f;
-		d_state.data[pcard].dsty = 0.25f + 0.5f * ((f32)i / d_state.players[D_PETER].ncards);
-		d_state.data[pcard].dstrot = GLM_PI / 2.0f;
-	}
-	
-	for (usize i = 0; i < d_state.players[D_MATTHEW].ncards; ++i)
-	{
-		u8 pcard = d_state.players[D_MATTHEW].pcards[i];
-		
-		d_state.data[pcard].flags |= D_COVERUP;
-		d_state.data[pcard].dstx = 0.25f + 0.5f * ((f32)i / d_state.players[D_MATTHEW].ncards);
-		d_state.data[pcard].dsty = 1.0f;
-		d_state.data[pcard].dstrot = 0.0f;
-	}
-	
-	for (usize i = 0; i < d_state.players[D_GERASIM].ncards; ++i)
-	{
-		u8 pcard = d_state.players[D_GERASIM].pcards[i];
-		
-		d_state.data[pcard].flags |= D_COVERUP;
-		d_state.data[pcard].dstx = 1.0f;
-		d_state.data[pcard].dsty = 0.25f + 0.5f * ((f32)i / d_state.players[D_GERASIM].ncards);
-		d_state.data[pcard].dstrot = GLM_PI / 2.0f;
+		for (usize j = 0; j < d_state.players[i].ncards; ++j)
+		{
+			u8 pcard = d_state.players[i].pcards[j];
+			d_state.data[pcard].flags |= D_COVERUP;
+			
+			switch (d_state.handpos[i])
+			{
+			case D_LEFT:
+				d_state.data[pcard].dstx = 0.0f;
+				d_state.data[pcard].dsty = 0.25f + 0.5f * ((f32)j / d_state.players[i].ncards);
+				d_state.data[pcard].dstrot = GLM_PI / 2.0f;
+				break;
+			case D_TOP:
+				d_state.data[pcard].dstx = 0.25f + 0.5f * ((f32)j / d_state.players[i].ncards);
+				d_state.data[pcard].dsty = 1.0f;
+				d_state.data[pcard].dstrot = 0.0f;
+				break;
+			case D_RIGHT:
+				d_state.data[pcard].dstx = 1.0f;
+				d_state.data[pcard].dsty = 0.25f + 0.5f * ((f32)j / d_state.players[i].ncards);
+				d_state.data[pcard].dstrot = GLM_PI / 2.0f;
+				break;
+			}
+		}
 	}
 	
 	for (usize i = 0; i < d_state.attack.ncards; ++i)

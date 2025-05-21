@@ -384,7 +384,7 @@ g_introseq(void)
 	c_speak(T_PETER, "\"We've gotta keep you honest if you lose\"");
 	c_speak(T_PETER, "\"Us three've already got ours on\"");
 	c_lookat(C_ARKADY, 'L');
-	c_wait(100);
+	c_wait(300);
 	c_lookat(C_ARKADY, 'J');
 	c_speak(T_MUTEARKADY, "(I glance under their coats, indeed they do)");
 	c_speak(T_PETER, "\"Put it on, Arkady.\"");
@@ -682,7 +682,11 @@ g_arkadydeathseq(void)
 			c_speak(T_ARKADY, "\"Why? He knows... knew... we were his friends\"");
 			c_speak(T_MATTHEW, "\"Arkady, I don't know\"");
 			c_speak(T_MATTHEW, "\"Maybe he was confused in the moment, or he knew that nothing could be done\"");
-			c_wait(800);
+			c_speak(T_PETER, "\"Will you precious snowflakes hurry it up already?\"");
+			c_lookat(C_ARKADY, 'J');
+			c_speak(T_PETER, "\"You know damn well yourself, you can't do anything about this\"");
+			c_wait(1600);
+			c_lookat(C_ARKADY, 'I');
 			c_speak(T_ARKADY, "\"I'm scared\"");
 			c_speak(T_MUTEMATTHEW, "...");
 			c_speak(T_ARKADY, "\"I don't want to die, I don't\"");
@@ -762,6 +766,44 @@ g_peterdeathseq(void)
 	case 2:
 		if (d_state.losses[D_MATTHEW] == D_DEAD)
 		{
+			c_pancamera((vec3){0}, 0.0f, 0.0f);
+			c_wait(1700);
+			c_speak(T_PETER, "\"I'm not the first one out\"");
+			c_speak(T_PETER, "\"I mean...\"");
+			c_speak(T_PETER, "\"That's more than our friend could say\"");
+			c_speak(T_MUTEPETER, "...");
+			c_speak(T_PETER, "\"Heh\"");
+			c_speak(T_MUTEPETER, "His forced casual attitude is spectacularly failing to hide his true feelings");
+			c_wait(1200);
+			c_speak(T_MUTEPETER, "He covers his face subtly with his hat");
+			c_speak(T_PETER, "\"I'll leave about now\"");
+			c_speak(T_PETER, "\"I feel the bomb collar taking its hold\"");
+			c_wait(600);
+			c_walkto(C_PETER, 'O');
+			c_lookat(C_ARKADY, 'O');
+			c_walkto(C_PETER, 'H');
+			c_lookat(C_ARKADY, 'H');
+			c_wait(700);
+			c_speak(T_MUTEPETER, "Right when he's about to step out, Peter lifts his hat and glares at you and Gerasim with rage");
+			c_speak(T_PETER, "\"You know what?\"");
+			c_speak(T_PETER, "\"Fuck you, fuck you both, rot in hell\"");
+			c_wait(600);
+			c_walkto(C_PETER, 'F');
+			c_shakecamera(O_DEATHSHAKE);
+			c_playsfx(S_EXPLODEMUFFLED);
+			c_wait(2400);
+			c_speak(T_MUTEARKADY, "(I'm... so profoundly... confused)");
+			c_lookat(C_ARKADY, 'L');
+			c_wait(700);
+			c_speak(T_MUTEGERASIM, "Gerasim's face paints the pang of betrayal");
+			c_speak(T_ARKADY, "\"What just happened?\"");
+			c_speak(T_MUTEGERASIM, "He grabs hold of himself and shuffles over where Peter sat");
+			c_walkto(C_GERASIM, 'O');
+			c_walkto(C_GERASIM, 'I');
+			c_lookat(C_ARKADY, 'I');
+			c_wait(400);
+			c_speak(T_MUTEARKADY, "(I guess he wants to deal...)");
+			d_state.handpos[D_GERASIM] = D_TOP;
 		}
 		else // gerasim.
 		{
@@ -813,8 +855,11 @@ g_matthewdeathseq(void)
 		c_wait(1800);
 		c_speak(T_PETER, "\"I'll deal the cards this time\"");
 		c_lookat(C_ARKADY, 'J');
-		c_speak(T_MUTEARKADY, "(Like nothing happened...)");
+		c_walkto(C_PETER, 'M');
+		c_walkto(C_PETER, 'I');
 		c_lookat(C_ARKADY, 'I');
+		c_speak(T_MUTEARKADY, "(Like nothing happened...)");
+		d_state.handpos[D_PETER] = D_TOP;
 		break;
 	case 2:
 		if (d_state.losses[D_PETER] == D_DEAD)
