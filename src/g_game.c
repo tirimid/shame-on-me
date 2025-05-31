@@ -277,12 +277,12 @@ g_introseq(void)
 	c_lookwalkto(C_ARKADY, 'B');
 	c_lookat(C_ARKADY, 'C');
 	c_speak(T_MUTEARKADY, "...");
-	c_speak(T_ARKADY, "\"I dread that this'll be what I thought\"");
+	c_speak(T_MUTEARKADY, "(I dread that this'll be what I thought)");
 	c_speak(T_MUTEARKADY, "...");
-	c_speak(T_ARKADY, "\"But I've already arrived\"");
-	c_speak(T_ARKADY, "\"It's too late to leave\"");
+	c_speak(T_MUTEARKADY, "(But I've already arrived)");
+	c_speak(T_MUTEARKADY, "(It's too late to leave)");
 	c_speak(T_MUTEARKADY, "...");
-	c_speak(T_ARKADY, "\"There's no turning back now\"");
+	c_speak(T_MUTEARKADY, "(There's no turning back now)");
 	c_wait(300);
 	c_walkto(C_ARKADY, 'C');
 	c_lookat(C_ARKADY, 'D');
@@ -704,6 +704,42 @@ g_arkadydeathseq(void)
 	case 3:
 		if (d_state.losses[D_PETER] != D_DEAD)
 		{
+			c_pancamera((vec3){0}, 0.0f, 0.0f);
+			c_wait(2300);
+			c_speak(T_MUTEPETER, "He grins with characteristic disregard for anything that affects others");
+			c_speak(T_PETER, "\"End of the road, Arkady\"");
+			c_speak(T_MUTEARKADY, "...");
+			c_speak(T_PETER, "\"Look, if there's one thing I should say...\"");
+			c_speak(T_PETER, "\"To be fully honest, it wasn't completely your fault that you lost\"");
+			c_speak(T_MUTEPETER, "Peter's countenance reproduces the gaze of somebody who thinks he's being very smart");
+			c_speak(T_PETER, "\"I don't just mean the inherent randomness in the game, no\"");
+			c_speak(T_PETER, "\"Let's just say I'm not surprised that I won\"");
+			c_speak(T_PETER, "\"Heh\"");
+			c_wait(3000);
+			c_speak(T_ARKADY, "\"Peter\"");
+			c_speak(T_ARKADY, "\"If there is a God, and if there is a Hell\"");
+			c_speak(T_ARKADY, "\"A-an honest god, and if he exists, he will... He will-\"");
+			c_speak(T_PETER, "\"Ahem...\"");
+			c_wait(400);
+			c_walkto(C_PETER, 'O');
+			c_walkto(C_PETER, 'H');
+			c_lookat(C_ARKADY, 'H');
+			c_speak(T_PETER, "\"No need to finish your sentence, Arkady, you're predictable to a tee\"");
+			c_speak(T_PETER, "\"Have the room to yourself - to die\"");
+			c_speak(T_PETER, "\"I'll see you in hell\"");
+			c_walkto(C_PETER, 'F');
+			c_wait(2300);
+			c_lookat(C_ARKADY, 'I');
+			c_pancamera((vec3){0.0f, -0.3f, 0.4f}, -20.0f, 0.0f);
+			c_wait(1800);
+			c_speak(T_MUTEARKADY, "(The collar's pushing in on me)");
+			c_speak(T_ARKADY, "\"I guess I will\"");
+			c_wait(1600);
+			c_shakecamera(O_PLAYERDEATHSHAKE);
+			c_playsfx(S_EXPLODE);
+			c_globalshade((vec3)O_DEATHGLOBALSHADE);
+			c_wait(100);
+			c_quit();
 		}
 		else if (d_state.losses[D_MATTHEW] != D_DEAD)
 		{
@@ -807,13 +843,100 @@ g_peterdeathseq(void)
 		}
 		else // gerasim.
 		{
+			c_pancamera((vec3){0}, 0.0f, 0.0f);
+			c_wait(1900);
+			c_lookat(C_ARKADY, 'J');
+			c_speak(T_PETER, "\"What a waste\"");
+			c_speak(T_PETER, "\"I can't believe this is happening\"");
+			c_speak(T_PETER, "\"It doesn't even make any sense, how?\"");
+			c_speak(T_PETER, "\"It doesn't make some sense, none of it, it doesn't make any sense, it doesn't make any of it\"");
+			c_speak(T_PETER, "\"What does that even mean? Can you tell me, Arkady? What's the meaning of this?\"");
+			c_speak(T_MUTEARKADY, "...");
+			c_speak(T_MATTHEW, "\"He's incoherent\"");
+			c_lookat(C_ARKADY, 'I');
+			c_speak(T_MATTHEW, "\"It's a sad sight, so deep in his own fear, I doubt he even understands what we're saying\"");
+			c_speak(T_PETER, "\"No...\"");
+			c_lookat(C_ARKADY, 'J');
+			c_speak(T_PETER, "\"No, I need to be alone\"");
+			c_speak(T_ARKADY, "\"Peter, what's happening?\"");
+			c_speak(T_MUTEARKADY, "(He's clearly not in sane mind)");
+			c_wait(4000);
+			c_walkto(C_PETER, 'M');
+			c_lookat(C_ARKADY, 'M');
+			c_speak(T_PETER, "\"Move!\"");
+			c_speak(T_MATTHEW, "\"Uh... I, alright...\"");
+			c_lookat(C_ARKADY, 'I');
+			c_walkto(C_MATTHEW, 'N');
+			c_walkto(C_PETER, 'O');
+			c_walkto(C_PETER, 'H');
+			c_walkto(C_MATTHEW, 'I');
+			c_lookat(C_ARKADY, 'H');
+			c_walkto(C_PETER, 'F');
+			c_wait(400);
+			c_shakecamera(O_DEATHSHAKE);
+			c_playsfx(S_EXPLODEMUFFLED);
+			c_wait(2400);
+			c_lookat(C_ARKADY, 'I');
+			c_wait(1600);
+			c_speak(T_ARKADY, "\"What was that?\"");
+			c_speak(T_ARKADY, "\"It's like his entire world just inverted\"");
+			c_speak(T_MUTEMATTHEW, "Matthew looks confused yet indifferent");
+			c_speak(T_MATTHEW, "\"I don't know, Arkady\"");
+			c_speak(T_MATTHEW, "\"The human mind is capable of utterly bizzare things\"");
+			c_speak(T_MUTEMATTHEW, "...");
+			c_speak(T_MATTHEW, "\"The realization that you're taking your final breaths wouldn't weigh lightly on anybody\"");
+			c_speak(T_MUTEARKADY, "...");
+			c_speak(T_ARKADY, "\"I suppose so\"");
+			c_wait(800);
+			c_speak(T_MUTEARKADY, "(This is strange)");
+			c_speak(T_MUTEARKADY, "(My friend just died but I feel almost nothing)");
+			c_speak(T_MUTEARKADY, "(What's wrong with me?)");
+			c_speak(T_MATTHEW, "\"Arkady?\"");
+			c_speak(T_ARKADY, "\"Oh?\"");
+			c_speak(T_MATTHEW, "\"It's just the two of us now\"");
+			c_speak(T_MATTHEW, "\"Should we continue?\"");
+			c_wait(500);
+			c_speak(T_MUTEARKADY, "I nod, it's the beginning of the end");
 		}
 		break;
 	case 3:
+		c_pancamera((vec3){0}, 0.0f, 0.0f);
+		c_wait(1500);
+		c_speak(T_MUTEPETER, "He looks subtly to the side and makes a confused expression");
+		c_speak(T_PETER, "\"You know...\"");
+		c_speak(T_PETER, "\"I really didn't expect this\"");
+		c_speak(T_PETER, "\"I honestly thought I'd win\"");
+		c_speak(T_PETER, "\"I even took some light 'precautions' to guarantee that\"");
+		c_speak(T_MUTEPETER, "...");
+		c_speak(T_PETER, "\"Well I've failed\"");
+		c_speak(T_PETER, "\"I've failed and I'm gonna die now\"");
+		c_speak(T_MUTEPETER, "Peter takes exaggerated breaths to mask his worry");
+		c_speak(T_ARKADY, "\"You know, Peter...\"");
+		c_speak(T_ARKADY, "\"I'm not even surprised you tried to cheat us on this\"");
+		c_speak(T_ARKADY, "\"Well, 'tried'; you got two of us\"");
+		c_speak(T_ARKADY, "\"I'll be honest with you, Peter, I never liked you. I was suspicious of you from the very first moment you started associating with us\"");
+		c_speak(T_ARKADY, "\"I tolerated you because I thought Gerasim and Matthew saw something in you that I didn't\"");
+		c_speak(T_ARKADY, "\"I though you could change, Peter\"");
+		c_speak(T_MUTEPETER, "He doesn't even try to retaliate");
+		c_speak(T_ARKADY, "\"From the moment I met you, to the moment you took yourself down with the rest of us, you've cheated and played us\"");
+		c_wait(800);
+		c_speak(T_PETER, "\"I'm leaving\"");
+		c_speak(T_ARKADY, "\"Good\"");
+		c_walkto(C_PETER, 'O');
+		c_walkto(C_PETER, 'H');
+		c_lookat(C_ARKADY, 'H');
+		c_speak(T_MUTEPETER, "Peter shakes his head before opening the door");
+		c_wait(400);
+		c_speak(T_ARKADY, "\"Good riddance\"");
+		c_walkto(C_PETER, 'F');
+		c_wait(200);
+		c_shakecamera(O_DEATHSHAKE);
+		c_playsfx(S_EXPLODEMUFFLED);
+		c_wait(4000);
+		c_speak(T_MUTEARKADY, "(What now?)");
+		c_lookat(C_ARKADY, 'I');
 		break;
 	}
-	
-	// TODO: finish implementing peter's death sequence.
 }
 
 void
