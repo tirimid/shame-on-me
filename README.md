@@ -32,6 +32,7 @@ The following compiler options can be passed in `CFLAGS`:
 
 * `-DDYNAMICLIGHTS` to enable dynamic point lighting
 * `-DPROFILE` to enable microsecond profiling
+* `-DCHEATING` to enable dev cheats during gameplay
 
 ## Usage
 

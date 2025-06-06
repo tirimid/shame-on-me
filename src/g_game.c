@@ -174,7 +174,7 @@ g_setupenv(void)
 		'f',
 		(vec3){0.5f, -0.3f, 0.5f},
 		(vec3){0.0f, GLM_PI / 2.0f, 0.0f},
-		(vec3){0.5f, 0.5f, 0.8f}
+		(vec3){0.3f, 0.5f, 0.8f}
 	);
 	
 	c_putpropat(
@@ -183,7 +183,7 @@ g_setupenv(void)
 		'f',
 		(vec3){-0.5f, -0.3f, 0.5f},
 		(vec3){0.0f, GLM_PI / 2.0f, 0.0f},
-		(vec3){0.5f, 0.5f, 0.8f}
+		(vec3){0.3f, 0.5f, 0.8f}
 	);
 	
 	c_putpropat(
@@ -192,7 +192,7 @@ g_setupenv(void)
 		'h',
 		(vec3){-0.5f, -0.3f, -0.5f},
 		(vec3){0.0f, 0.0f, 0.0f},
-		(vec3){0.5f, 0.5f, 0.8f}
+		(vec3){0.3f, 0.5f, 0.8f}
 	);
 	
 	c_putpropat(
@@ -201,7 +201,7 @@ g_setupenv(void)
 		'h',
 		(vec3){-0.5f, -0.3f, 0.5f},
 		(vec3){0.0f, 0.0f, 0.0f},
-		(vec3){0.5f, 0.5f, 0.8f}
+		(vec3){0.3f, 0.5f, 0.8f}
 	);
 	
 	c_putpropat(
@@ -219,7 +219,7 @@ g_setupenv(void)
 		'I',
 		(vec3){-0.5f, -0.3f, 0.5f},
 		(vec3){0.0f, GLM_PI / 2.0f, 0.0f},
-		(vec3){0.5f, 0.5f, 0.8f}
+		(vec3){0.3f, 0.5f, 0.8f}
 	);
 	
 	c_putpropat(
@@ -228,7 +228,7 @@ g_setupenv(void)
 		'I',
 		(vec3){-1.5f, -0.3f, 0.5f},
 		(vec3){0.0f, GLM_PI / 2.0f, 0.0f},
-		(vec3){0.5f, 0.5f, 0.8f}
+		(vec3){0.3f, 0.5f, 0.8f}
 	);
 	
 	c_putpropat(
@@ -237,7 +237,7 @@ g_setupenv(void)
 		'I',
 		(vec3){-2.5f, -0.3f, 0.5f},
 		(vec3){0.0f, GLM_PI / 2.0f, 0.0f},
-		(vec3){0.5f, 0.5f, 0.8f}
+		(vec3){0.3f, 0.5f, 0.8f}
 	);
 	
 	c_putpropat(
@@ -987,16 +987,120 @@ g_matthewdeathseq(void)
 	case 2:
 		if (d_state.losses[D_PETER] == D_DEAD)
 		{
+			c_pancamera((vec3){0}, 0.0f, 0.0f);
+			c_wait(1300);
+			c_speak(T_MATTHEW, "\"Arkady, Gerasim\"");
+			c_lookat(C_ARKADY, 'L');
+			c_speak(T_MUTEGERASIM, "...");
+			c_lookat(C_ARKADY, 'I');
+			c_speak(T_ARKADY, "\"Matthew\"");
+			c_speak(T_MUTEARKADY, "(My heart's sinking looking at him)");
+			c_speak(T_ARKADY, "\"Matthew, I didn't want this to happen\"");
+			c_wait(800);
+			c_speak(T_ARKADY, "\"I didn't want any of this\"");
+			c_speak(T_MATTHEW, "\"I know you didn't, Arkady, I don't really even blame you for it\"");
+			c_speak(T_MATTHEW, "\"If it's anybody's fault here, it's Peter's... He had the idea, he got us all together\"");
+			c_speak(T_MATTHEW, "\"Kind of ironic, really, that he was the first one out\"");
+			c_wait(400);
+			c_speak(T_ARKADY, "\"What do you think happens after death?\"");
+			c_speak(T_MATTHEW, "\"I don't know\"");
+			c_wait(1500);
+			c_walkto(C_MATTHEW, 'O');
+			c_walkto(C_MATTHEW, 'H');
+			c_lookat(C_ARKADY, 'H');
+			c_speak(T_MATTHEW, "\"Gerasim, you can deal\"");
+			c_walkto(C_MATTHEW, 'F');
+			c_wait(700);
+			c_shakecamera(O_DEATHSHAKE);
+			c_playsfx(S_EXPLODEMUFFLED);
+			c_wait(1500);
+			c_lookat(C_ARKADY, 'L');
+			c_walkto(C_GERASIM, 'O');
+			c_walkto(C_GERASIM, 'I');
+			c_lookat(C_ARKADY, 'I');
+			c_speak(T_MUTEARKADY, "(I can't lose, but at the same time, I can't find myself wanting to win)");
+			d_state.handpos[D_GERASIM] = D_TOP;
 		}
 		else // gerasim.
 		{
+			c_pancamera((vec3){0}, 0.0f, 0.0f);
+			c_wait(800);
+			c_speak(T_MATTHEW, "\"Peter, it's not the fucking time!\"");
+			c_speak(T_PETER, "\"Just a little good-natured teasing, eh?\"");
+			c_lookat(C_ARKADY, 'J');
+			c_speak(T_MATTHEW, "\"Stop fucking kicking me under the table!\"");
+			c_lookat(C_ARKADY, 'I');
+			c_speak(T_MUTEARKADY, "(He's going to die...)");
+			c_speak(T_MATTHEW, "\"You can't let me do anything in peace!\"");
+			c_speak(T_MATTHEW, "\"Not even die! I can't even die in peace with you around!\"");
+			c_speak(T_MATTHEW, "\"Why did we ever keep you around?\"");
+			c_walkto(C_MATTHEW, 'O');
+			c_walkto(C_MATTHEW, 'H');
+			c_lookat(C_ARKADY, 'H');
+			c_walkto(C_MATTHEW, 'F');
+			c_wait(600);
+			c_speak(T_PETER, "\"Check this out\"");
+			c_lookat(C_ARKADY, 'J');
+			c_speak(T_PETER, "\"3...\"");
+			c_speak(T_PETER, "\"2...\"");
+			c_speak(T_PETER, "\"1...\"");
+			c_wait(400);
+			c_shakecamera(O_DEATHSHAKE);
+			c_playsfx(S_EXPLODEMUFFLED);
+			c_wait(300);
+			c_speak(T_PETER, "\"Heh\"");
+			c_wait(700);
+			c_speak(T_ARKADY, "\"How can you live with yourself, Peter?\"");
+			c_speak(T_ARKADY, "\"What did Matthew see in you?\"");
+			c_speak(T_ARKADY, "\"What did Gerasim see in you?\"");
+			c_wait(300);
+			c_speak(T_MUTEPETER, "He's slightly cracking under the pressure");
+			c_speak(T_PETER, "\"I'm dealing\"");
+			c_walkto(C_PETER, 'M');
+			c_walkto(C_PETER, 'I');
+			c_lookat(C_ARKADY, 'I');
+			c_speak(T_MUTEARKADY, "(How disgusting, I don't even feel afraid anymore, I'm angry)");
+			d_state.handpos[D_PETER] = D_TOP;
 		}
 		break;
 	case 3:
+		c_pancamera((vec3){0}, 0.0f, 0.0f);
+		c_wait(2600);
+		c_speak(T_ARKADY, "\"Matthew?\"");
+		c_speak(T_MUTEMATTHEW, "Matthew is deep in thought");
+		c_speak(T_MATTHEW, "\"Arkady...\"");
+		c_speak(T_MATTHEW, "\"You know how people sometimes reveal secrets when they're going to die?\"");
+		c_speak(T_ARKADY, "\"Do they?\"");
+		c_speak(T_MATTHEW, "\"Er, I don't really know\"");
+		c_speak(T_MATTHEW, "\"I just really wanted to tell you some things\"");
+		c_speak(T_MUTEMATTHEW, "He shifts uncomfortably");
+		c_speak(T_MATTHEW, "\"But I just can't\"");
+		c_speak(T_MATTHEW, "\"Isn't that weird? I have no reason to keep anything hidden anymore, but I can't bring myself to speak\"");
+		c_speak(T_MATTHEW, "\"And there's a lot I want to tell you\"");
+		c_speak(T_MATTHEW, "\"In just a few seconds, I'll never get to say anything ever again\"");
+		c_speak(T_MATTHEW, "\"And yet in this critical moment I'm self-silencing\"");
+		c_wait(700);
+		c_speak(T_ARKADY, "\"What did you want to tell me?\"");
+		c_wait(800);
+		c_speak(T_MATTHEW, "\"Too much, Arkady\"");
+		c_speak(T_MATTHEW, "\"I can't believe you'll never hear it\"");
+		c_speak(T_MUTEARKADY, "(Is he about to cry?)");
+		c_wait(500);
+		c_speak(T_MATTHEW, "\"No point in wasting any more time, I can feel death approaching\"");
+		c_speak(T_MATTHEW, "\"Arkady, I'm sorry, I hope you live a long and happy life\"");
+		c_walkto(C_MATTHEW, 'O');
+		c_walkto(C_MATTHEW, 'H');
+		c_lookat(C_ARKADY, 'H');
+		c_speak(T_MUTEMATTHEW, "He looks like he wants to say something, then waves his hand at the prospect");
+		c_walkto(C_MATTHEW, 'F');
+		c_wait(300);
+		c_shakecamera(O_DEATHSHAKE);
+		c_playsfx(S_EXPLODEMUFFLED);
+		c_wait(2000);
+		c_speak(T_MUTEARKADY, "(Matthew...)");
+		c_lookat(C_ARKADY, 'I');
 		break;
 	}
-	
-	// TODO: finish implementing matthew's death sequence.
 }
 
 void
