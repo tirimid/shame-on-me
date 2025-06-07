@@ -11,7 +11,7 @@
 	"##########d##...#" \
 	"...........E#...#" \
 	"h..F......D.c.C.#" \
-	".........g..#...#" \
+	"...R.....g..#...#" \
 	"###b#########...#" \
 	"...H..K.P.#.#.f.#" \
 	"........Q.#.#####" \
@@ -630,6 +630,7 @@ g_arkadydeathseq(void)
 			c_pancamera((vec3){0}, -20.0f, 0.0f);
 			c_wait(800);
 			c_speak(T_MUTEARKADY, "(Oh my god)");
+			// TODO: finish this scene with corpse texture.
 			c_shakecamera(O_PLAYERDEATHSHAKE);
 			c_playsfx(S_EXPLODE);
 			c_globalshade((vec3)O_DEATHGLOBALSHADE);
@@ -743,14 +744,91 @@ g_arkadydeathseq(void)
 		}
 		else if (d_state.losses[D_MATTHEW] != D_DEAD)
 		{
+			c_pancamera((vec3){0}, 0.0f, 0.0f);
+			c_wait(900);
+			c_speak(T_MATTHEW, "\"I didn't want to win\"");
+			c_speak(T_MUTEMATTHEW, "He is wide-eyed");
+			c_speak(T_MATTHEW, "\"I've been playing all my weakest cards, I thought you would win\"");
+			c_speak(T_MATTHEW, "\"I couldn't in good conscience let you die...\"");
+			c_wait(1000);
+			c_speak(T_ARKADY, "\"Well, you did\"");
+			c_wait(1000);
+			c_speak(T_MATTHEW, "\"Arkady, forgive me, please\"");
+			c_speak(T_ARKADY, "\"I never held anything against you\"");
+			c_speak(T_ARKADY, "\"But I don't want to die, Matthew\"");
+			c_speak(T_ARKADY, "\"I think...\"");
+			c_speak(T_MUTEARKADY, "(I feel like I should be upset, but really I'm kind of indifferent)");
+			c_speak(T_MUTEARKADY, "(Is this what it's like to be desensitized to everything?)");
+			c_speak(T_ARKADY, "\"No, no, I just feel kind of empty\"");
+			c_wait(1300);
+			c_speak(T_MATTHEW, "\"I'm sorry\"");
+			c_speak(T_ARKADY, "\"No, there's nothing to forgive you for\"");
+			c_speak(T_ARKADY, "\"I'll step outside\"");
+			c_wait(600);
+			c_speak(T_MUTEMATTHEW, "After processing your words, he nods");
+			c_lookwalkto(C_ARKADY, 'H');
+			c_lookat(C_ARKADY, 'F');
+			c_wait(600);
+			c_speak(T_MATTHEW, "\"Wait!\"");
+			c_lookat(C_ARKADY, 'I');
+			c_speak(T_MATTHEW, "\"Arkady, I'll miss you\"");
+			c_wait(500);
+			c_lookat(C_ARKADY, 'F');
+			// TODO: finish scene with corpse textures.
+			c_setlightintensity(g_entrylight, 1.5f);
+			c_swapmodel(g_roomdoor, R_DOOROPEN);
+			c_wait(300);
+			c_pancamera((vec3){0}, -20.0f, 0.0f);
+			c_wait(500);
+			c_speak(T_MUTEARKADY, "(I see)");
+			c_pancamera((vec3){0}, -20.0f, 0.0f);
+			c_wait(800);
+			c_pancamera((vec3){0}, 0.0f, 0.0f);
+			c_lookwalkto(C_ARKADY, 'R');
+			c_lookat(C_ARKADY, 'b');
+			c_speak(T_MUTEARKADY, "(Death is coming)");
+			c_speak(T_MUTEARKADY, "(I hope you don't see this, Matthew)");
+			c_setlightintensity(g_roomlight, 0.0f);
+			c_swapmodel(g_roomdoor, R_DOORCLOSED);
+			c_wait(900);
+			c_shakecamera(O_PLAYERDEATHSHAKE);
+			c_playsfx(S_EXPLODE);
+			c_globalshade((vec3)O_DEATHGLOBALSHADE);
+			c_wait(100);
+			c_quit();
 		}
 		else // gerasim.
 		{
+			c_pancamera((vec3){0}, 0.0f, 0.0f);
+			c_wait(1300);
+			c_speak(T_MUTEARKADY, "(I'm in shock)");
+			c_speak(T_MUTEARKADY, "(Peter died, Matthew died, and I'm about to die)");
+			c_speak(T_MUTEARKADY, "(I couldn't believe it if it didn't feel so real)");
+			c_speak(T_MUTEARKADY, "(Please tell me this is all a bad dream)");
+			c_speak(T_MUTEARKADY, "(The earthquakes, the game, it shouldn't be real, it doesn't make sense)");
+			c_speak(T_MUTEGERASIM, "...");
+			c_speak(T_MUTEGERASIM, "Gerasim gestures like he'll get up");
+			c_speak(T_MUTEARKADY, "(No, wait, you don't need to, I'll leave)");
+			c_speak(T_MUTEARKADY, "(Nothing's coming out)");
+			c_wait(300);
+			c_walkto(C_GERASIM, 'O');
+			c_walkto(C_GERASIM, 'H');
+			c_lookat(C_ARKADY, 'H');
+			c_speak(T_MUTEARKADY, "(Wait)");
+			c_walkto(C_GERASIM, 'F');
+			c_wait(800);
+			c_lookat(C_ARKADY, 'I');
+			c_speak(T_MUTEARKADY, "(Oh god)");
+			c_speak(T_MUTEARKADY, "(Everything's closing in on me)");
+			c_speak(T_MUTEARKADY, "(The collar-)");
+			c_shakecamera(O_PLAYERDEATHSHAKE);
+			c_playsfx(S_EXPLODE);
+			c_globalshade((vec3)O_DEATHGLOBALSHADE);
+			c_wait(100);
+			c_quit();
 		}
 		break;
 	}
-	
-	// TODO: finish implementing arkady's death sequence.
 }
 
 void
@@ -1146,16 +1224,106 @@ g_gerasimdeathseq(void)
 	case 2:
 		if (d_state.losses[D_PETER] == D_DEAD)
 		{
+			c_pancamera((vec3){0}, 0.0f, 0.0f);
+			c_wait(900);
+			c_lookat(C_ARKADY, 'L');
+			c_wait(1200);
+			c_speak(T_ARKADY, "\"Hey, Gerasim, I know this is a bad time, but I have a question\"");
+			c_speak(T_ARKADY, "\"I just figured that, well, I'll never be able to ask again\"");
+			c_speak(T_MUTEGERASIM, "Gerasim nods, awaiting the question");
+			c_speak(T_ARKADY, "\"Why were you friends with Peter?\"");
+			c_speak(T_ARKADY, "\"Why did you introduce him to us?\"");
+			c_speak(T_ARKADY, "\"I hate to talk behind the back of a dead man, but...\"");
+			c_wait(400);
+			c_lookat(C_ARKADY, 'I');
+			c_wait(300);
+			c_lookat(C_ARKADY, 'L');
+			c_wait(300);
+			c_speak(T_ARKADY, "\"Well, I'm sure you know what I mean\"");
+			c_wait(1200);
+			c_speak(T_MUTEGERASIM, "He can't even respond, shrugging");
+			c_speak(T_ARKADY, "\"I'm sorry for asking\"");
+			c_wait(2300);
+			c_walkto(C_GERASIM, 'H');
+			c_lookat(C_ARKADY, 'H');
+			c_wait(700);
+			c_walkto(C_GERASIM, 'F');
+			c_wait(300);
+			c_shakecamera(O_DEATHSHAKE);
+			c_playsfx(S_EXPLODEMUFFLED);
+			c_wait(1600);
+			c_lookat(C_ARKADY, 'I');
+			c_speak(T_ARKADY, "\"I can't believe I did that\"");
+			c_speak(T_ARKADY, "\"What a horrible thing to do, interrogate somebody about some bullshit drama right before their head is blown off\"");
+			c_speak(T_ARKADY, "\"I shouldn't have done, that, should I?\"");
+			c_wait(600);
+			c_speak(T_MATTHEW, "\"There's nothing that can be done anymore, Arkady\"");
+			c_wait(800);
+			c_speak(T_ARKADY, "\"You're right\"");
+			c_speak(T_MUTEARKADY, "(How horrible, and right before the last game too)");
 		}
 		else // matthew.
 		{
+			c_pancamera((vec3){0}, 0.0f, 0.0f);
+			c_wait(1100);
+			c_lookat(C_ARKADY, 'L');
+			c_wait(500);
+			c_speak(T_MUTEGERASIM, "Gerasim accepts his fate as the last card is laid down");
+			c_speak(T_MUTEGERASIM, "His eyes hide some indiscernible emotion");
+			c_speak(T_PETER, "\"Are you just going to keep looking at each other?\"");
+			c_lookat(C_ARKADY, 'I');
+			c_speak(T_PETER, "\"I can hear the collar beeping all the way from here!\"");
+			c_speak(T_MUTEARKADY, "...");
+			c_speak(T_ARKADY, "\"Peter, the collars don't beep\"");
+			c_speak(T_PETER, "\"I know, asshole!\"");
+			c_speak(T_PETER, "\"I'm the one who made them!\"");
+			c_speak(T_ARKADY, "\"What are you saying they beep for, then?\"");
+			c_speak(T_PETER, "\"It's a nicer way to get 'im outta here\"");
+			c_lookat(C_ARKADY, 'L');
+			c_speak(T_MUTEGERASIM, "Gerasim shows no animosity, he just wants the affair to be over as soon as possible");
+			c_speak(T_MUTEGERASIM, "He actions, standing up");
+			c_wait(400);
+			c_walkto(C_GERASIM, 'H');
+			c_lookat(C_ARKADY, 'H');
+			c_speak(T_MUTEARKADY, "(I find myself wanting to say something)");
+			c_wait(500);
+			c_speak(T_ARKADY, "\"Hey-\"");
+			c_walkto(C_GERASIM, 'F');
+			c_wait(200);
+			c_shakecamera(O_DEATHSHAKE);
+			c_playsfx(S_EXPLODEMUFFLED);
+			c_wait(900);
+			c_speak(T_PETER, "\"Time for the last game\"");
+			c_lookat(C_ARKADY, 'I');
+			c_speak(T_PETER, "\"Ready?\"");
+			c_speak(T_ARKADY, "\"I-\"");
+			c_speak(T_PETER, "\"Don't give a shit, here's your cards\"");
+			c_speak(T_MUTEARKADY, "(Seriously, again?)");
 		}
 		break;
 	case 3:
+		c_teleportto(C_GERASIM, 'F');
+		c_pancamera((vec3){0}, 0.0f, 0.0f);
+		c_wait(600);
+		c_speak(T_MUTEARKADY, "(What?)");
+		c_wait(1800);
+		c_lookat(C_ARKADY, 'J');
+		c_wait(400);
+		c_lookat(C_ARKADY, 'L');
+		c_wait(400);
+		c_lookat(C_ARKADY, 'H');
+		c_wait(250);
+		c_speak(T_ARKADY, "\"Gerasim?\"");
+		c_speak(T_ARKADY, "\"Gerasim, are you there?\"");
+		c_wait(1400);
+		c_shakecamera(O_DEATHSHAKE);
+		c_playsfx(S_EXPLODEMUFFLED);
+		c_wait(2500);
+		c_speak(T_MUTEARKADY, "(Even he's gone now)");
+		c_wait(600);
+		c_lookat(C_ARKADY, 'I');
 		break;
 	}
-	
-	// TODO: finish implementing gerasim's death sequence.
 }
 
 void
