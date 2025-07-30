@@ -193,6 +193,14 @@ static c_action_t c_actions[O_MAXACTIONS];
 static usize c_nactions;
 
 void
+c_reset(void)
+{
+	c_nprops = 0;
+	c_nactions = 0;
+	r_resetlights();
+}
+
+void
 c_teleport(c_actor_t a, vec2 pos)
 {
 	if (c_nactions < O_MAXACTIONS)

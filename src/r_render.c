@@ -450,6 +450,15 @@ r_init(void)
 	return 0;
 }
 
+void
+r_handle(SDL_Event const *e)
+{
+	if (e->type == SDL_WINDOWEVENT && e->window.event == SDL_WINDOWEVENT_RESIZED)
+	{
+		r_resize(e->window.data1, e->window.data2);
+	}
+}
+
 bool
 r_lightenabled(usize idx)
 {
@@ -588,11 +597,14 @@ r_present(void)
 void
 r_resize(i32 x, i32 y)
 {
-	// regenerate frame buffer.
+	// regenerate buffers.
 	glDeleteBuffers(1, &r_state.colorbuf);
-	glGenRenderbuffers(1, &r_state.colorbuf);
 	glDeleteBuffers(1, &r_state.depthbuf);
+	glDeleteBuffers(1, &r_state.framebuf);
+	
+	glGenRenderbuffers(1, &r_state.colorbuf);
 	glGenRenderbuffers(1, &r_state.depthbuf);
+	glGenFramebuffers(1, &r_state.framebuf);
 	
 	glBindFramebuffer(GL_FRAMEBUFFER, r_state.framebuf);
 	
@@ -682,6 +694,16 @@ r_setlightintensity(usize idx, f32 intensity)
 #else
 	r_state.lights[idx][3] = intensity;
 #endif
+}
+
+void
+r_resetlights(void)
+{
+	r_state.nlights = 0;
+	for (usize i = 0; i < O_MAXLIGHTS; ++i)
+	{
+		r_state.lights[i][3] = 0.0f;
+	}
 }
 
 void
@@ -836,6 +858,13 @@ void
 r_fade(r_fadestatus_t fs)
 {
 	r_state.fadestatus = fs;
+}
+
+void
+r_cut(r_fadestatus_t fs)
+{
+	r_state.fadestatus = fs;
+	r_state.fadebrightness = fs ? 1.0f : 0.0f;
 }
 
 void

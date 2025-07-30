@@ -25,8 +25,9 @@ typedef struct c_prop
 
 extern c_map_t c_map;
 extern c_prop_t c_props[O_MAXPROPS];
-extern usize c_propcnt;
+extern usize c_nprops;
 
+void c_reset(void);
 void c_teleport(c_actor_t a, vec2 pos);
 void c_teleportto(c_actor_t a, char point);
 void c_walk(c_actor_t a, vec2 pos);

@@ -99,7 +99,7 @@ main(int argc, char *argv[])
 		return 1;
 	}
 	
-	g_loop(false);
+	m_main();
 	
 	return 0;
 }

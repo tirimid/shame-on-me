@@ -30,6 +30,8 @@ g_loop(bool fast)
 	NEWTIMER(largetimer);
 	NEWTIMER(stagetimer);
 	
+	c_reset();
+	r_cut(R_FADEOUT);
 	g_setupenv();
 	if (fast)
 	{
@@ -54,18 +56,10 @@ g_loop(bool fast)
 		while (SDL_PollEvent(&e))
 		{
 			i_handle(&e);
-			switch (e.type)
+			r_handle(&e);
+			if (e.type == SDL_QUIT)
 			{
-			case SDL_WINDOWEVENT:
-				if (e.window.event == SDL_WINDOWEVENT_RESIZED)
-				{
-					r_resize(e.window.data1, e.window.data2);
-				}
-				break;
-			case SDL_QUIT:
-				return;
-			default:
-				break;
+				exit(0);
 			}
 		}
 		
@@ -277,6 +271,7 @@ g_introseq(void)
 	static char dialogtutorial[128] = {0};
 	sprintf(dialogtutorial, "Progress dialog with %s", SDL_GetKeyName(o_dyn.ksel));
 	
+	c_wait(1000);
 	c_speak(T_TUTORIAL, dialogtutorial);
 	c_fade(R_FADEIN);
 	c_lookwalkto(C_ARKADY, 'A');
@@ -409,8 +404,8 @@ g_introseq(void)
 void
 g_fastintroseq(void)
 {
-	r_fade(R_FADEIN);
-	
+	c_wait(1000);
+	c_fade(R_FADEIN);
 	c_setlightintensity(g_hallwaylight, 0.0f);
 	c_setlightintensity(g_entrylight, 0.0f);
 	c_teleportto(C_ARKADY, 'K');
