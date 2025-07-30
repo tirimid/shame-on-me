@@ -25,17 +25,24 @@ static usize g_maindoor, g_roomdoor;
 static usize g_hallwaylight, g_entrylight, g_roomlight;
 
 void
-g_loop(void)
+g_loop(bool fast)
 {
 	NEWTIMER(largetimer);
 	NEWTIMER(stagetimer);
 	
 	g_setupenv();
-	//g_introseq();
-	//g_tutorialseq();
-	d_state.round = 1;
-	g_fastintroseq();
-	g_roundendseq();
+	if (fast)
+	{
+		d_state.round = 1;
+		g_fastintroseq();
+		g_roundendseq();
+	}
+	else
+	{
+		d_state.round = 0;
+		g_introseq();
+		g_tutorialseq();
+	}
 	
 	for (;;)
 	{
@@ -994,7 +1001,7 @@ g_peterdeathseq(void)
 		c_speak(T_ARKADY, "\"Well, 'tried'; you got two of us\"");
 		c_speak(T_ARKADY, "\"I'll be honest with you, Peter, I never liked you. I was suspicious of you from the very first moment you started associating with us\"");
 		c_speak(T_ARKADY, "\"I tolerated you because I thought Gerasim and Matthew saw something in you that I didn't\"");
-		c_speak(T_ARKADY, "\"I though you could change, Peter\"");
+		c_speak(T_ARKADY, "\"I thought you could change, Peter\"");
 		c_speak(T_MUTEPETER, "He doesn't even try to retaliate");
 		c_speak(T_ARKADY, "\"From the moment I met you, to the moment you took yourself down with the rest of us, you've cheated and played us\"");
 		c_wait(800);

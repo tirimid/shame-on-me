@@ -92,7 +92,7 @@ t_update(void)
 	}
 	
 	// update textbox update.
-	if (i_kpressed(O_KSEL))
+	if (i_kpressed(o_dyn.ksel))
 	{
 		if (t_scroll < t_msglen)
 		{

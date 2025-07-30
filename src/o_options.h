@@ -5,16 +5,9 @@
 #define O_IMGFLAGS IMG_INIT_PNG
 #define O_MIXFLAGS MIX_INIT_OGG
 #define O_WNDTITLE "Shame on Me"
-#define O_WNDFLAGS (SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN_DESKTOP)
-#define O_WNDWIDTH 800
-#define O_WNDHEIGHT 450
+#define O_WNDFLAGSFULLSCREEN (SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN_DESKTOP)
+#define O_WNDFLAGSNORMAL (SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_MAXIMIZED)
 #define O_ERRWNDTITLE "Shame on Me - Error"
-
-// input options.
-#define O_KSEL SDLK_c
-#define O_KSKIP SDLK_z
-#define O_KRIGHT SDLK_RIGHT
-#define O_KLEFT SDLK_LEFT
 
 // game system options.
 #define O_TICKMS 20
@@ -75,5 +68,19 @@
 #define O_VARYTICK 50
 #define O_DEATHLOSSES 2
 
-// sound options.
-#define O_VOLUME 0.4f
+// dynamic configuration.
+#define O_DYNFILE "options.conf"
+
+typedef struct o_dyn
+{
+	i64 wndw, wndh;
+	SDL_Keycode ksel, kskip, kright, kleft;
+	f64 sfxvolume, musicvolume;
+	bool fullscreen;
+} o_dyn_t;
+
+extern o_dyn_t o_dyn;
+
+void o_dyndefault(void);
+i32 o_dynread(void);
+i32 o_dynwrite(void);

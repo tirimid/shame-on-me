@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // standard library.
+#include <errno.h>
 #include <stdlib.h>
 #include <time.h>
 
@@ -15,8 +16,8 @@
 #include <sys/time.h>
 
 // project headers.
-#include "o_options.h"
 #include "util.h"
+#include "o_options.h"
 #include "r_render.h"
 #include "resources.h"
 #include "s_sound.h"
@@ -31,6 +32,7 @@
 #include "d_durak.c"
 #include "g_game.c"
 #include "i_input.c"
+#include "o_options.c"
 #include "r_render.c"
 #include "s_sound.c"
 #include "t_textbox.c"
@@ -42,9 +44,9 @@ main(int argc, char *argv[])
 	(void)argc;
 	(void)argv;
 	
+	// initialize non-game systems.
 	srand(time(NULL));
 	
-	// initialize non-game systems.
 	if (SDL_Init(O_SDLFLAGS))
 	{
 		fprintf(stderr, "err: main: failed to init SDL2!\n");
@@ -73,6 +75,16 @@ main(int argc, char *argv[])
 	}
 	atexit(Mix_Quit);
 	
+	// initialize game systems.
+	if (o_dynread())
+	{
+		o_dyndefault();
+		if (o_dynwrite())
+		{
+			return 1;
+		}
+	}
+	
 	if (r_init())
 	{
 		return 1;
@@ -83,7 +95,7 @@ main(int argc, char *argv[])
 		return 1;
 	}
 	
-	g_loop();
+	g_loop(true);
 	
 	return 0;
 }

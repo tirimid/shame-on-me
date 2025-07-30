@@ -199,9 +199,9 @@ r_init(void)
 		O_WNDTITLE,
 		SDL_WINDOWPOS_UNDEFINED,
 		SDL_WINDOWPOS_UNDEFINED,
-		O_WNDWIDTH,
-		O_WNDHEIGHT,
-		O_WNDFLAGS
+		o_dyn.wndw,
+		o_dyn.wndh,
+		o_dyn.fullscreen ? O_WNDFLAGSFULLSCREEN : O_WNDFLAGSNORMAL
 	);
 	if (!r_wnd)
 	{

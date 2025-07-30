@@ -567,19 +567,19 @@ d_playattack(d_pcards_t *pc)
 {
 	d_state.selidx = d_state.selidx >= pc->ncards ? 0 : d_state.selidx;
 	
-	if (i_kpressed(O_KRIGHT))
+	if (i_kpressed(o_dyn.kright))
 	{
 		d_state.selidx = d_state.selidx + 1 >= pc->ncards ? 0 : d_state.selidx + 1;
 	}
 	
-	if (i_kpressed(O_KLEFT))
+	if (i_kpressed(o_dyn.kleft))
 	{
 		d_state.selidx = d_state.selidx == 0 ? pc->ncards - 1 : d_state.selidx - 1;
 	}
 	
 	if (d_state.attack.ncards)
 	{
-		if (pc->ncards && i_kpressed(O_KSEL))
+		if (pc->ncards && i_kpressed(o_dyn.ksel))
 		{
 			u8 pcardsel = pc->pcards[d_state.selidx];
 			d_card_t const *cardsel = &d_state.data[pcardsel];
@@ -620,7 +620,7 @@ d_playattack(d_pcards_t *pc)
 				}
 			}
 		}
-		else if (!pc->ncards || i_kpressed(O_KSKIP))
+		else if (!pc->ncards || i_kpressed(o_dyn.kskip))
 		{
 			d_state.selidx = -1;
 			d_allcovered();
@@ -628,7 +628,7 @@ d_playattack(d_pcards_t *pc)
 	}
 	else
 	{
-		if (i_kpressed(O_KSEL))
+		if (i_kpressed(o_dyn.ksel))
 		{
 			d_addcard(&d_state.attack, pc->pcards[d_state.selidx]);
 			d_rmcard(pc, d_state.selidx);
@@ -645,17 +645,17 @@ d_playdefend(d_pcards_t *pc)
 {
 	d_state.selidx = d_state.selidx >= pc->ncards ? 0 : d_state.selidx;
 	
-	if (i_kpressed(O_KRIGHT))
+	if (i_kpressed(o_dyn.kright))
 	{
 		d_state.selidx = d_state.selidx + 1 >= pc->ncards ? 0 : d_state.selidx + 1;
 	}
 	
-	if (i_kpressed(O_KLEFT))
+	if (i_kpressed(o_dyn.kleft))
 	{
 		d_state.selidx = d_state.selidx == 0 ? pc->ncards - 1 : d_state.selidx - 1;
 	}
 	
-	if (pc->ncards && i_kpressed(O_KSEL))
+	if (pc->ncards && i_kpressed(o_dyn.ksel))
 	{
 		u8 pcardsel = pc->pcards[d_state.selidx];
 		u8 pcardatk = d_state.attack.pcards[d_state.attack.ncards - 1];
@@ -670,7 +670,7 @@ d_playdefend(d_pcards_t *pc)
 			d_setphase(D_ATTACK);
 		}
 	}
-	else if (!pc->ncards || i_kpressed(O_KSKIP))
+	else if (!pc->ncards || i_kpressed(o_dyn.kskip))
 	{
 		d_state.selidx = -1;
 		d_takeall();

@@ -68,7 +68,7 @@ s_init(void)
 	
 	// set mix parameters.
 	Mix_AllocateChannels(16);
-	s_sfxvolume(O_VOLUME);
+	s_sfxvolume(o_dyn.sfxvolume);
 	
 	return 0;
 }
