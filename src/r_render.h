@@ -122,6 +122,7 @@ typedef struct r_cam
 	} shake;
 } r_cam_t;
 
+extern SDL_Window *r_wnd;
 extern r_cam_t r_cam;
 
 i32 r_init(void);

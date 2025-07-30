@@ -53,6 +53,7 @@ g_loop(bool fast)
 		SDL_Event e;
 		while (SDL_PollEvent(&e))
 		{
+			i_handle(&e);
 			switch (e.type)
 			{
 			case SDL_WINDOWEVENT:
@@ -60,12 +61,6 @@ g_loop(bool fast)
 				{
 					r_resize(e.window.data1, e.window.data2);
 				}
-				break;
-			case SDL_KEYDOWN:
-				i_setkstate(&e, I_PRESS);
-				break;
-			case SDL_KEYUP:
-				i_setkstate(&e, I_RELEASE);
 				break;
 			case SDL_QUIT:
 				return;

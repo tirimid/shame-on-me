@@ -94,12 +94,12 @@ typedef struct r_state
 	vec3 globalshade;
 } r_state_t;
 
+SDL_Window *r_wnd;
 r_cam_t r_cam;
 
 static void r_preproc(char *src, usize len);
 static void r_deleteglctx(void);
 
-static SDL_Window *r_wnd;
 static SDL_GLContext r_glctx;
 static r_state_t r_state;
 static r_uniforms_t r_uniforms;

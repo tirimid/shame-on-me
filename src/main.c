@@ -26,16 +26,20 @@
 #include "c_choreo.h"
 #include "g_game.h"
 #include "i_input.h"
+#include "u_ui.h"
+#include "m_menus.h"
 
 // project source.
 #include "c_choreo.c"
 #include "d_durak.c"
 #include "g_game.c"
 #include "i_input.c"
+#include "m_menus.c"
 #include "o_options.c"
 #include "r_render.c"
 #include "s_sound.c"
 #include "t_textbox.c"
+#include "u_ui.c"
 #include "util.c"
 
 int
