@@ -10,6 +10,7 @@ typedef enum t_sprite
 	T_MUTEPETER,
 	T_MUTEMATTHEW,
 	T_MUTEGERASIM,
+	T_TUTORIAL,
 	
 	T_SPRITE_END
 } t_sprite_t;

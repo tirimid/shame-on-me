@@ -17,7 +17,8 @@ static u8 t_spritetex[T_SPRITE_END] =
 	R_SOMETHING, // mute arkady.
 	R_EYESDUMMYFACE, // mute peter.
 	R_GLASSESDUMMYFACE, // mute matthew.
-	R_DUMMYFACE // mute gerasim.
+	R_DUMMYFACE, // mute gerasim.
+	R_SOMETHING // tutorial.
 };
 
 static u8 t_voices[T_SPRITE_END] =
@@ -29,7 +30,8 @@ static u8 t_voices[T_SPRITE_END] =
 	S_SFX_END, // mute arkady.
 	S_SFX_END, // mute peter.
 	S_SFX_END, // mute matthew.
-	S_SFX_END // mute gerasim.
+	S_SFX_END, // mute gerasim.
+	S_SFX_END // tutorial
 };
 
 bool

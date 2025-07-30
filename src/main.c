@@ -95,7 +95,7 @@ main(int argc, char *argv[])
 		return 1;
 	}
 	
-	g_loop(true);
+	g_loop(false);
 	
 	return 0;
 }
