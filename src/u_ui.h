@@ -5,3 +5,4 @@ void u_render(void);
 void u_pad(i32 dx, i32 dy);
 void u_label(char const *text);
 bool u_button(char const *text);
+bool u_slider(char const *text, INOUT f64 *val);

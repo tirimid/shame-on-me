@@ -3,7 +3,8 @@
 typedef enum u_elemtype
 {
 	U_LABEL = 0,
-	U_BUTTON
+	U_BUTTON,
+	U_SLIDER
 } u_elemtype_t;
 
 typedef union u_elem
@@ -31,6 +32,15 @@ typedef union u_elem
 		i32 w, h;
 		char const *text;
 	} button;
+	
+	struct
+	{
+		u8 type;
+		i32 x, y;
+		i32 w, h;
+		char const *text;
+		f64 *val;
+	} slider;
 } u_elem_t;
 
 static i32 u_x, u_y;
@@ -120,6 +130,18 @@ u_render(void)
 			
 			break;
 		}
+		case U_SLIDER:
+			r_renderrect(R_BLACK, x, y, w, h, 0.0f);
+			r_renderrect(R_GRAY, x, y, *u_elems[i].slider.val * w, h, 0.0f);
+			r_rendertext(
+				R_VCROSDMONO,
+				u_elems[i].slider.text,
+				x + O_UISLIDERPAD,
+				y + O_UISLIDERPAD,
+				w - 2 * O_UISLIDERPAD,
+				h - 2 * O_UISLIDERPAD
+			);
+			break;
 		}
 	}
 }
@@ -194,6 +216,55 @@ u_button(char const *text)
 			.w = w,
 			.h = h,
 			.text = text
+		}
+	};
+	u_y += h;
+	
+	return state;
+}
+
+bool
+u_slider(char const *text, INOUT f64 *val)
+{
+	if (u_nelems >= O_MAXUIELEMS)
+	{
+		return false;
+	}
+	
+	bool state = false;
+	
+	i32 w, h;
+	r_textsize(R_VCROSDMONO, text, &w, &h);
+	w += 2 * O_UISLIDERPAD;
+	h += 2 * O_UISLIDERPAD;
+	
+	i32 mx, my;
+	i_rectmpos(&mx, &my);
+	
+	if (i_mdown(SDL_BUTTON_LEFT)
+		&& mx >= u_x
+		&& my >= u_y
+		&& mx < u_x + w
+		&& my < u_y + h)
+	{
+		*val = (f64)(mx - u_x) / w;
+		state = true;
+	}
+	
+	*val = *val < 0.0f ? 0.0f : *val;
+	*val = *val > 1.0f ? 1.0f : *val;
+	
+	u_elems[u_nelems++] = (u_elem_t)
+	{
+		.slider =
+		{
+			.type = U_SLIDER,
+			.x = u_x,
+			.y = u_y,
+			.w = w,
+			.h = h,
+			.text = text,
+			.val = val
 		}
 	};
 	u_y += h;

@@ -2,3 +2,4 @@
 
 void m_main(void);
 void m_options(void);
+SDL_Keycode m_keyselect(void);

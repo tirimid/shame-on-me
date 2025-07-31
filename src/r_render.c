@@ -190,12 +190,15 @@ static r_fontdata_t r_fonts[R_FONT_END] =
 i32
 r_init(void)
 {
+	NEWTIMER(stagetimer);
+	
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	
 	// set up rendering data and structures.
+	BEGINTIMER(&stagetimer);
 	r_wnd = SDL_CreateWindow(
 		O_WNDTITLE,
 		SDL_WINDOWPOS_UNDEFINED,
@@ -209,7 +212,9 @@ r_init(void)
 		showerr("render: failed to create window - %s!", SDL_GetError());
 		return 1;
 	}
+	ENDTIMER(stagetimer, "render: create window");
 	
+	BEGINTIMER(&stagetimer);
 	r_glctx = SDL_GL_CreateContext(r_wnd);
 	if (!r_glctx)
 	{
@@ -217,7 +222,9 @@ r_init(void)
 		return 1;
 	}
 	atexit(r_deleteglctx);
+	ENDTIMER(stagetimer, "render: create GL context");
 	
+	BEGINTIMER(&stagetimer);
 	glewExperimental = GL_TRUE;
 	i32 rc = glewInit();
 	if (rc != GLEW_OK)
@@ -225,8 +232,10 @@ r_init(void)
 		showerr("render: failed to init GLEW - %s!", glewGetErrorString(rc));
 		return 1;
 	}
+	ENDTIMER(stagetimer, "render: init GLEW");
 	
 	// set up models.
+	BEGINTIMER(&stagetimer);
 	for (usize i = 0; i < R_MODEL_END; ++i)
 	{
 		// generate GL state.
@@ -258,8 +267,10 @@ r_init(void)
 		glEnableVertexAttribArray(1);
 		glEnableVertexAttribArray(2);
 	}
+	ENDTIMER(stagetimer, "render: init models");
 	
 	// set up shader programs.
+	BEGINTIMER(&stagetimer);
 	char shaderlog[O_MAXLOGLEN];
 	for (usize i = 0; i < R_SHADER_END; ++i)
 	{
@@ -347,8 +358,10 @@ r_init(void)
 		
 		r_shaders[i].prog = prog;
 	}
+	ENDTIMER(stagetimer, "render: init shaders");
 	
 	// set up all textures.
+	BEGINTIMER(&stagetimer);
 	for (usize i = 0; i < R_TEX_END; ++i)
 	{
 		// load texture.
@@ -383,8 +396,10 @@ r_init(void)
 			r_texs[i].surf->pixels
 		);
 	}
+	ENDTIMER(stagetimer, "render: init textures");
 	
 	// set up all fonts.
+	BEGINTIMER(&stagetimer);
 	for (usize i = 0; i < R_FONT_END; ++i)
 	{
 		SDL_RWops *rwops = SDL_RWFromConstMem(r_fonts[i].data, *r_fonts[i].size);
@@ -401,6 +416,10 @@ r_init(void)
 			return 1;
 		}
 	}
+	ENDTIMER(stagetimer, "render: init fonts");
+	
+	// create and set initial state.
+	BEGINTIMER(&stagetimer);
 	
 	// create initial framebuffer data.
 	glGenFramebuffers(1, &r_state.framebuf);
@@ -447,6 +466,8 @@ r_init(void)
 	glCullFace(GL_BACK);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	
+	ENDTIMER(stagetimer, "render: create and set initial state");
 	
 	return 0;
 }

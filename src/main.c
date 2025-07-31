@@ -45,41 +45,59 @@
 int
 main(int argc, char *argv[])
 {
+	NEWTIMER(largetimer);
+	NEWTIMER(stagetimer);
+	
 	(void)argc;
 	(void)argv;
 	
 	// initialize non-game systems.
+	BEGINTIMER(&largetimer);
+	
 	srand(time(NULL));
 	
+	BEGINTIMER(&stagetimer);
 	if (SDL_Init(O_SDLFLAGS))
 	{
 		fprintf(stderr, "err: main: failed to init SDL2!\n");
 		return 1;
 	}
 	atexit(SDL_Quit);
+	ENDTIMER(stagetimer, "main: init SDL2");
 	
+	BEGINTIMER(&stagetimer);
 	if (IMG_Init(O_IMGFLAGS) != O_IMGFLAGS)
 	{
 		showerr("main: failed to init SDL2 image!");
 		return 1;
 	}
 	atexit(IMG_Quit);
+	ENDTIMER(stagetimer, "main: init SDL2 image");
 	
+	BEGINTIMER(&stagetimer);
 	if (TTF_Init())
 	{
 		showerr("main: failed to init SDL2 TTF!");
 		return 1;
 	}
 	atexit(TTF_Quit);
+	ENDTIMER(stagetimer, "main: init SDL2 TTF");
 	
+	BEGINTIMER(&stagetimer);
 	if (Mix_Init(O_MIXFLAGS) != O_MIXFLAGS)
 	{
 		showerr("main: failed to init SDL2 mixer!");
 		return 1;
 	}
 	atexit(Mix_Quit);
+	ENDTIMER(stagetimer, "main: init SDL2 mixer");
+	
+	ENDTIMER(largetimer, "main: init non-game systems");
 	
 	// initialize game systems.
+	BEGINTIMER(&largetimer);
+	
+	BEGINTIMER(&stagetimer);
 	if (o_dynread())
 	{
 		o_dyndefault();
@@ -88,17 +106,25 @@ main(int argc, char *argv[])
 			return 1;
 		}
 	}
+	ENDTIMER(stagetimer, "main: init dynamic options");
 	
+	BEGINTIMER(&stagetimer);
 	if (r_init())
 	{
 		return 1;
 	}
+	ENDTIMER(stagetimer, "main: init render");
 	
+	BEGINTIMER(&stagetimer);
 	if (s_init())
 	{
 		return 1;
 	}
+	ENDTIMER(stagetimer, "main: init sound");
 	
+	ENDTIMER(largetimer, "main: init game systems");
+	
+	// TODO: consider endless loop on m_main() to prevent game closing when done.
 	m_main();
 	
 	return 0;

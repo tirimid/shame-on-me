@@ -145,7 +145,7 @@ m_main(void)
 		u_render();
 		ENDTIMER(stagetimer, "menus: render overlay");
 		
-		ENDTIMER(&largetimer, "menus: render");
+		ENDTIMER(largetimer, "menus: render");
 		
 		r_present();
 		
@@ -182,14 +182,54 @@ m_options(void)
 		r_update();
 		r_cam.base.pos[1] = O_MENUCYCLEBOB * sin(m_cycle);
 		
+		// compute UI key change labels.
+		static char kselbtn[32] = {0};
+		static char kskipbtn[32] = {0};
+		static char krightbtn[32] = {0};
+		static char kleftbtn[32] = {0};
+		
+		sprintf(kselbtn, "Select: %s", SDL_GetKeyName(o_dyn.ksel));
+		sprintf(kskipbtn, "Skip: %s", SDL_GetKeyName(o_dyn.kskip));
+		sprintf(krightbtn, "Right: %s", SDL_GetKeyName(o_dyn.kright));
+		sprintf(kleftbtn, "Left: %s", SDL_GetKeyName(o_dyn.kleft));
+		
 		// do UI.
 		u_begin(20, 20);
-		if (u_button("Back"))
+		if (u_button("Done"))
 		{
+			o_dynwrite();
 			return;
 		}
+		u_label("(You may need to restart)");
 		u_pad(0, 20);
-		u_label("Options will go here...");
+		if (u_slider("Music volume", &o_dyn.musicvolume))
+		{
+			// TODO: implement music volume change realtime.
+		}
+		if (u_slider("SFX volume", &o_dyn.sfxvolume))
+		{
+			s_sfxvolume(o_dyn.sfxvolume);
+		}
+		if (u_button(kleftbtn))
+		{
+			o_dyn.kleft = m_keyselect();
+		}
+		if (u_button(krightbtn))
+		{
+			o_dyn.kright = m_keyselect();
+		}
+		if (u_button(kskipbtn))
+		{
+			o_dyn.kskip = m_keyselect();
+		}
+		if (u_button(kselbtn))
+		{
+			o_dyn.ksel = m_keyselect();
+		}
+		if (u_button(o_dyn.fullscreen ? "Disable fullscreen" : "Enable fullscreen"))
+		{
+			o_dyn.fullscreen = !o_dyn.fullscreen;
+		}
 		u_pad(0, 20);
 		u_label("Options");
 		
@@ -223,7 +263,94 @@ m_options(void)
 		u_render();
 		ENDTIMER(stagetimer, "menus: render overlay");
 		
-		ENDTIMER(&largetimer, "menus: render");
+		ENDTIMER(largetimer, "menus: render");
+		
+		r_present();
+		
+		endtick();
+	}
+}
+
+SDL_Keycode
+m_keyselect(void)
+{
+	NEWTIMER(largetimer);
+	NEWTIMER(stagetimer);
+	
+	for (;; m_cycle += O_MENUCYCLERATE)
+	{
+		begintick();
+		
+		// handle events.
+		i_prepare();
+		SDL_Event e;
+		while (SDL_PollEvent(&e))
+		{
+			i_handle(&e);
+			r_handle(&e);
+			if (e.type == SDL_QUIT)
+			{
+				exit(0);
+			}
+		}
+		
+		// update game systems.
+		r_update();
+		r_cam.base.pos[1] = O_MENUCYCLEBOB * sin(m_cycle);
+		
+		for (SDL_Keycode i = 0; i < 128; ++i)
+		{
+			if (i_kpressed(i))
+			{
+				return i;
+			}
+		}
+		
+		for (SDL_Keycode i = 128; i < 1024; ++i)
+		{
+			if (i_kpressed(i))
+			{
+				return (i - 128) | 1 << 30;
+			}
+		}
+		
+		// do UI.
+		u_begin(20, 20);
+		u_label("(Press a key)");
+		u_pad(0, 20);
+		u_label("Key select");
+		
+		// render.
+		BEGINTIMER(&largetimer);
+		
+		BEGINTIMER(&stagetimer);
+		r_setshader(R_SHADOW);
+		for (usize i = 0; i < O_MAXLIGHTS; ++i)
+		{
+			if (!r_lightenabled(i))
+			{
+				continue;
+			}
+			r_beginshadow(i);
+			c_rendertiles();
+			c_rendermodels();
+		}
+		ENDTIMER(stagetimer, "menus: render shadow");
+		
+		BEGINTIMER(&stagetimer);
+		r_setshader(R_BASE);
+		r_beginbase();
+		c_rendertiles();
+		c_rendermodels();
+		ENDTIMER(stagetimer, "menus: render base");
+		
+		BEGINTIMER(&stagetimer);
+		r_setshader(R_OVERLAY);
+		r_beginoverlay();
+		u_render();
+		ENDTIMER(stagetimer, "menus: render overlay");
+		
+		ENDTIMER(largetimer, "menus: render");
 		
 		r_present();
 		

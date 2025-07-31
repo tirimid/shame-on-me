@@ -24,7 +24,7 @@ o_dyndefault(void)
 		.kleft = SDLK_LEFT,
 		.sfxvolume = 0.4f,
 		.musicvolume = 0.3f,
-		.fullscreen = true
+		.fullscreen = false
 	};
 }
 
@@ -57,25 +57,25 @@ o_dynread(void)
 	
 	if (o_dyn.wndw <= 0)
 	{
-		showerr("options: value for wndw is invalid: %lld!", (long long)o_dyn.wndw);
+		showerr("options: value for wndw is invalid - %lld!", (long long)o_dyn.wndw);
 		return 1;
 	}
 	
 	if (o_dyn.wndh <= 0)
 	{
-		showerr("options: value for wndh is invalid: %lld!", (long long)o_dyn.wndh);
+		showerr("options: value for wndh is invalid - %lld!", (long long)o_dyn.wndh);
 		return 1;
 	}
 	
 	if (o_dyn.sfxvolume > 1.0f)
 	{
-		showerr("options: value for sfxvolume is invalid: %f!", o_dyn.sfxvolume);
+		showerr("options: value for sfxvolume is invalid - %f!", o_dyn.sfxvolume);
 		return 1;
 	}
 	
 	if (o_dyn.musicvolume > 1.0f)
 	{
-		showerr("options: value for musicvolume is invalid: %f!", o_dyn.sfxvolume);
+		showerr("options: value for musicvolume is invalid - %f!", o_dyn.sfxvolume);
 		return 1;
 	}
 	
@@ -183,7 +183,7 @@ o_getkeycode(FILE *fp, char const *key, OUT SDL_Keycode *k)
 	*k = SDL_GetKeyFromName(buf);
 	if (*k == SDLK_UNKNOWN)
 	{
-		showerr("options: unknown keycode for key %s: %s!", key, buf);
+		showerr("options: unknown keycode for key %s - %s!", key, buf);
 		return 1;
 	}
 	
@@ -203,7 +203,7 @@ o_getfloat(FILE *fp, char const *key, OUT f64 *f)
 	*f = strtof(buf, NULL);
 	if (errno)
 	{
-		showerr("options: invalid floating point value for key %s: %s!", key, buf);
+		showerr("options: invalid floating point value for key %s - %s!", key, buf);
 		return 1;
 	}
 	
@@ -223,7 +223,7 @@ o_getint(FILE *fp, char const *key, OUT i64 *i)
 	*i = (i64)strtoll(buf, NULL, 0);
 	if (errno)
 	{
-		showerr("options: invalid integer value for key %s: %s!", key, buf);
+		showerr("options: invalid integer value for key %s - %s!", key, buf);
 		return 1;
 	}
 	
@@ -251,7 +251,7 @@ o_getbool(FILE *fp, char const *key, OUT bool *b)
 	}
 	else
 	{
-		showerr("options: invalid boolean value for key %s: %s!", key, buf);
+		showerr("options: invalid boolean value for key %s - %s!", key, buf);
 		return 1;
 	}
 }
