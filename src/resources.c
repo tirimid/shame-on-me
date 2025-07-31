@@ -60,6 +60,7 @@
 #include "img/floor_png.h"
 #include "img/glasses_dummy_png.h"
 #include "img/glasses_dummy_face_png.h"
+#include "img/gray_png.h"
 #include "img/lightbulb_png.h"
 #include "img/something_png.h"
 #include "img/table_png.h"

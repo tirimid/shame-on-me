@@ -178,7 +178,8 @@ static r_texdata_t r_texs[R_TEX_END] =
 	R_INCTEX(window),
 	R_INCTEX(lightbulb),
 	R_INCTEX(eyes_dummy),
-	R_INCTEX(eyes_dummy_face)
+	R_INCTEX(eyes_dummy_face),
+	R_INCTEX(gray)
 };
 
 static r_fontdata_t r_fonts[R_FONT_END] =

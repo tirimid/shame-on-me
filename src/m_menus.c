@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+static f32 m_cycle;
+
 void
 m_main(void)
 {
@@ -23,7 +25,7 @@ m_main(void)
 	};
 	
 	// place lights.
-	c_putlightat('c', (vec3){0.0f, 0.0f, 0.0f}, 0.2f);
+	c_putlightat('c', (vec3){0.0f, 0.0f, 0.0f}, 0.4f);
 	
 	// place props.
 	c_putpropat(
@@ -67,7 +69,8 @@ m_main(void)
 	r_cam.base.yaw = -GLM_PI / 8.0f;
 	
 	// menu loop.
-	for (f32 cycle = 0.0f;; cycle += 0.006f)
+	bool startquick = false;
+	for (;; m_cycle += O_MENUCYCLERATE)
 	{
 		begintick();
 		
@@ -86,14 +89,109 @@ m_main(void)
 		
 		// update game systems.
 		r_update();
-		r_cam.base.pos[1] = 0.1f * sin(cycle);
+		r_cam.base.pos[1] = O_MENUCYCLEBOB * sin(m_cycle);
 		
 		// do UI.
 		u_begin(20, 20);
-		u_label("Buttons here");
+		if (u_button("Quit"))
+		{
+			exit(0);
+		}
+		if (u_button("Options"))
+		{
+			m_options();
+			continue;
+		}
+		if (u_button("Skip intro sequence"))
+		{
+			startquick = true;
+			break;
+		}
+		if (u_button("Play from beginning"))
+		{
+			break;
+		}
 		u_pad(0, 20);
 		u_label("    A game by Tirimid");
 		u_label("'Shame on Me'");
+		
+		// render.
+		BEGINTIMER(&largetimer);
+		
+		BEGINTIMER(&stagetimer);
+		r_setshader(R_SHADOW);
+		for (usize i = 0; i < O_MAXLIGHTS; ++i)
+		{
+			if (!r_lightenabled(i))
+			{
+				continue;
+			}
+			r_beginshadow(i);
+			c_rendertiles();
+			c_rendermodels();
+		}
+		ENDTIMER(stagetimer, "menus: render shadow");
+		
+		BEGINTIMER(&stagetimer);
+		r_setshader(R_BASE);
+		r_beginbase();
+		c_rendertiles();
+		c_rendermodels();
+		ENDTIMER(stagetimer, "menus: render base");
+		
+		BEGINTIMER(&stagetimer);
+		r_setshader(R_OVERLAY);
+		r_beginoverlay();
+		u_render();
+		ENDTIMER(stagetimer, "menus: render overlay");
+		
+		ENDTIMER(&largetimer, "menus: render");
+		
+		r_present();
+		
+		endtick();
+	}
+	
+	g_loop(startquick);
+}
+
+void
+m_options(void)
+{
+	NEWTIMER(largetimer);
+	NEWTIMER(stagetimer);
+	
+	for (;; m_cycle += O_MENUCYCLERATE)
+	{
+		begintick();
+		
+		// handle events.
+		i_prepare();
+		SDL_Event e;
+		while (SDL_PollEvent(&e))
+		{
+			i_handle(&e);
+			r_handle(&e);
+			if (e.type == SDL_QUIT)
+			{
+				exit(0);
+			}
+		}
+		
+		// update game systems.
+		r_update();
+		r_cam.base.pos[1] = O_MENUCYCLEBOB * sin(m_cycle);
+		
+		// do UI.
+		u_begin(20, 20);
+		if (u_button("Back"))
+		{
+			return;
+		}
+		u_pad(0, 20);
+		u_label("Options will go here...");
+		u_pad(0, 20);
+		u_label("Options");
 		
 		// render.
 		BEGINTIMER(&largetimer);

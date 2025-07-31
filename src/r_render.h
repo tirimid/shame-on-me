@@ -78,6 +78,7 @@ typedef enum r_tex
 	R_TLIGHTBULB,
 	R_EYESDUMMY,
 	R_EYESDUMMYFACE,
+	R_GRAY,
 	
 	R_TEX_END
 } r_tex_t;

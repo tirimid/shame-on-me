@@ -271,7 +271,6 @@ g_introseq(void)
 	static char dialogtutorial[128] = {0};
 	sprintf(dialogtutorial, "Progress dialog with %s", SDL_GetKeyName(o_dyn.ksel));
 	
-	c_wait(1000);
 	c_speak(T_TUTORIAL, dialogtutorial);
 	c_fade(R_FADEIN);
 	c_lookwalkto(C_ARKADY, 'A');
@@ -404,7 +403,6 @@ g_introseq(void)
 void
 g_fastintroseq(void)
 {
-	c_wait(1000);
 	c_fade(R_FADEIN);
 	c_setlightintensity(g_hallwaylight, 0.0f);
 	c_setlightintensity(g_entrylight, 0.0f);

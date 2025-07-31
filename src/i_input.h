@@ -6,6 +6,7 @@ bool i_kdown(SDL_Keycode k);
 bool i_kpressed(SDL_Keycode k);
 bool i_kreleased(SDL_Keycode k);
 void i_mpos(OUT i32 *x, OUT i32 *y);
+void i_rectmpos(OUT i32 *x, OUT i32 *y);
 bool i_mdown(i32 btn);
 bool i_mpressed(i32 btn);
 bool i_mreleased(i32 btn);

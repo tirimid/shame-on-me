@@ -80,21 +80,46 @@ u_render(void)
 	// draw UI elements.
 	for (usize i = 0; i < u_nelems; ++i)
 	{
+		i32 x = u_elems[i].any.x, y = u_elems[i].any.y;
+		i32 w = u_elems[i].any.w, h = u_elems[i].any.h;
+		
 		switch (u_elems[i].any.type)
 		{
 		case U_LABEL:
+			r_rendertext(R_VCROSDMONO, u_elems[i].label.text, x, y, w, h);
+			break;
+		case U_BUTTON:
+		{
+			i32 mx, my;
+			i_rectmpos(&mx, &my);
+			
+			if (mx >= x && my >= y && mx < x + w && my < y + h)
+			{
+				r_renderrect(
+					i_mdown(SDL_BUTTON_LEFT) ? R_BLACK : R_GRAY,
+					x,
+					y,
+					w,
+					h,
+					0.0f
+				);
+			}
+			else
+			{
+				r_renderrect(R_BLACK50, x, y, w, h, 0.0f);
+			}
+			
 			r_rendertext(
 				R_VCROSDMONO,
 				u_elems[i].button.text,
-				u_elems[i].button.x,
-				u_elems[i].button.y,
-				u_elems[i].button.w,
-				u_elems[i].button.h
+				x + O_UIBUTTONPAD,
+				y + O_UIBUTTONPAD,
+				w - 2 * O_UIBUTTONPAD,
+				h - 2 * O_UIBUTTONPAD
 			);
+			
 			break;
-		case U_BUTTON:
-			// TODO: implement.
-			break;
+		}
 		}
 	}
 }
@@ -121,6 +146,7 @@ u_label(char const *text)
 	{
 		.label =
 		{
+			.type = U_LABEL,
 			.x = u_x,
 			.y = u_y,
 			.w = w,
@@ -139,15 +165,30 @@ u_button(char const *text)
 		return false;
 	}
 	
+	bool state = false;
+	
 	i32 w, h;
 	r_textsize(R_VCROSDMONO, text, &w, &h);
+	w += 2 * O_UIBUTTONPAD;
+	h += 2 * O_UIBUTTONPAD;
 	
-	// TODO: implement UI button interaction.
+	i32 mx, my;
+	i_rectmpos(&mx, &my);
+	
+	if (i_mreleased(SDL_BUTTON_LEFT)
+		&& mx >= u_x
+		&& my >= u_y
+		&& mx < u_x + w
+		&& my < u_y + h)
+	{
+		state = true;
+	}
 	
 	u_elems[u_nelems++] = (u_elem_t)
 	{
 		.button =
 		{
+			.type = U_BUTTON,
 			.x = u_x,
 			.y = u_y,
 			.w = w,
@@ -157,5 +198,5 @@ u_button(char const *text)
 	};
 	u_y += h;
 	
-	return false;
+	return state;
 }

@@ -126,6 +126,17 @@ i_mpos(OUT i32 *x, OUT i32 *y)
 	SDL_GetMouseState(x, y);
 }
 
+void
+i_rectmpos(OUT i32 *x, OUT i32 *y)
+{
+	i32 rw, rh;
+	r_renderbounds(&rw, &rh);
+	
+	i_mpos(x, y);
+	*x /= O_PIXELATION;
+	*y = rh - *y / O_PIXELATION;
+}
+
 bool
 i_mdown(i32 btn)
 {

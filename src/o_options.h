@@ -39,9 +39,12 @@
 #define O_QUAKESHAKE 2.5f
 #define O_DEATHSHAKE 1.0f
 #define O_PLAYERDEATHSHAKE 4.0f
+#define O_MENUCYCLERATE 0.006f
+#define O_MENUCYCLEBOB 0.1f
 
 // UI style options.
 #define O_UIPANELPAD 10
+#define O_UIBUTTONPAD 2
 
 // render options.
 #ifdef DYNAMICLIGHTS
