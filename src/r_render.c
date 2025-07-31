@@ -900,6 +900,12 @@ r_globalshade(vec3 shade)
 	glm_vec3_copy(shade, r_state.globalshade);
 }
 
+void
+r_textsize(r_font_t f, char const *text, OUT i32 *x, OUT i32 *y)
+{
+	TTF_SizeText(r_fonts[f].font, text, x, y);
+}
+
 static void
 r_preproc(char *src, usize len)
 {

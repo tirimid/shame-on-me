@@ -1,8 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-static void m_mainenv(void);
-static void m_mainui(void);
-
 void
 m_main(void)
 {
@@ -11,72 +8,7 @@ m_main(void)
 	
 	c_reset();
 	r_cut(R_FADEIN);
-	m_mainenv();
 	
-	f32 cycle = 0.0f;
-	for (;;)
-	{
-		begintick();
-		
-		// handle events.
-		i_prepare();
-		SDL_Event e;
-		while (SDL_PollEvent(&e))
-		{
-			i_handle(&e);
-			r_handle(&e);
-			if (e.type == SDL_QUIT)
-			{
-				exit(0);
-			}
-		}
-		
-		// update.
-		r_update();
-		r_cam.base.pos[1] = 0.1f * sin(cycle);
-		cycle += 0.01f;
-		
-		// render and do UI.
-		BEGINTIMER(&largetimer);
-		
-		BEGINTIMER(&stagetimer);
-		r_setshader(R_SHADOW);
-		for (usize i = 0; i < O_MAXLIGHTS; ++i)
-		{
-			if (!r_lightenabled(i))
-			{
-				continue;
-			}
-			r_beginshadow(i);
-			c_rendertiles();
-			c_rendermodels();
-		}
-		ENDTIMER(stagetimer, "menus: render shadow");
-		
-		BEGINTIMER(&stagetimer);
-		r_setshader(R_BASE);
-		r_beginbase();
-		c_rendertiles();
-		c_rendermodels();
-		ENDTIMER(stagetimer, "menus: render base");
-		
-		BEGINTIMER(&stagetimer);
-		r_setshader(R_OVERLAY);
-		r_beginoverlay();
-		m_mainui();
-		ENDTIMER(stagetimer, "menus: render overlay");
-		
-		ENDTIMER(&largetimer, "menus: render");
-		
-		r_present();
-		
-		endtick();
-	}
-}
-
-static void
-m_mainenv(void)
-{
 	// set map.
 	c_map = (c_map_t)
 	{
@@ -133,10 +65,70 @@ m_mainenv(void)
 	// move camera.
 	glm_vec3_copy((vec3){0.5f, 0.0f, 3.2f}, r_cam.base.pos);
 	r_cam.base.yaw = -GLM_PI / 8.0f;
-}
-
-static void
-m_mainui(void)
-{
-	// TODO: implement main UI.
+	
+	// menu loop.
+	for (f32 cycle = 0.0f;; cycle += 0.006f)
+	{
+		begintick();
+		
+		// handle events.
+		i_prepare();
+		SDL_Event e;
+		while (SDL_PollEvent(&e))
+		{
+			i_handle(&e);
+			r_handle(&e);
+			if (e.type == SDL_QUIT)
+			{
+				exit(0);
+			}
+		}
+		
+		// update game systems.
+		r_update();
+		r_cam.base.pos[1] = 0.1f * sin(cycle);
+		
+		// do UI.
+		u_begin(20, 20);
+		u_label("Buttons here");
+		u_pad(0, 20);
+		u_label("    A game by Tirimid");
+		u_label("'Shame on Me'");
+		
+		// render.
+		BEGINTIMER(&largetimer);
+		
+		BEGINTIMER(&stagetimer);
+		r_setshader(R_SHADOW);
+		for (usize i = 0; i < O_MAXLIGHTS; ++i)
+		{
+			if (!r_lightenabled(i))
+			{
+				continue;
+			}
+			r_beginshadow(i);
+			c_rendertiles();
+			c_rendermodels();
+		}
+		ENDTIMER(stagetimer, "menus: render shadow");
+		
+		BEGINTIMER(&stagetimer);
+		r_setshader(R_BASE);
+		r_beginbase();
+		c_rendertiles();
+		c_rendermodels();
+		ENDTIMER(stagetimer, "menus: render base");
+		
+		BEGINTIMER(&stagetimer);
+		r_setshader(R_OVERLAY);
+		r_beginoverlay();
+		u_render();
+		ENDTIMER(stagetimer, "menus: render overlay");
+		
+		ENDTIMER(&largetimer, "menus: render");
+		
+		r_present();
+		
+		endtick();
+	}
 }

@@ -150,3 +150,4 @@ void r_cut(r_fadestatus_t fs);
 void r_pancam(vec3 pos, f32 pitch, f32 yaw);
 void r_effcamstate(OUT vec3 pos, OUT f32 *pitch, OUT f32 *yaw);
 void r_globalshade(vec3 shade);
+void r_textsize(r_font_t f, char const *text, OUT i32 *x, OUT i32 *y);

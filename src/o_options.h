@@ -15,8 +15,9 @@
 #define O_MAXACTIONS 512
 #define O_MAXPROPS 64
 #define O_MAXLOGLEN 512
+#define O_MAXUIELEMS 32
 
-// stylistic options.
+// game style options.
 #define O_VERTBOB 0.2f
 #define O_HORIZBOB 0.1f
 #define O_BOBFREQ 0.1f
@@ -38,6 +39,9 @@
 #define O_QUAKESHAKE 2.5f
 #define O_DEATHSHAKE 1.0f
 #define O_PLAYERDEATHSHAKE 4.0f
+
+// UI style options.
+#define O_UIPANELPAD 10
 
 // render options.
 #ifdef DYNAMICLIGHTS
