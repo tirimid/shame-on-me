@@ -23,6 +23,7 @@ static void g_setupenv(void);
 
 static usize g_maindoor, g_roomdoor;
 static usize g_hallwaylight, g_entrylight, g_roomlight;
+static bool g_done;
 
 void
 g_loop(bool fast)
@@ -46,7 +47,7 @@ g_loop(bool fast)
 		g_tutorialseq();
 	}
 	
-	for (;;)
+	for (g_done = false; !g_done;)
 	{
 		begintick();
 		
@@ -433,8 +434,10 @@ g_tutorialseq(void)
 	sprintf(krightname, "%s", SDL_GetKeyName(o_dyn.kright));
 	sprintf(kleftname, "%s", SDL_GetKeyName(o_dyn.kleft));
 	
-	static char keytutorial[256] = {0};
-	sprintf(keytutorial, "You can move through your cards with %s and %s, select a card with %s, and do nothing with %s)", kleftname, krightname, kselname, kskipname);
+	static char keytutorial0[256], keytutorial1[256], keytutorial2[256];
+	sprintf(keytutorial0, "You can move through your cards with %s and %s", kleftname, krightname);
+	sprintf(keytutorial1, "When defending, choose a card with %s. If you can't, or don't want to, cover the attacker's card, take the cards in play with %s", kselname, kskipname);
+	sprintf(keytutorial2, "When attacking, choose a card with %s. Once you're done attacking, you can finish with %s", kselname, kskipname);
 	
 	c_speak(T_MATTHEW, "- Well then, shall we start?");
 	c_pancamera((vec3){0.0f, 0.0f, 2.0f}, -90.0f, 0.0f);
@@ -457,7 +460,7 @@ g_tutorialseq(void)
 	c_speak(T_ARKADY, "- So, how do we play?");
 	c_speak(T_MATTHEW, "- Fool is a game where you need to get rid of your held cards");
 	c_speak(T_MATTHEW, "- On my turn, I'll 'attack' Gerasim, the player to my left, by laying out a card of my choice");
-	c_speak(T_MATTHEW, "- He must then 'cover' them by playing a card of higher value on top of it...");
+	c_speak(T_MATTHEW, "- He must then 'cover' it by playing a card of higher value on top of it...");
 	c_speak(T_MATTHEW, "- That's...");
 	c_speak(T_MATTHEW, "- Basically, card values ascend from 6 to 10, then Jack, Queen, King, and finally Ace");
 	c_speak(T_MATTHEW, "- And trump-suit cards are stronger than non-trump-suit cards");
@@ -489,7 +492,9 @@ g_tutorialseq(void)
 	c_speak(T_MATTHEW, "- I suppose that's true");
 	c_speak(T_MATTHEW, "- Let's just get started");
 	c_speak(T_TUTORIAL, "The cards in your hand are automatically sorted and always go from weakest to strongest");
-	c_speak(T_TUTORIAL, keytutorial);
+	c_speak(T_TUTORIAL, keytutorial0);
+	c_speak(T_TUTORIAL, keytutorial1);
+	c_speak(T_TUTORIAL, keytutorial2);
 	c_wait(500);
 	c_setdurakphase(D_ATTACK);
 }
@@ -505,8 +510,6 @@ g_roundendseq(void)
 			d_state.losses[i] = 0;
 		}
 		
-		// TODO: reenable after development.
-#if 0
 		c_wait(800);
 		c_pancamera((vec3){0}, 0.0f, 0.0f);
 		c_wait(1200);
@@ -530,7 +533,6 @@ g_roundendseq(void)
 		c_wait(1700);
 		c_speak(T_MATTHEW, "- No it won't, we need to hurry up");
 		c_wait(700);
-#endif
 	}
 	else if (d_state.losses[D_ARKADY] == O_DEATHLOSSES)
 	{
@@ -606,7 +608,7 @@ g_arkadydeathseq(void)
 		c_speak(T_PETER, "- Son of a...");
 		c_shakecamera(O_PLAYERDEATHSHAKE);
 		c_playsfx(S_EXPLODE);
-		c_globalshade((vec3)O_DEATHGLOBALSHADE);
+		c_globalshade((vec3){O_DEATHGLOBALSHADE});
 		c_wait(100);
 		c_quit();
 		break;
@@ -644,7 +646,7 @@ g_arkadydeathseq(void)
 			// TODO: finish this scene with corpse texture.
 			c_shakecamera(O_PLAYERDEATHSHAKE);
 			c_playsfx(S_EXPLODE);
-			c_globalshade((vec3)O_DEATHGLOBALSHADE);
+			c_globalshade((vec3){O_DEATHGLOBALSHADE});
 			c_wait(100);
 			c_quit();
 		}
@@ -676,7 +678,7 @@ g_arkadydeathseq(void)
 			c_speak(T_PETER, "- Wait-");
 			c_shakecamera(O_PLAYERDEATHSHAKE);
 			c_playsfx(S_EXPLODE);
-			c_globalshade((vec3)O_DEATHGLOBALSHADE);
+			c_globalshade((vec3){O_DEATHGLOBALSHADE});
 			c_wait(100);
 			c_quit();
 		}
@@ -708,7 +710,7 @@ g_arkadydeathseq(void)
 			c_speak(T_MATTHEW, "- Arkady, your collar, it's-");
 			c_shakecamera(O_PLAYERDEATHSHAKE);
 			c_playsfx(S_EXPLODE);
-			c_globalshade((vec3)O_DEATHGLOBALSHADE);
+			c_globalshade((vec3){O_DEATHGLOBALSHADE});
 			c_wait(100);
 			c_quit();
 		}
@@ -749,7 +751,7 @@ g_arkadydeathseq(void)
 			c_wait(1600);
 			c_shakecamera(O_PLAYERDEATHSHAKE);
 			c_playsfx(S_EXPLODE);
-			c_globalshade((vec3)O_DEATHGLOBALSHADE);
+			c_globalshade((vec3){O_DEATHGLOBALSHADE});
 			c_wait(100);
 			c_quit();
 		}
@@ -792,7 +794,6 @@ g_arkadydeathseq(void)
 			c_pancamera((vec3){0}, -20.0f, 0.0f);
 			c_wait(500);
 			c_speak(T_MUTEARKADY, "(I see)");
-			c_pancamera((vec3){0}, -20.0f, 0.0f);
 			c_wait(800);
 			c_pancamera((vec3){0}, 0.0f, 0.0f);
 			c_lookwalkto(C_ARKADY, 'R');
@@ -804,7 +805,7 @@ g_arkadydeathseq(void)
 			c_wait(900);
 			c_shakecamera(O_PLAYERDEATHSHAKE);
 			c_playsfx(S_EXPLODE);
-			c_globalshade((vec3)O_DEATHGLOBALSHADE);
+			c_globalshade((vec3){O_DEATHGLOBALSHADE});
 			c_wait(100);
 			c_quit();
 		}
@@ -834,7 +835,7 @@ g_arkadydeathseq(void)
 			c_speak(T_MUTEARKADY, "(The collar-)");
 			c_shakecamera(O_PLAYERDEATHSHAKE);
 			c_playsfx(S_EXPLODE);
-			c_globalshade((vec3)O_DEATHGLOBALSHADE);
+			c_globalshade((vec3){O_DEATHGLOBALSHADE});
 			c_wait(100);
 			c_quit();
 		}
@@ -1340,5 +1341,46 @@ g_gerasimdeathseq(void)
 void
 g_winseq(void)
 {
-	// TODO: implement win sequence.
+	c_lookat(C_ARKADY, 'J');
+	c_wait(500);
+	c_lookat(C_ARKADY, 'I');
+	c_wait(500);
+	c_lookat(C_ARKADY, 'L');
+	c_wait(500);
+	c_lookat(C_ARKADY, 'I');
+	c_wait(500);
+	c_lookat(C_ARKADY, 'J');
+	c_wait(900);
+	c_lookat(C_ARKADY, 'I');
+	c_wait(300);
+	c_pancamera((vec3){0}, -40.0f, 0.0f);
+	c_wait(400);
+	c_speak(T_MUTEARKADY, "(They're all gone)");
+	c_speak(T_MUTEARKADY, "(They're all really gone)");
+	c_speak(T_MUTEARKADY, "...");
+	c_speak(T_MUTEARKADY, "(I wish I would just wake up right now)");
+	c_pancamera((vec3){0}, 0.0f, 0.0f);
+	c_wait(700);
+	c_speak(T_MUTEARKADY, "(This can't all be real, can it?)");
+	c_speak(T_MUTEARKADY, "...");
+	c_wait(300);
+	c_shakecamera(O_QUAKESHAKE);
+	c_wait(1400);
+	c_speak(T_MUTEARKADY, "(I need to leave, immediately)");
+	c_wait(200);
+	c_lookwalkto(C_ARKADY, 'H');
+	c_lookat(C_ARKADY, 'b');
+	c_speak(T_MUTEARKADY, "I'm struggling to put my hand on the door handle");
+	c_speak(T_MUTEARKADY, "(Why?)");
+	c_wait(700);
+	// TODO: redo scene with corpses.
+	c_setlightintensity(g_entrylight, 1.5f);
+	c_swapmodel(g_roomdoor, R_DOOROPEN);
+	c_wait(200);
+	c_pancamera((vec3){0}, -15.0f, 0.0f);
+	c_wait(1100);
+	c_speak(T_MUTEARKADY, "...");
+	c_fade(R_FADEOUT);
+	c_wait(3500);
+	c_setflag(&g_done);
 }

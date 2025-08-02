@@ -33,8 +33,9 @@
 #define O_CARDSPEED 0.2f
 #define O_TEXTSCROLL 1
 #define O_VOICETICK 10
-#define O_BASEGLOBALSHADE {1.0f, 0.9f, 0.8f}
-#define O_DEATHGLOBALSHADE {1.0f, 0.0f, 0.0f}
+#define O_BASEGLOBALSHADE 1.0f, 0.9f, 0.8f
+#define O_DEATHGLOBALSHADE 1.0f, 0.0f, 0.0f
+#define O_CLEARCOLOR 0.0f, 0.0f, 0.0f
 #define O_QUAKESHAKE 2.5f
 #define O_DEATHSHAKE 1.0f
 #define O_PLAYERDEATHSHAKE 4.0f
@@ -42,6 +43,7 @@
 #define O_MENUCYCLEBOB 0.1f
 #define O_HIGHPIXELATION 4.0f
 #define O_LOWPIXELATION 2.0f
+#define O_MENUTEXTHEIGHT 16
 
 // UI visual options.
 #define O_UIPANELPAD 10
@@ -63,7 +65,7 @@
 #define O_CAMFOV (GLM_PI / 2.5f)
 #define O_CAMCLIPNEAR 0.1f
 #define O_CAMCLIPFAR 500.0f
-#define O_FONTSIZE 12
+#define O_FONTSIZE 14
 #define O_FONTCOLOR {255, 255, 255, 255}
 #define O_SHADOWMAPSIZE 1024
 #define O_MAXTILEBATCH 64

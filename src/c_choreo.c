@@ -24,7 +24,8 @@ typedef enum c_actiontype
 	C_PLAYSFX,
 	C_GLOBALSHADE,
 	C_SHAKECAMERA,
-	C_FADE
+	C_FADE,
+	C_SETFLAG
 } c_actiontype_t;
 
 typedef union c_action
@@ -150,6 +151,12 @@ typedef union c_action
 		u8 type;
 		r_fadestatus_t fs;
 	} fade;
+	
+	struct
+	{
+		u8 type;
+		bool *flag;
+	} setflag;
 } c_action_t;
 
 typedef struct c_actordata
@@ -515,6 +522,22 @@ c_fade(r_fadestatus_t fs)
 }
 
 void
+c_setflag(bool *flag)
+{
+	if (c_nactions < O_MAXACTIONS)
+	{
+		c_actions[c_nactions++] = (c_action_t)
+		{
+			.setflag =
+			{
+				.type = C_SETFLAG,
+				.flag = flag
+			}
+		};
+	}
+}
+
+void
 c_update(void)
 {
 	// update render camera.
@@ -734,6 +757,9 @@ c_update(void)
 		break;
 	case C_FADE:
 		r_fade(action->fade.fs);
+		break;
+	case C_SETFLAG:
+		*action->setflag.flag = true;
 		break;
 	}
 	

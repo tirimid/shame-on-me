@@ -459,10 +459,10 @@ r_init(void)
 		glReadBuffer(GL_NONE);
 	}
 	
-	r_globalshade((vec3)O_BASEGLOBALSHADE);
+	r_globalshade((vec3){O_BASEGLOBALSHADE});
 	
 	// set GL state.
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClearColor(O_CLEARCOLOR, 1.0f);
 	glFrontFace(GL_CW);
 	glCullFace(GL_BACK);
 	glEnable(GL_BLEND);

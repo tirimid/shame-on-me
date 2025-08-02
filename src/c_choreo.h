@@ -47,6 +47,7 @@ void c_playsfx(s_sfx_t sfx);
 void c_globalshade(vec3 shade);
 void c_shakecamera(f32 intensity);
 void c_fade(r_fadestatus_t fs);
+void c_setflag(bool *flag);
 void c_update(void);
 void c_rendertiles(void);
 void c_rendermodels(void);

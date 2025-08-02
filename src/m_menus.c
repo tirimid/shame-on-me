@@ -211,7 +211,9 @@ m_options(void)
 		u_pad(0, 20);
 		if (u_slider("Music volume", &o_dyn.musicvolume))
 		{
-			// TODO: implement music volume change realtime.
+			// sound module already accounts for this in s_update() so no explicit
+			// adjustment of music volume needs to happen here.
+			o_dynwrite();
 		}
 		if (u_slider("SFX volume", &o_dyn.sfxvolume))
 		{
@@ -394,10 +396,34 @@ m_intro(void)
 {
 	NEWTIMER(rendertimer);
 	
-	char presskeymsg[64] = {0};
-	sprintf(presskeymsg, "(Press %s to continue)", SDL_GetKeyName(o_dyn.ksel));
+	char const *text[] =
+	{
+		"It is February of 2032.",
+		"",
+		"Within the past months, the world has seen an",
+		"unprecedented rise of seismic events within",
+		"the Earth's crust and upper mantle. Hundreds",
+		"of millions have already perished as a result",
+		"of earthquakes and volcanic activity.",
+		"",
+		"An extreme emergency order has been issued by",
+		"the government of the country.",
+		"",
+		"Our main character is a young man by the name",
+		"of Arkady. His friends have called him to",
+		"visit their place on some unspecified",
+		"occasion.",
+		"",
+		"He is currently heading over."
+	};
 	
-	for (;;)
+	i32 height = O_MENUTEXTHEIGHT * sizeof(text) / sizeof(text[0]);
+	height += 20; // add some dead time at the end.
+	
+	i32 rw, rh;
+	r_renderbounds(&rw, &rh);
+	
+	for (f32 scroll = -20.0f; scroll - height < rh; scroll += 0.65f / o_dyn.pixelation)
 	{
 		begintick();
 		
@@ -418,37 +444,21 @@ m_intro(void)
 		r_update();
 		s_update();
 		
-		if (i_kpressed(o_dyn.ksel))
-		{
-			return;
-		}
-		
-		// do UI.
-		u_begin(10, 10);
-		u_label(presskeymsg);
-		u_pad(0, 10);
-		u_label("currently heading over.");
-		u_label("on some unspecified occasion. You are");
-		u_label("Your friends have called you to visit ASAP");
-		u_pad(0, 10);
-		u_label("by the government of your country.");
-		u_label("An extreme emergency order has been issued");
-		u_pad(0, 10);
-		u_label("volcanic activity.");
-		u_label("as a result of the earthquakes and");
-		u_label("Hundreds of millions have already perished");
-		u_label("within the Earth's crust and upper mantle.");
-		u_label("an unprecedented rise of seismic events");
-		u_label("Within the past months, the world has seen");
-		u_pad(0, 10);
-		u_label("It is February of 2032.");
-		
 		// render.
 		BEGINTIMER(&rendertimer);
 		r_setshader(R_OVERLAY);
 		r_beginoverlay();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		u_render();
+		for (usize i = 0; i < sizeof(text) / sizeof(text[0]); ++i)
+		{
+			if (!strlen(text[i]))
+			{
+				continue;
+			}
+			i32 tw, th;
+			r_textsize(R_VCROSDMONO, text[i], &tw, &th);
+			r_rendertext(R_VCROSDMONO, text[i], 40, scroll - O_MENUTEXTHEIGHT * i, tw, th);
+		}
 		ENDTIMER(rendertimer, "menus: render");
 		
 		r_present();
@@ -460,5 +470,128 @@ m_intro(void)
 void
 m_credits(void)
 {
-	// TODO: implement credits menu.
+	NEWTIMER(rendertimer);
+	
+	char const *text[] =
+	{
+		"After leaving the building, Arkady ran home to",
+		"get some much-needed rest and forget the",
+		"troubles that the day had presented thus far.",
+		"",
+		"He had just seen his only friend group wipe",
+		"itself out one-by-one, and was in no state to",
+		"stay awake any longer without losing what",
+		"little was left of his mind.",
+		"",
+		"Lying in bed, he thought about Matthew, Peter,",
+		"and Gerasim. Arkady began to doze off as his",
+		"body gave in to the exhaustion. Screams",
+		"resonated in the distance, amplified by the",
+		"shaking of the Earth as it ravaged the",
+		"far-away apartment complexes. The screams were",
+		"getting louder, they were getting closer.",
+		"",
+		"It didn't matter what happened anymore.",
+		"",
+		"Arkady finally fell asleep.",
+		"",
+		"",
+		"",
+		"",
+		"",
+		"",
+		"",
+		"",
+		"",
+		"",
+		"'Shame on Me'",
+		"    A game by Tirimid",
+		"",
+		"",
+		"Programming",
+		"    Tirimid",
+		"",
+		"",
+		"Sound design and effects",
+		"    Tirimid",
+		"",
+		"",
+		"Textures and graphics",
+		"    Tirimid",
+		"",
+		"",
+		"Character models",
+		"    <PLACEHOLDER>",
+		"",
+		"",
+		"Playtesting",
+		"    <PLACEHOLDER>",
+		"",
+		"",
+		"Font",
+		"    Riciery Leal (VCR OSD Mono)",
+		"",
+		"",
+		"Thanks for playing",
+		"",
+		"",
+		"",
+		"",
+		"",
+		"",
+		"",
+		"",
+		"",
+		"",
+		"The End"
+	};
+	
+	i32 height = O_MENUTEXTHEIGHT * sizeof(text) / sizeof(text[0]);
+	height += 20; // add some dead time at the end.
+	
+	i32 rw, rh;
+	r_renderbounds(&rw, &rh);
+	
+	for (f32 scroll = -20.0f; scroll - height < rh; scroll += 0.65f / o_dyn.pixelation)
+	{
+		begintick();
+		
+		// handle events.
+		i_prepare();
+		SDL_Event e;
+		while (SDL_PollEvent(&e))
+		{
+			i_handle(&e);
+			r_handle(&e);
+			if (e.type == SDL_QUIT)
+			{
+				exit(0);
+			}
+		}
+		
+		// update.
+		r_update();
+		s_update();
+		
+		// render.
+		BEGINTIMER(&rendertimer);
+		r_setshader(R_OVERLAY);
+		r_beginoverlay();
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		for (usize i = 0; i < sizeof(text) / sizeof(text[0]); ++i)
+		{
+			if (!strlen(text[i]))
+			{
+				continue;
+			}
+			i32 tw, th;
+			r_textsize(R_VCROSDMONO, text[i], &tw, &th);
+			r_rendertext(R_VCROSDMONO, text[i], 40, scroll - O_MENUTEXTHEIGHT * i, tw, th);
+		}
+		ENDTIMER(rendertimer, "menus: render");
+		
+		r_present();
+		
+		endtick();
+	}
 }
