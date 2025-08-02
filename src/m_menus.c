@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+static void m_textscroll(char const *lines[], usize nlines);
+
 static f32 m_cycle;
 
 void
@@ -66,6 +68,7 @@ m_main(void)
 	
 	// move camera.
 	glm_vec3_copy((vec3){0.5f, 0.0f, 3.2f}, r_cam.base.pos);
+	r_cam.base.pitch = 0.0f;
 	r_cam.base.yaw = -GLM_PI / 8.0f;
 	
 	// menu loop.
@@ -417,54 +420,7 @@ m_intro(void)
 		"He is currently heading over."
 	};
 	
-	i32 height = O_MENUTEXTHEIGHT * sizeof(text) / sizeof(text[0]);
-	height += 20; // add some dead time at the end.
-	
-	i32 rw, rh;
-	r_renderbounds(&rw, &rh);
-	
-	for (f32 scroll = -20.0f; scroll - height < rh; scroll += 0.65f / o_dyn.pixelation)
-	{
-		begintick();
-		
-		// handle events.
-		i_prepare();
-		SDL_Event e;
-		while (SDL_PollEvent(&e))
-		{
-			i_handle(&e);
-			r_handle(&e);
-			if (e.type == SDL_QUIT)
-			{
-				exit(0);
-			}
-		}
-		
-		// update.
-		r_update();
-		s_update();
-		
-		// render.
-		BEGINTIMER(&rendertimer);
-		r_setshader(R_OVERLAY);
-		r_beginoverlay();
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		for (usize i = 0; i < sizeof(text) / sizeof(text[0]); ++i)
-		{
-			if (!strlen(text[i]))
-			{
-				continue;
-			}
-			i32 tw, th;
-			r_textsize(R_VCROSDMONO, text[i], &tw, &th);
-			r_rendertext(R_VCROSDMONO, text[i], 40, scroll - O_MENUTEXTHEIGHT * i, tw, th);
-		}
-		ENDTIMER(rendertimer, "menus: render");
-		
-		r_present();
-		
-		endtick();
-	}
+	m_textscroll(text, sizeof(text) / sizeof(text[0]));
 }
 
 void
@@ -546,13 +502,19 @@ m_credits(void)
 		"The End"
 	};
 	
-	i32 height = O_MENUTEXTHEIGHT * sizeof(text) / sizeof(text[0]);
+	m_textscroll(text, sizeof(text) / sizeof(text[0]));
+}
+	
+static void
+m_textscroll(char const *lines[], usize nlines)
+{
+	i32 height = O_MENUTEXTHEIGHT * nlines;
 	height += 20; // add some dead time at the end.
 	
 	i32 rw, rh;
 	r_renderbounds(&rw, &rh);
 	
-	for (f32 scroll = -20.0f; scroll - height < rh; scroll += 0.65f / o_dyn.pixelation)
+	for (f32 scroll = -20.0f; scroll - height < rh; scroll += 0.8f / o_dyn.pixelation)
 	{
 		begintick();
 		
@@ -573,20 +535,25 @@ m_credits(void)
 		r_update();
 		s_update();
 		
+		if (i_kpressed(o_dyn.kskip))
+		{
+			return;
+		}
+		
 		// render.
 		BEGINTIMER(&rendertimer);
 		r_setshader(R_OVERLAY);
 		r_beginoverlay();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		for (usize i = 0; i < sizeof(text) / sizeof(text[0]); ++i)
+		for (usize i = 0; i < nlines; ++i)
 		{
-			if (!strlen(text[i]))
+			if (!strlen(lines[i]))
 			{
 				continue;
 			}
 			i32 tw, th;
-			r_textsize(R_VCROSDMONO, text[i], &tw, &th);
-			r_rendertext(R_VCROSDMONO, text[i], 40, scroll - O_MENUTEXTHEIGHT * i, tw, th);
+			r_textsize(R_VCROSDMONO, lines[i], &tw, &th);
+			r_rendertext(R_VCROSDMONO, lines[i], 40, scroll - O_MENUTEXTHEIGHT * i, tw, th);
 		}
 		ENDTIMER(rendertimer, "menus: render");
 		

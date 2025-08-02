@@ -1381,6 +1381,6 @@ g_winseq(void)
 	c_wait(1100);
 	c_speak(T_MUTEARKADY, "...");
 	c_fade(R_FADEOUT);
-	c_wait(3500);
+	c_wait(5000);
 	c_setflag(&g_done);
 }
