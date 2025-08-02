@@ -87,7 +87,7 @@ m_main(void)
 			}
 		}
 		
-		// update game systems.
+		// update.
 		r_update();
 		r_cam.base.pos[1] = O_MENUCYCLEBOB * sin(m_cycle);
 		
@@ -152,7 +152,12 @@ m_main(void)
 		endtick();
 	}
 	
+	if (!startquick)
+	{
+		m_intro();
+	}
 	g_loop(startquick);
+	m_credits();
 }
 
 void
@@ -160,6 +165,11 @@ m_options(void)
 {
 	NEWTIMER(largetimer);
 	NEWTIMER(stagetimer);
+	
+	char kselbtn[32] = {0};
+	char kskipbtn[32] = {0};
+	char krightbtn[32] = {0};
+	char kleftbtn[32] = {0};
 	
 	for (;; m_cycle += O_MENUCYCLERATE)
 	{
@@ -178,16 +188,11 @@ m_options(void)
 			}
 		}
 		
-		// update game systems.
+		// update.
 		r_update();
 		r_cam.base.pos[1] = O_MENUCYCLEBOB * sin(m_cycle);
 		
 		// compute UI key change labels.
-		static char kselbtn[32] = {0};
-		static char kskipbtn[32] = {0};
-		static char krightbtn[32] = {0};
-		static char kleftbtn[32] = {0};
-		
 		sprintf(kselbtn, "Select: %s", SDL_GetKeyName(o_dyn.ksel));
 		sprintf(kskipbtn, "Skip: %s", SDL_GetKeyName(o_dyn.kskip));
 		sprintf(krightbtn, "Right: %s", SDL_GetKeyName(o_dyn.kright));
@@ -197,10 +202,8 @@ m_options(void)
 		u_begin(20, 20);
 		if (u_button("Done"))
 		{
-			o_dynwrite();
 			return;
 		}
-		u_label("(You may need to restart)");
 		u_pad(0, 20);
 		if (u_slider("Music volume", &o_dyn.musicvolume))
 		{
@@ -209,26 +212,48 @@ m_options(void)
 		if (u_slider("SFX volume", &o_dyn.sfxvolume))
 		{
 			s_sfxvolume(o_dyn.sfxvolume);
+			o_dynwrite();
 		}
 		if (u_button(kleftbtn))
 		{
 			o_dyn.kleft = m_keyselect();
+			o_dynwrite();
 		}
 		if (u_button(krightbtn))
 		{
 			o_dyn.kright = m_keyselect();
+			o_dynwrite();
 		}
 		if (u_button(kskipbtn))
 		{
 			o_dyn.kskip = m_keyselect();
+			o_dynwrite();
 		}
 		if (u_button(kselbtn))
 		{
 			o_dyn.ksel = m_keyselect();
+			o_dynwrite();
 		}
-		if (u_button(o_dyn.fullscreen ? "Disable fullscreen" : "Enable fullscreen"))
+		if (u_button(o_dyn.pixelation < O_HIGHPIXELATION ? "Pixelation: low" : "Pixelation: high"))
+		{
+			o_dyn.pixelation = o_dyn.pixelation < O_HIGHPIXELATION ? O_HIGHPIXELATION : O_LOWPIXELATION;
+			o_dynwrite();
+			
+			// refresh window size to regenerate render buffers.
+			i32 w, h;
+			SDL_GetWindowSize(r_wnd, &w, &h);
+			r_resize(w, h);
+			
+			continue;
+		}
+		if (u_button(o_dyn.fullscreen ? "Fullscreen: on" : "Fullscreen: off"))
 		{
 			o_dyn.fullscreen = !o_dyn.fullscreen;
+			o_dynwrite();
+			
+			SDL_SetWindowFullscreen(r_wnd, o_dyn.fullscreen * SDL_WINDOW_FULLSCREEN_DESKTOP);
+			
+			continue;
 		}
 		u_pad(0, 20);
 		u_label("Options");
@@ -294,7 +319,7 @@ m_keyselect(void)
 			}
 		}
 		
-		// update game systems.
+		// update.
 		r_update();
 		r_cam.base.pos[1] = O_MENUCYCLEBOB * sin(m_cycle);
 		
@@ -356,4 +381,77 @@ m_keyselect(void)
 		
 		endtick();
 	}
+}
+
+void
+m_intro(void)
+{
+	NEWTIMER(rendertimer);
+	
+	char presskeymsg[64] = {0};
+	sprintf(presskeymsg, "(Press %s to continue)", SDL_GetKeyName(o_dyn.ksel));
+	
+	for (;;)
+	{
+		begintick();
+		
+		// handle events.
+		i_prepare();
+		SDL_Event e;
+		while (SDL_PollEvent(&e))
+		{
+			i_handle(&e);
+			r_handle(&e);
+			if (e.type == SDL_QUIT)
+			{
+				exit(0);
+			}
+		}
+		
+		// update.
+		r_update();
+		
+		if (i_kpressed(o_dyn.ksel))
+		{
+			return;
+		}
+		
+		// do UI.
+		u_begin(10, 10);
+		u_label(presskeymsg);
+		u_pad(0, 10);
+		u_label("currently heading over.");
+		u_label("on some unspecified occasion. You are");
+		u_label("Your friends have called you to visit ASAP");
+		u_pad(0, 10);
+		u_label("by the government of your country.");
+		u_label("An extreme emergency order has been issued");
+		u_pad(0, 10);
+		u_label("volcanic activity.");
+		u_label("as a result of the earthquakes and");
+		u_label("Hundreds of millions have already perished");
+		u_label("within the Earth's crust and upper mantle.");
+		u_label("an unprecedented rise of seismic events");
+		u_label("Within the past months, the world has seen");
+		u_pad(0, 10);
+		u_label("It is February of 2032.");
+		
+		// render.
+		BEGINTIMER(&rendertimer);
+		r_setshader(R_OVERLAY);
+		r_beginoverlay();
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		u_render();
+		ENDTIMER(rendertimer, "menus: render");
+		
+		r_present();
+		
+		endtick();
+	}
+}
+
+void
+m_credits(void)
+{
+	// TODO: implement credits menu.
 }

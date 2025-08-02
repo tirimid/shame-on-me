@@ -133,8 +133,8 @@ i_rectmpos(OUT i32 *x, OUT i32 *y)
 	r_renderbounds(&rw, &rh);
 	
 	i_mpos(x, y);
-	*x /= O_PIXELATION;
-	*y = rh - *y / O_PIXELATION;
+	*x /= o_dyn.pixelation;
+	*y = rh - *y / o_dyn.pixelation;
 }
 
 bool

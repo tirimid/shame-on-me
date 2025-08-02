@@ -24,7 +24,8 @@ o_dyndefault(void)
 		.kleft = SDLK_LEFT,
 		.sfxvolume = 0.4f,
 		.musicvolume = 0.3f,
-		.fullscreen = false
+		.pixelation = 4.0f,
+		.fullscreen = true
 	};
 }
 
@@ -47,6 +48,7 @@ o_dynread(void)
 		|| o_getkeycode(fp, "kleft", &o_dyn.kleft)
 		|| o_getfloat(fp, "sfxvolume", &o_dyn.sfxvolume)
 		|| o_getfloat(fp, "musicvolume", &o_dyn.musicvolume)
+		|| o_getfloat(fp, "pixelation", &o_dyn.pixelation)
 		|| o_getbool(fp, "fullscreen", &o_dyn.fullscreen))
 	{
 		fclose(fp);
@@ -79,6 +81,12 @@ o_dynread(void)
 		return 1;
 	}
 	
+	if (o_dyn.pixelation < 1.0f)
+	{
+		showerr("options: value for pixelation is invalid - %f!", o_dyn.pixelation);
+		return 1;
+	}
+	
 	return 0;
 }
 
@@ -108,6 +116,7 @@ o_dynwrite(void)
 		"kleft = %s\n"
 		"sfxvolume = %f\n"
 		"musicvolume = %f\n"
+		"pixelation = %f\n"
 		"fullscreen = %s\n",
 		(long long)o_dyn.wndw,
 		(long long)o_dyn.wndh,
@@ -117,6 +126,7 @@ o_dynwrite(void)
 		kleftname,
 		o_dyn.sfxvolume,
 		o_dyn.musicvolume,
+		o_dyn.pixelation,
 		o_dyn.fullscreen ? "true" : "false"
 	);
 	

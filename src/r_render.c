@@ -205,13 +205,14 @@ r_init(void)
 		SDL_WINDOWPOS_UNDEFINED,
 		o_dyn.wndw,
 		o_dyn.wndh,
-		o_dyn.fullscreen ? O_WNDFLAGSFULLSCREEN : O_WNDFLAGSNORMAL
+		O_WNDFLAGS
 	);
 	if (!r_wnd)
 	{
 		showerr("render: failed to create window - %s!", SDL_GetError());
 		return 1;
 	}
+	SDL_SetWindowFullscreen(r_wnd, o_dyn.fullscreen * SDL_WINDOW_FULLSCREEN_DESKTOP);
 	ENDTIMER(stagetimer, "render: create window");
 	
 	BEGINTIMER(&stagetimer);
@@ -491,8 +492,8 @@ void
 r_renderbounds(OUT i32 *w, OUT i32 *h)
 {
 	SDL_GetWindowSize(r_wnd, w, h);
-	*w /= O_PIXELATION;
-	*h /= O_PIXELATION;
+	*w /= o_dyn.pixelation;
+	*h /= o_dyn.pixelation;
 }
 
 void
@@ -537,7 +538,7 @@ r_beginbase(void)
 	SDL_GetWindowSize(r_wnd, &w, &h);
 	f32 aspect = (f32)w / (f32)h;
 	
-	glViewport(0, 0, w / O_PIXELATION, h / O_PIXELATION);
+	glViewport(0, 0, w / o_dyn.pixelation, h / o_dyn.pixelation);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, r_state.framebuf);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
@@ -581,13 +582,13 @@ r_beginoverlay(void)
 	i32 w, h;
 	SDL_GetWindowSize(r_wnd, &w, &h);
 	
-	glViewport(0, 0, w / O_PIXELATION, h / O_PIXELATION);
+	glViewport(0, 0, w / o_dyn.pixelation, h / o_dyn.pixelation);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, r_state.framebuf);
 	glDisable(GL_DEPTH_TEST);
 	
 	// compute matrices.
 	mat4 projmat;
-	glm_ortho(0.0f, w / O_PIXELATION, 0.0f, h / O_PIXELATION, -1.0f, 1.0f, projmat);
+	glm_ortho(0.0f, w / o_dyn.pixelation, 0.0f, h / o_dyn.pixelation, -1.0f, 1.0f, projmat);
 	
 	// upload uniforms.
 	glUniformMatrix4fv(r_uniforms.projmat, 1, GL_FALSE, (f32 *)projmat);
@@ -604,8 +605,8 @@ r_present(void)
 	glBlitFramebuffer(
 		0,
 		0,
-		w / O_PIXELATION,
-		h / O_PIXELATION,
+		w / o_dyn.pixelation,
+		h / o_dyn.pixelation,
 		0,
 		0,
 		w,
@@ -631,11 +632,11 @@ r_resize(i32 x, i32 y)
 	glBindFramebuffer(GL_FRAMEBUFFER, r_state.framebuf);
 	
 	glBindRenderbuffer(GL_RENDERBUFFER, r_state.colorbuf);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB, x / O_PIXELATION, y / O_PIXELATION);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB, x / o_dyn.pixelation, y / o_dyn.pixelation);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, r_state.colorbuf);
 	
 	glBindRenderbuffer(GL_RENDERBUFFER, r_state.depthbuf);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, x / O_PIXELATION, y / O_PIXELATION);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, x / o_dyn.pixelation, y / o_dyn.pixelation);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, r_state.depthbuf);
 }
 

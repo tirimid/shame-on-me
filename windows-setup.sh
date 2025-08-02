@@ -44,7 +44,6 @@ then
 	exit 1
 fi
 
-# unzip downloaded zips to get DLLs.
 echo "[$0] setup: extraction" >&2
 unzip -o SDL2-2.30.1-win32-x64.zip > /dev/null
 unzip -o SDL2_mixer-2.8.0-win32-x64.zip > /dev/null
@@ -53,14 +52,16 @@ unzip -o SDL2_ttf-2.24.0-win32-x64.zip > /dev/null
 unzip -o glew-2.2.0-win32.zip > /dev/null
 cd ..
 
-# copy fetched DLLs and needed system DLLs.
-echo "[$0] setup: copying files" >&2
+echo "[$0] setup: copying fetched DLLs" >&2
 cp dll-fetch/SDL2.dll .
 cp dll-fetch/SDL2_image.dll .
 cp dll-fetch/SDL2_mixer.dll .
 cp dll-fetch/SDL2_ttf.dll .
 cp dll-fetch/glew-2.2.0/bin/Release/x64/glew32.dll .
+
+echo "[$0] setup: copying system DLLs" >&2
 cp /c/Windows/System32/opengl32.dll .
+cp /usr/bin/msys-2.0.dll .
 
 # clean up.
 rm -rf dll-fetch
