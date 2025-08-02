@@ -67,6 +67,7 @@ g_loop(bool fast)
 		c_update();
 		d_update();
 		r_update();
+		s_update();
 		
 		// render.
 		BEGINTIMER(&largetimer);

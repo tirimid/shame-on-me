@@ -23,8 +23,16 @@ typedef enum s_sfx
 	S_SFX_END
 } s_sfx_t;
 
-// TODO: add music channel controls.
+typedef enum s_music
+{
+	S_BGOMINOUS = 0,
+	
+	S_MUSIC_END
+} s_music_t;
+
 i32 s_init(void);
 void s_quit(void);
 void s_sfxvolume(f32 vol);
 void s_playsfx(s_sfx_t id);
+void s_playmusic(s_music_t id);
+void s_update(void);

@@ -89,6 +89,8 @@ m_main(void)
 		
 		// update.
 		r_update();
+		s_update();
+		
 		r_cam.base.pos[1] = O_MENUCYCLEBOB * sin(m_cycle);
 		
 		// do UI.
@@ -190,6 +192,8 @@ m_options(void)
 		
 		// update.
 		r_update();
+		s_update();
+		
 		r_cam.base.pos[1] = O_MENUCYCLEBOB * sin(m_cycle);
 		
 		// compute UI key change labels.
@@ -321,6 +325,8 @@ m_keyselect(void)
 		
 		// update.
 		r_update();
+		s_update();
+		
 		r_cam.base.pos[1] = O_MENUCYCLEBOB * sin(m_cycle);
 		
 		for (SDL_Keycode i = 0; i < 128; ++i)
@@ -410,6 +416,7 @@ m_intro(void)
 		
 		// update.
 		r_update();
+		s_update();
 		
 		if (i_kpressed(o_dyn.ksel))
 		{

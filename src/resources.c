@@ -73,6 +73,7 @@
 #include "shader/shadow_frag_glsl.h"
 #include "shader/shadow_geo_glsl.h"
 #include "shader/shadow_vert_glsl.h"
+#include "sound/bg_ominous_ogg.h"
 #include "sound/card0_ogg.h"
 #include "sound/card1_ogg.h"
 #include "sound/card2_ogg.h"

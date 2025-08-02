@@ -9,11 +9,23 @@
 #define S_FREQ 44100
 #define S_CHUNKSIZE 256
 
+typedef enum s_musicstate
+{
+	S_STOPPED = 0,
+	S_PLAYING,
+	S_STARTING,
+	S_STOPPING
+} s_musicstate_t;
+
 typedef struct s_sound
 {
 	u8 const *data;
 	u32 const *size;
-	Mix_Chunk *chunk;
+	union
+	{
+		Mix_Chunk *chunk;
+		Mix_Music *music;
+	} mixdata;
 } s_sound_t;
 
 static s_sound_t s_sfxsounds[S_SFX_END] =
@@ -37,6 +49,15 @@ static s_sound_t s_sfxsounds[S_SFX_END] =
 	S_INCOGG(knock)
 };
 
+static s_sound_t s_musicsounds[S_MUSIC_END] =
+{
+	S_INCOGG(bg_ominous)
+};
+
+static s_musicstate_t s_musicstate = S_STOPPED;
+static s_music_t s_nextmusic;
+static f32 s_musicfade = 0.0f;
+
 i32
 s_init(void)
 {
@@ -58,10 +79,28 @@ s_init(void)
 			return 1;
 		}
 		
-		s_sfxsounds[i].chunk = Mix_LoadWAV_RW(rwops, 1);
-		if (!s_sfxsounds[i].chunk)
+		s_sfxsounds[i].mixdata.chunk = Mix_LoadWAV_RW(rwops, 1);
+		if (!s_sfxsounds[i].mixdata.chunk)
 		{
 			showerr("sound: failed to create Mix_Chunk - %s!", Mix_GetError());
+			return 1;
+		}
+	}
+	
+	// allocate music sound references.
+	for (usize i = 0; i < S_MUSIC_END; ++i)
+	{
+		SDL_RWops *rwops = SDL_RWFromConstMem(s_musicsounds[i].data, *s_musicsounds[i].size);
+		if (!rwops)
+		{
+			showerr("sound: failed to create RWops - %s!", SDL_GetError());
+			return 1;
+		}
+		
+		s_musicsounds[i].mixdata.music = Mix_LoadMUS_RW(rwops, 1);
+		if (!s_musicsounds[i].mixdata.music)
+		{
+			showerr("sound: failed to create Mix_Music - %s!", Mix_GetError());
 			return 1;
 		}
 	}
@@ -76,10 +115,16 @@ s_init(void)
 void
 s_quit(void)
 {
+	// free music sound references.
+	for (usize i = 0; i < S_MUSIC_END; ++i)
+	{
+		Mix_FreeMusic(s_musicsounds[i].mixdata.music);
+	}
+	
 	// free SFX sound references.
 	for (usize i = 0; i < S_SFX_END; ++i)
 	{
-		Mix_FreeChunk(s_sfxsounds[i].chunk);
+		Mix_FreeChunk(s_sfxsounds[i].mixdata.chunk);
 	}
 	
 	Mix_CloseAudio();
@@ -96,5 +141,52 @@ s_sfxvolume(f32 vol)
 void
 s_playsfx(s_sfx_t id)
 {
-	Mix_PlayChannel(-1, s_sfxsounds[id].chunk, 0);
+	Mix_PlayChannel(-1, s_sfxsounds[id].mixdata.chunk, 0);
+}
+
+void
+s_playmusic(s_music_t id)
+{
+	s_nextmusic = id;
+	s_musicstate = S_STOPPING;
+}
+
+void
+s_update(void)
+{
+	// update music.
+	switch (s_musicstate)
+	{
+	case S_STOPPED:
+		if (s_nextmusic != S_MUSIC_END)
+		{
+			Mix_PlayMusic(s_musicsounds[s_nextmusic].mixdata.music, -1);
+			s_musicstate = S_STARTING;
+		}
+		break;
+	case S_STARTING:
+		s_musicfade += O_MUSICFADE;
+		if (s_musicfade >= 1.0f)
+		{
+			s_musicfade = 1.0f;
+			s_musicstate = S_PLAYING;
+		}
+		break;
+	case S_STOPPING:
+		s_musicfade -= O_MUSICFADE;
+		if (s_musicfade <= 0.0f)
+		{
+			s_musicfade = 0.0f;
+			s_musicstate = S_STOPPED;
+			if (Mix_PlayingMusic())
+			{
+				Mix_HaltMusic();
+			}
+		}
+		break;
+	default:
+		break;
+	}
+	
+	Mix_VolumeMusic(s_musicfade * o_dyn.musicvolume * MIX_MAX_VOLUME);
 }

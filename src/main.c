@@ -125,6 +125,7 @@ main(int argc, char *argv[])
 	ENDTIMER(largetimer, "main: init game systems");
 	
 	// TODO: consider endless loop on m_main() to prevent game closing when done.
+	s_playmusic(S_BGOMINOUS);
 	m_main();
 	
 	return 0;

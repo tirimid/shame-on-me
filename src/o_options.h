@@ -16,7 +16,7 @@
 #define O_MAXLOGLEN 512
 #define O_MAXUIELEMS 32
 
-// game style options.
+// game visual options.
 #define O_VERTBOB 0.2f
 #define O_HORIZBOB 0.1f
 #define O_BOBFREQ 0.1f
@@ -43,10 +43,13 @@
 #define O_HIGHPIXELATION 4.0f
 #define O_LOWPIXELATION 2.0f
 
-// UI style options.
+// UI visual options.
 #define O_UIPANELPAD 10
 #define O_UIBUTTONPAD 2
 #define O_UISLIDERPAD 2
+
+// sound options.
+#define O_MUSICFADE 0.01f
 
 // render options.
 #ifdef DYNAMICLIGHTS
