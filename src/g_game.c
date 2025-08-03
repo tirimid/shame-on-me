@@ -294,6 +294,7 @@ g_introseq(void)
 	c_wait(2500);
 	c_teleportto(C_GERASIM, 'D');
 	c_setlightintensity(g_entrylight, 1.5f);
+	c_playsfx(S_DOOR);
 	c_swapmodel(g_maindoor, R_DOOROPEN);
 	c_wait(400);
 	c_speak(T_MUTEGERASIM, "...");
@@ -303,6 +304,7 @@ g_introseq(void)
 	c_speak(T_MUTEGERASIM, "...");
 	c_walkto(C_GERASIM, 'E');
 	c_walkto(C_ARKADY, 'D');
+	c_playsfx(S_DOOR);
 	c_swapmodel(g_maindoor, R_DOORCLOSED);
 	c_setlightintensity(g_hallwaylight, 0.0f);
 	c_lookat(C_ARKADY, 'E');
@@ -316,9 +318,11 @@ g_introseq(void)
 	c_teleportto(C_MATTHEW, 'I');
 	c_teleportto(C_PETER, 'J');
 	c_setlightintensity(g_roomlight, 1.5f);
+	c_playsfx(S_DOOR);
 	c_swapmodel(g_roomdoor, R_DOOROPEN);
 	c_wait(200);
 	c_walkto(C_ARKADY, 'H');
+	c_playsfx(S_DOOR);
 	c_swapmodel(g_roomdoor, R_DOORCLOSED);
 	c_setlightintensity(g_entrylight, 0.0f);
 	c_lookat(C_ARKADY, 'J');
@@ -366,6 +370,7 @@ g_introseq(void)
 	c_lookat(C_ARKADY, 'I');
 	c_teleportto(C_GERASIM, 'F');
 	c_wait(400);
+	c_playsfx(S_DOOR);
 	c_walkto(C_GERASIM, 'H');
 	c_lookat(C_ARKADY, 'H');
 	c_wait(600);
@@ -519,6 +524,7 @@ g_roundendseq(void)
 		c_speak(T_MUTEMATTHEW, "...");
 		c_speak(T_MATTHEW, "- That's great, probably");
 		c_wait(600);
+		c_playsfx(S_EARTHQUAKE0);
 		c_shakecamera(O_QUAKESHAKE);
 		c_wait(2000);
 		c_speak(T_MATTHEW, "- I guess we should really get started...");
@@ -529,6 +535,7 @@ g_roundendseq(void)
 		c_wait(600);
 		c_speak(T_MATTHEW, "- Hmm");
 		c_wait(600);
+		c_playsfx(S_EARTHQUAKE1);
 		c_shakecamera(O_QUAKESHAKE);
 		c_wait(1700);
 		c_speak(T_MATTHEW, "- No it won't, we need to hurry up");
@@ -638,6 +645,7 @@ g_arkadydeathseq(void)
 			c_lookat(C_ARKADY, 'F');
 			c_wait(400);
 			c_setlightintensity(g_entrylight, 1.5f);
+			c_playsfx(S_DOOR);
 			c_swapmodel(g_roomdoor, R_DOOROPEN);
 			c_wait(300);
 			c_pancamera((vec3){0}, -20.0f, 0.0f);
@@ -789,6 +797,7 @@ g_arkadydeathseq(void)
 			c_lookat(C_ARKADY, 'F');
 			// TODO: finish scene with corpse textures.
 			c_setlightintensity(g_entrylight, 1.5f);
+			c_playsfx(S_DOOR);
 			c_swapmodel(g_roomdoor, R_DOOROPEN);
 			c_wait(300);
 			c_pancamera((vec3){0}, -20.0f, 0.0f);
@@ -801,6 +810,7 @@ g_arkadydeathseq(void)
 			c_speak(T_MUTEARKADY, "(Death is coming)");
 			c_speak(T_MUTEARKADY, "(I hope you don't see this, Matthew)");
 			c_setlightintensity(g_roomlight, 0.0f);
+			c_playsfx(S_DOOR);
 			c_swapmodel(g_roomdoor, R_DOORCLOSED);
 			c_wait(900);
 			c_shakecamera(O_PLAYERDEATHSHAKE);
@@ -875,7 +885,9 @@ g_peterdeathseq(void)
 		c_lookat(C_ARKADY, 'H');
 		c_walkto(C_MATTHEW, 'I');
 		c_speak(T_PETER, "- I didn't think it would go this way");
+		c_playsfx(S_DOOR);
 		c_walkto(C_PETER, 'F');
+		c_playsfx(S_DOOR);
 		c_wait(1300);
 		c_shakecamera(O_DEATHSHAKE);
 		c_playsfx(S_EXPLODEMUFFLED);
@@ -914,7 +926,10 @@ g_peterdeathseq(void)
 			c_speak(T_PETER, "- You know what?");
 			c_speak(T_PETER, "- Fuck you, fuck you both, rot in hell");
 			c_wait(600);
+			c_playsfx(S_DOOR);
 			c_walkto(C_PETER, 'F');
+			c_playsfx(S_DOOR);
+			c_wait(300);
 			c_shakecamera(O_DEATHSHAKE);
 			c_playsfx(S_EXPLODEMUFFLED);
 			c_wait(2400);
@@ -961,7 +976,9 @@ g_peterdeathseq(void)
 			c_walkto(C_PETER, 'H');
 			c_walkto(C_MATTHEW, 'I');
 			c_lookat(C_ARKADY, 'H');
+			c_playsfx(S_DOOR);
 			c_walkto(C_PETER, 'F');
+			c_playsfx(S_DOOR);
 			c_wait(400);
 			c_shakecamera(O_DEATHSHAKE);
 			c_playsfx(S_EXPLODEMUFFLED);
@@ -1018,7 +1035,9 @@ g_peterdeathseq(void)
 		c_speak(T_MUTEPETER, "Peter shakes his head before opening the door");
 		c_wait(400);
 		c_speak(T_ARKADY, "- Good riddance");
+		c_playsfx(S_DOOR);
 		c_walkto(C_PETER, 'F');
+		c_playsfx(S_DOOR);
 		c_wait(200);
 		c_shakecamera(O_DEATHSHAKE);
 		c_playsfx(S_EXPLODEMUFFLED);
@@ -1062,7 +1081,10 @@ g_matthewdeathseq(void)
 		c_walkto(C_MATTHEW, 'H');
 		c_lookat(C_ARKADY, 'H');
 		c_speak(T_ARKADY, "- I'm sorr-");
+		c_playsfx(S_DOOR);
 		c_walkto(C_MATTHEW, 'F');
+		c_playsfx(S_DOOR);
+		c_wait(100);
 		c_shakecamera(O_DEATHSHAKE);
 		c_playsfx(S_EXPLODEMUFFLED);
 		c_wait(1800);
@@ -1099,7 +1121,9 @@ g_matthewdeathseq(void)
 			c_walkto(C_MATTHEW, 'H');
 			c_lookat(C_ARKADY, 'H');
 			c_speak(T_MATTHEW, "- Gerasim, you can deal");
+			c_playsfx(S_DOOR);
 			c_walkto(C_MATTHEW, 'F');
+			c_playsfx(S_DOOR);
 			c_wait(700);
 			c_shakecamera(O_DEATHSHAKE);
 			c_playsfx(S_EXPLODEMUFFLED);
@@ -1127,7 +1151,9 @@ g_matthewdeathseq(void)
 			c_walkto(C_MATTHEW, 'O');
 			c_walkto(C_MATTHEW, 'H');
 			c_lookat(C_ARKADY, 'H');
+			c_playsfx(S_DOOR);
 			c_walkto(C_MATTHEW, 'F');
+			c_playsfx(S_DOOR);
 			c_wait(600);
 			c_speak(T_PETER, "- Check this out");
 			c_lookat(C_ARKADY, 'J');
@@ -1182,7 +1208,9 @@ g_matthewdeathseq(void)
 		c_walkto(C_MATTHEW, 'H');
 		c_lookat(C_ARKADY, 'H');
 		c_speak(T_MUTEMATTHEW, "He looks like he wants to say something, then waves his hand at the prospect");
+		c_playsfx(S_DOOR);
 		c_walkto(C_MATTHEW, 'F');
+		c_playsfx(S_DOOR);
 		c_wait(300);
 		c_shakecamera(O_DEATHSHAKE);
 		c_playsfx(S_EXPLODEMUFFLED);
@@ -1217,7 +1245,9 @@ g_gerasimdeathseq(void)
 		c_wait(700);
 		c_speak(T_MUTEGERASIM, "He gestures lightly and waves, as if bidding farewell");
 		c_wait(900);
+		c_playsfx(S_DOOR);
 		c_walkto(C_GERASIM, 'F');
+		c_playsfx(S_DOOR);
 		c_wait(600);
 		c_shakecamera(O_DEATHSHAKE);
 		c_playsfx(S_EXPLODEMUFFLED);
@@ -1259,7 +1289,9 @@ g_gerasimdeathseq(void)
 			c_walkto(C_GERASIM, 'H');
 			c_lookat(C_ARKADY, 'H');
 			c_wait(700);
+			c_playsfx(S_DOOR);
 			c_walkto(C_GERASIM, 'F');
+			c_playsfx(S_DOOR);
 			c_wait(300);
 			c_shakecamera(O_DEATHSHAKE);
 			c_playsfx(S_EXPLODEMUFFLED);
@@ -1300,7 +1332,9 @@ g_gerasimdeathseq(void)
 			c_speak(T_MUTEARKADY, "(I find myself wanting to say something)");
 			c_wait(500);
 			c_speak(T_ARKADY, "- Hey-");
+			c_playsfx(S_DOOR);
 			c_walkto(C_GERASIM, 'F');
+			c_playsfx(S_DOOR);
 			c_wait(200);
 			c_shakecamera(O_DEATHSHAKE);
 			c_playsfx(S_EXPLODEMUFFLED);
@@ -1314,6 +1348,7 @@ g_gerasimdeathseq(void)
 		}
 		break;
 	case 3:
+		c_playsfx(S_DOOR);
 		c_teleportto(C_GERASIM, 'F');
 		c_pancamera((vec3){0}, 0.0f, 0.0f);
 		c_wait(600);
@@ -1364,6 +1399,7 @@ g_winseq(void)
 	c_speak(T_MUTEARKADY, "(This can't all be real, can it?)");
 	c_speak(T_MUTEARKADY, "...");
 	c_wait(300);
+	c_playsfx(S_EARTHQUAKE0);
 	c_shakecamera(O_QUAKESHAKE);
 	c_wait(1400);
 	c_speak(T_MUTEARKADY, "(I need to leave, immediately)");
@@ -1375,6 +1411,7 @@ g_winseq(void)
 	c_wait(700);
 	// TODO: redo scene with corpses.
 	c_setlightintensity(g_entrylight, 1.5f);
+	c_playsfx(S_DOOR);
 	c_swapmodel(g_roomdoor, R_DOOROPEN);
 	c_wait(200);
 	c_pancamera((vec3){0}, -15.0f, 0.0f);

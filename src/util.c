@@ -11,8 +11,8 @@ showerr(char const *fmt, ...)
 	char msg[O_MAXLOGLEN];
 	vsnprintf(msg, O_MAXLOGLEN, fmt, args);
 	
-	// stderr is backup so that error can still be processed in case a message
-	// box can't be opened.
+	// stderr is backup so that error can still be processed in case a messagebox
+	// can't be opened.
 	if (SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, O_ERRWNDTITLE, msg, NULL))
 	{
 		fprintf(stderr, "err: %s\n", msg);

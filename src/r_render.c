@@ -747,7 +747,7 @@ r_rendertext(r_font_t f, char const *text, i32 x, i32 y, i32 w, i32 h)
 	SDL_Surface *solid = TTF_RenderUTF8_Solid_Wrapped(
 		r_fonts[f].font,
 		text,
-		(SDL_Color)O_FONTCOLOR,
+		(SDL_Color){O_FONTCOLOR, 255},
 		w
 	);
 	solid->h = solid->h < h ? solid->h : h;

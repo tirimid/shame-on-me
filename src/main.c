@@ -45,11 +45,11 @@
 int
 main(int argc, char *argv[])
 {
-	NEWTIMER(largetimer);
-	NEWTIMER(stagetimer);
-	
 	(void)argc;
 	(void)argv;
+	
+	NEWTIMER(largetimer);
+	NEWTIMER(stagetimer);
 	
 	// initialize non-game systems.
 	BEGINTIMER(&largetimer);

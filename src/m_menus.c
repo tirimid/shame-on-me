@@ -68,7 +68,7 @@ m_main(void)
 	
 	// move camera.
 	glm_vec3_copy((vec3){0.5f, 0.0f, 3.2f}, r_cam.base.pos);
-	r_cam.base.pitch = 0.0f;
+	r_cam.pan.pitch = 0.0f; // reset from pan at game end.
 	r_cam.base.yaw = -GLM_PI / 8.0f;
 	
 	// menu loop.
@@ -514,9 +514,17 @@ m_textscroll(char const *lines[], usize nlines)
 	i32 rw, rh;
 	r_renderbounds(&rw, &rh);
 	
+	char skiptext[64];
+	sprintf(skiptext, "Press %s to skip", SDL_GetKeyName(o_dyn.kskip));
+	
+	i32 skiptextw, skiptexth;
+	r_textsize(R_VCROSDMONO, skiptext, &skiptextw, &skiptexth);
+	
 	for (f32 scroll = -20.0f; scroll - height < rh; scroll += 0.8f / o_dyn.pixelation)
 	{
 		begintick();
+		
+		r_renderbounds(&rw, &rh);
 		
 		// handle events.
 		i_prepare();
@@ -555,6 +563,8 @@ m_textscroll(char const *lines[], usize nlines)
 			r_textsize(R_VCROSDMONO, lines[i], &tw, &th);
 			r_rendertext(R_VCROSDMONO, lines[i], 40, scroll - O_MENUTEXTHEIGHT * i, tw, th);
 		}
+		r_renderrect(R_BLACK, rw - skiptextw, 0, skiptextw, skiptexth, 0.0f);
+		r_rendertext(R_VCROSDMONO, skiptext, rw - skiptextw, 0, skiptextw, skiptexth);
 		ENDTIMER(rendertimer, "menus: render");
 		
 		r_present();

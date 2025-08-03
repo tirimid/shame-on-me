@@ -19,6 +19,9 @@ typedef enum s_sfx
 	S_EXPLODE,
 	S_EXPLODEMUFFLED,
 	S_KNOCK,
+	S_DOOR,
+	S_EARTHQUAKE0,
+	S_EARTHQUAKE1,
 	
 	S_SFX_END
 } s_sfx_t;

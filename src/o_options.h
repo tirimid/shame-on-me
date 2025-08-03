@@ -44,6 +44,11 @@
 #define O_HIGHPIXELATION 4.0f
 #define O_LOWPIXELATION 2.0f
 #define O_MENUTEXTHEIGHT 16
+#define O_SHAKEATTEN 0.99f
+#define O_SHAKEPOS 0.6f
+#define O_SHAKEROT 0.5f
+#define O_SHAKEPOSRET 0.93f
+#define O_SHAKEROTRET 0.95f
 
 // UI visual options.
 #define O_UIPANELPAD 10
@@ -66,14 +71,9 @@
 #define O_CAMCLIPNEAR 0.1f
 #define O_CAMCLIPFAR 500.0f
 #define O_FONTSIZE 14
-#define O_FONTCOLOR {255, 255, 255, 255}
+#define O_FONTCOLOR 255, 255, 255
 #define O_SHADOWMAPSIZE 1024
 #define O_MAXTILEBATCH 64
-#define O_SHAKEATTEN 0.98f
-#define O_SHAKEPOS 0.6f
-#define O_SHAKEROT 0.5f
-#define O_SHAKEPOSRET 0.93f
-#define O_SHAKEROTRET 0.95f
 
 // durak options.
 #define O_ATTACKTICK 50
