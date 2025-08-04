@@ -222,6 +222,15 @@ m_options(void)
 		{
 			s_sfxvolume(o_dyn.sfxvolume);
 			o_dynwrite();
+			
+			// play test SFX for user to understand volume.
+			static u8 beeptick = 0;
+			++beeptick;
+			if (beeptick >= 10)
+			{
+				s_playsfx(S_BEEP);
+				beeptick = 0;
+			}
 		}
 		if (u_button(kleftbtn))
 		{
@@ -463,32 +472,26 @@ m_credits(void)
 		"'Shame on Me'",
 		"    A game by Tirimid",
 		"",
+		"              Development",
 		"",
-		"Programming",
-		"    Tirimid",
+		"            Tirimid  Programming",
+		"            Tirimid  Writing",
+		"            Tirimid  Sound design",
+		"            Tirimid  Textures",
+		"            Tirimid  3D models",
+		"          satsualex  Playtesting",
 		"",
+		"              Resources",
 		"",
-		"Sound design and effects",
-		"    Tirimid",
-		"",
-		"",
-		"Textures and graphics",
-		"    Tirimid",
-		"",
-		"",
-		"Character models",
-		"    <PLACEHOLDER>",
-		"",
-		"",
-		"Playtesting",
-		"    <PLACEHOLDER>",
-		"",
-		"",
-		"Font",
-		"    Riciery Leal (VCR OSD Mono)",
-		"",
-		"",
-		"Thanks for playing",
+		"       Riciery Leal  VCR OSD Mono",
+		"         SFX sounds  Brick wall broke",
+		"         GFX Sounds  Thunder Rumble Sound Effect",
+		"                SFX  Thunder Rumbling",
+		" Sound Effects Yang  Craking Wall, Ceiling, Building",
+		"1000s sound effects  Crumbling sound effect",
+		"       u_b32baquv5u  8-Bit Explosion 3",
+		"   Dominique Lacaud  Explosion",
+		"      SonixFXSounds  Explosion",
 		"",
 		"",
 		"",
@@ -499,7 +502,8 @@ m_credits(void)
 		"",
 		"",
 		"",
-		"The End"
+		"Thanks for playing,",
+		"The End."
 	};
 	
 	m_textscroll(text, sizeof(text) / sizeof(text[0]));

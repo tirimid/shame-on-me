@@ -49,7 +49,8 @@ static s_sound_t s_sfxsounds[S_SFX_END] =
 	S_INCOGG(knock),
 	S_INCOGG(door),
 	S_INCOGG(earthquake0),
-	S_INCOGG(earthquake1)
+	S_INCOGG(earthquake1),
+	S_INCOGG(beep)
 };
 
 static s_sound_t s_musicsounds[S_MUSIC_END] =

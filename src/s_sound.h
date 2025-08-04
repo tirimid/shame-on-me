@@ -22,6 +22,7 @@ typedef enum s_sfx
 	S_DOOR,
 	S_EARTHQUAKE0,
 	S_EARTHQUAKE1,
+	S_BEEP,
 	
 	S_SFX_END
 } s_sfx_t;
