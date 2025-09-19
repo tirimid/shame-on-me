@@ -463,6 +463,10 @@ g_tutorialseq(void)
 	c_setdurakphase(D_DEALCARDS);
 	c_wait(400);
 	c_speak(T_ARKADY, "- So, how do we play?");
+	c_speak(T_MATTHEW, "- Uh...");
+	c_speak(T_PETER, "- Give him the quick version, Matty");
+	c_speak(T_MATTHEW, "- Oh, alright...");
+	c_speak(T_MATTHEW, "- Listen up, I'll only explain once");
 	c_speak(T_MATTHEW, "- Fool is a game where you need to get rid of your held cards");
 	c_speak(T_MATTHEW, "- On my turn, I'll 'attack' Gerasim, the player to my left, by laying out a card of my choice");
 	c_speak(T_MATTHEW, "- He must then 'cover' it by playing a card of higher value on top of it...");
