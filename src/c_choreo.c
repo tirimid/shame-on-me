@@ -182,17 +182,17 @@ static c_actordata_t c_actors[C_ACTOR_END] =
 	
 	// peter.
 	{
-		.activetex = R_EYESDUMMY
+		.activetex = R_PETER0
 	},
 	
 	// matthew.
 	{
-		.activetex = R_GLASSESDUMMY
+		.activetex = R_MATTHEW0
 	},
 	
 	// gerasim.
 	{
-		.activetex = R_DUMMY
+		.activetex = R_GERASIM0
 	}
 };
 

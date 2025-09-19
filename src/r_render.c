@@ -179,7 +179,13 @@ static r_texdata_t r_texs[R_TEX_END] =
 	R_INCTEX(lightbulb),
 	R_INCTEX(eyes_dummy),
 	R_INCTEX(eyes_dummy_face),
-	R_INCTEX(gray)
+	R_INCTEX(gray),
+	R_INCTEX(matthew_face),
+	R_INCTEX(matthew0),
+	R_INCTEX(gerasim_face),
+	R_INCTEX(gerasim0),
+	R_INCTEX(peter_face),
+	R_INCTEX(peter0)
 };
 
 static r_fontdata_t r_fonts[R_FONT_END] =

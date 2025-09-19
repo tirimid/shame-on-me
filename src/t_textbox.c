@@ -11,13 +11,13 @@ static u16 t_voicetick;
 static u8 t_spritetex[T_SPRITE_END] =
 {
 	R_SOMETHING, // arkady.
-	R_EYESDUMMYFACE, // peter.
-	R_GLASSESDUMMYFACE, // matthew.
-	R_DUMMYFACE, // gerasim.
+	R_PETERFACE, // peter.
+	R_MATTHEWFACE, // matthew.
+	R_GERASIMFACE, // gerasim.
 	R_SOMETHING, // mute arkady.
-	R_EYESDUMMYFACE, // mute peter.
-	R_GLASSESDUMMYFACE, // mute matthew.
-	R_DUMMYFACE, // mute gerasim.
+	R_PETERFACE, // mute peter.
+	R_MATTHEWFACE, // mute matthew.
+	R_GERASIMFACE, // mute gerasim.
 	R_SOMETHING // tutorial.
 };
 

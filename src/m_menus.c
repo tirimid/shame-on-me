@@ -150,6 +150,14 @@ m_main(void)
 		u_render();
 		ENDTIMER(stagetimer, "menus: render overlay");
 		
+		BEGINTIMER(&stagetimer);
+		i32 dw, dh;
+		i32 vw, vh;
+		r_renderbounds(&dw, &dh);
+		r_textsize(R_VCROSDMONO, O_VERSION, &vw, &vh);
+		r_rendertext(R_VCROSDMONO, O_VERSION, 5, dh - vh, vw, vh);
+		ENDTIMER(stagetimer, "menus: misc render");
+		
 		ENDTIMER(largetimer, "menus: render");
 		
 		r_present();
