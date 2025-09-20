@@ -42,11 +42,7 @@ endtick(void)
 	i64 timeleft = O_TICKUS - tickend + u_tickstart;
 	timeleft *= (timeleft > 0);
 	
-	struct timespec ts =
-	{
-		.tv_nsec = 1000 * timeleft
-	};
-	nanosleep(&ts, NULL);
+	SDL_Delay(timeleft / 1000);
 }
 
 f32
