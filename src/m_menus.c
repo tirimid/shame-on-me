@@ -220,7 +220,7 @@ m_options(void)
 			return;
 		}
 		u_pad(0, 20);
-		if (u_slider("Music volume", &o_dyn.musicvolume))
+		if (u_slider("BG volume", &o_dyn.musicvolume))
 		{
 			// sound module already accounts for this in s_update() so no explicit
 			// adjustment of music volume needs to happen here.
