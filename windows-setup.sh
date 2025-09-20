@@ -62,6 +62,7 @@ cp dll-fetch/glew-2.2.0/bin/Release/x64/glew32.dll .
 echo "[$0] setup: copying system DLLs" >&2
 cp /c/Windows/System32/opengl32.dll .
 cp /usr/bin/msys-2.0.dll .
+cp /mingw64/bin/libwinpthread-1.dll .
 
 # clean up.
 rm -rf dll-fetch
