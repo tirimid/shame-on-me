@@ -488,6 +488,7 @@ m_credits(void)
 		"            Tirimid  Textures",
 		"            Tirimid  3D models",
 		"          satsualex  Playtesting",
+		"Riley JOE Carbonner  Playtesting",
 		"",
 		"              Resources",
 		"",

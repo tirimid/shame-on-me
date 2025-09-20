@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // program information.
-#define O_VERSION "0.1.0 EXI-playtest"
+#define O_VERSION "0.2.0 playtest"
 
 // windowing and setup options.
 #define O_SDLFLAGS (SDL_INIT_VIDEO | SDL_INIT_AUDIO)

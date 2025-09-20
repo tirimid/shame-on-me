@@ -234,7 +234,12 @@ r_init(void)
 		return 1;
 	}
 	atexit(r_deleteglctx);
-	ENDTIMER(stagetimer, "render: create GL context");
+	if (SDL_GL_MakeCurrent(r_wnd, r_glctx))
+	{
+		showerr("render: failed to make GL context current - %s!", SDL_GetError());
+		return 1;
+	}
+	ENDTIMER(stagetimer, "render: create GL context and make current");
 	
 	BEGINTIMER(&stagetimer);
 	glewExperimental = GL_TRUE;
