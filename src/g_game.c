@@ -9,8 +9,8 @@
 	"........#...#...#" \
 	"........#...#...e" \
 	"##########d##...#" \
-	"...........E#...#" \
-	"h..F......D.c.C.#" \
+	"...02......E#...#" \
+	"h.1F......D.c.C.#" \
 	"...R.....g..#...#" \
 	"###b#########...#" \
 	"...H..K.P.#.#.f.#" \
@@ -649,13 +649,13 @@ g_arkadydeathseq(void)
 			c_lookat(C_ARKADY, 'F');
 			c_wait(400);
 			c_setlightintensity(g_entrylight, 1.5f);
+			c_settexture(C_PETER, R_PETER1);
 			c_playsfx(S_DOOR);
 			c_swapmodel(g_roomdoor, R_DOOROPEN);
 			c_wait(300);
 			c_pancamera((vec3){0}, -20.0f, 0.0f);
 			c_wait(800);
 			c_speak(T_MUTEARKADY, "(Oh my god)");
-			// TODO: finish this scene with corpse texture.
 			c_shakecamera(O_PLAYERDEATHSHAKE);
 			c_playsfx(S_EXPLODE);
 			c_globalshade((vec3){O_DEATHGLOBALSHADE});
@@ -799,7 +799,10 @@ g_arkadydeathseq(void)
 			c_speak(T_MATTHEW, "- Arkady, I'll miss you");
 			c_wait(500);
 			c_lookat(C_ARKADY, 'F');
-			// TODO: finish scene with corpse textures.
+			c_settexture(C_PETER, R_PETER1);
+			c_settexture(C_GERASIM, R_GERASIM1);
+			c_teleportto(C_PETER, '1');
+			c_teleportto(C_GERASIM, '0');
 			c_setlightintensity(g_entrylight, 1.5f);
 			c_playsfx(S_DOOR);
 			c_swapmodel(g_roomdoor, R_DOOROPEN);
@@ -917,7 +920,7 @@ g_peterdeathseq(void)
 			c_speak(T_PETER, "- Heh");
 			c_speak(T_MUTEPETER, "His forced casual attitude is spectacularly failing to hide his true feelings");
 			c_wait(1200);
-			c_speak(T_MUTEPETER, "He covers his face subtly with his hat");
+			c_speak(T_MUTEPETER, "He covers his face subtly");
 			c_speak(T_PETER, "- I'll leave about now");
 			c_speak(T_PETER, "- I feel the bomb collar taking its hold");
 			c_wait(600);
@@ -926,7 +929,7 @@ g_peterdeathseq(void)
 			c_walkto(C_PETER, 'H');
 			c_lookat(C_ARKADY, 'H');
 			c_wait(700);
-			c_speak(T_MUTEPETER, "Right when he's about to step out, Peter lifts his hat and glares at you and Gerasim with rage");
+			c_speak(T_MUTEPETER, "Right when he's about to step out, Peter lifts his face and glares at you and Gerasim with rage");
 			c_speak(T_PETER, "- You know what?");
 			c_speak(T_PETER, "- Fuck you, fuck you both, rot in hell");
 			c_wait(600);
@@ -1413,7 +1416,12 @@ g_winseq(void)
 	c_speak(T_MUTEARKADY, "I'm struggling to put my hand on the door handle");
 	c_speak(T_MUTEARKADY, "(Why?)");
 	c_wait(700);
-	// TODO: redo scene with corpses.
+	c_settexture(C_PETER, R_PETER1);
+	c_settexture(C_MATTHEW, R_MATTHEW1);
+	c_settexture(C_GERASIM, R_GERASIM1);
+	c_teleportto(C_PETER, '1');
+	c_teleportto(C_GERASIM, '0');
+	c_teleportto(C_MATTHEW, '2');
 	c_setlightintensity(g_entrylight, 1.5f);
 	c_playsfx(S_DOOR);
 	c_swapmodel(g_roomdoor, R_DOOROPEN);

@@ -10,11 +10,11 @@ static u16 t_voicetick;
 // data tables.
 static u8 t_spritetex[T_SPRITE_END] =
 {
-	R_SOMETHING, // arkady.
+	R_ARKADYFACE, // arkady.
 	R_PETERFACE, // peter.
 	R_MATTHEWFACE, // matthew.
 	R_GERASIMFACE, // gerasim.
-	R_SOMETHING, // mute arkady.
+	R_ARKADYFACE, // mute arkady.
 	R_PETERFACE, // mute peter.
 	R_MATTHEWFACE, // mute matthew.
 	R_GERASIMFACE, // mute gerasim.

@@ -202,6 +202,9 @@ static usize c_nactions;
 void
 c_reset(void)
 {
+	c_actors[C_PETER].activetex = R_PETER0;
+	c_actors[C_MATTHEW].activetex = R_MATTHEW0;
+	c_actors[C_GERASIM].activetex = R_GERASIM0;
 	c_nprops = 0;
 	c_nactions = 0;
 	r_resetlights();

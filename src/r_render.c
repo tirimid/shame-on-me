@@ -182,10 +182,15 @@ static r_texdata_t r_texs[R_TEX_END] =
 	R_INCTEX(gray),
 	R_INCTEX(matthew_face),
 	R_INCTEX(matthew0),
+	R_INCTEX(matthew1),
 	R_INCTEX(gerasim_face),
 	R_INCTEX(gerasim0),
+	R_INCTEX(gerasim1),
 	R_INCTEX(peter_face),
-	R_INCTEX(peter0)
+	R_INCTEX(peter0),
+	R_INCTEX(peter1),
+	R_INCTEX(arkady_face),
+	R_INCTEX(arkady0)
 };
 
 static r_fontdata_t r_fonts[R_FONT_END] =
