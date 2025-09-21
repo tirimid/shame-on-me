@@ -208,6 +208,7 @@ c_reset(void)
 	c_nprops = 0;
 	c_nactions = 0;
 	r_resetlights();
+	r_pancam((vec3){0}, 0.0f, 0.0f);
 }
 
 void
