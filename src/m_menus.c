@@ -490,6 +490,7 @@ m_credits(void)
 		"          satsualex  Playtesting",
 		"Riley JOE Carbonner  Playtesting",
 		"     Johnathan Jack  Playtesting",
+		" Stefan, Eradicator  Playtesting",
 		"",
 		"              Resources",
 		"",
