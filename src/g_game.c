@@ -480,7 +480,9 @@ g_tutorialseq(void)
 	c_speak(T_MATTHEW, "- Uh...");
 	c_speak(T_MATTHEW, "- Right, then, when Gerasim covers my cards, I can give him more cards to cover");
 	c_speak(T_MATTHEW, "- But I can only play new cards with the same face value as previously played cards");
-	c_speak(T_MATTHEW, "- If he covers everything and I don't want to or can't attack him anymore, the attack ends, and he begins the next attack, this time on you");
+	c_speak(T_MUTEMATTHEW, "...");
+	c_speak(T_MATTHEW, "- So, if in the previous round I played an 8 and he covered with a King, then I can continue my attack with either an 8 or a King");
+	c_speak(T_MATTHEW, "- If he covers everything and I don't want to, or can't, attack him anymore, the attack ends, and he begins the next attack, this time on you");
 	c_speak(T_MATTHEW, "- If he can't cover my cards, he has to take all of the cards in play, and he skips his attack");
 	c_speak(T_MUTEMATTHEW, "...");
 	c_speak(T_MATTHEW, "- Oh, and we all have to draw back up to six cards if we have less");
@@ -489,11 +491,12 @@ g_tutorialseq(void)
 	c_speak(T_ARKADY, "- I think I'll understand more once we actually start playing");
 	c_speak(T_MATTHEW, "- Oh...");
 	c_speak(T_MATTHEW, "- Well... No problem, of course...");
-	c_speak(T_MATTHEW, "- Just remember - defend, attack left, shed your cards");
-	c_speak(T_MATTHEW, "- Last player who still has cards loses");
+	c_speak(T_MATTHEW, "- Just remember - defend, attack left, shed your cards..");
+	c_speak(T_MATTHEW, "- Last player who still has cards loses...");
+	c_speak(T_MATTHEW, "- And card power is 6-10, Jack, Queen, King, Ace, with only equivalent suits used against each other, except for trump suits which can always be used");
 	c_speak(T_MUTEARKADY, "(Even though it's just a practice round, I can feel my heart beating, I'm not ready)");
 	c_speak(T_ARKADY, "- I understand");
-	c_wait(1000);
+	c_wait(600);
 	c_speak(T_MATTHEW, "- You all ready?");
 	c_speak(T_MUTEGERASIM, "Gerasim picks up his cards, he has clearly played before");
 	c_speak(T_ARKADY, "- I think so");

@@ -489,6 +489,7 @@ m_credits(void)
 		"            Tirimid  3D models",
 		"          satsualex  Playtesting",
 		"Riley JOE Carbonner  Playtesting",
+		"     Johnathan Jack  Playtesting",
 		"",
 		"              Resources",
 		"",
