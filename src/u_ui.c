@@ -4,6 +4,7 @@ typedef enum u_elemtype
 {
 	U_LABEL = 0,
 	U_BUTTON,
+	U_HOLDBUTTON,
 	U_SLIDER
 } u_elemtype_t;
 
@@ -32,6 +33,14 @@ typedef union u_elem
 		i32 w, h;
 		char const *text;
 	} button;
+	
+	struct
+	{
+		u8 type;
+		i32 x, y;
+		i32 w, h;
+		char const *text;
+	} holdbutton;
 	
 	struct
 	{
@@ -99,6 +108,38 @@ u_render(void)
 			r_rendertext(R_VCROSDMONO, u_elems[i].label.text, x, y, w, h);
 			break;
 		case U_BUTTON:
+		{
+			i32 mx, my;
+			i_rectmpos(&mx, &my);
+			
+			if (mx >= x && my >= y && mx < x + w && my < y + h)
+			{
+				r_renderrect(
+					i_mdown(SDL_BUTTON_LEFT) ? R_BLACK : R_GRAY,
+					x,
+					y,
+					w,
+					h,
+					0.0f
+				);
+			}
+			else
+			{
+				r_renderrect(R_BLACK50, x, y, w, h, 0.0f);
+			}
+			
+			r_rendertext(
+				R_VCROSDMONO,
+				u_elems[i].button.text,
+				x + O_UIBUTTONPAD,
+				y + O_UIBUTTONPAD,
+				w - 2 * O_UIBUTTONPAD,
+				h - 2 * O_UIBUTTONPAD
+			);
+			
+			break;
+		}
+		case U_HOLDBUTTON:
 		{
 			i32 mx, my;
 			i_rectmpos(&mx, &my);
@@ -211,6 +252,50 @@ u_button(char const *text)
 		.button =
 		{
 			.type = U_BUTTON,
+			.x = u_x,
+			.y = u_y,
+			.w = w,
+			.h = h,
+			.text = text
+		}
+	};
+	u_y += h;
+	
+	return state;
+}
+
+bool
+u_holdbutton(char const *text)
+{
+	if (u_nelems >= O_MAXUIELEMS)
+	{
+		return false;
+	}
+	
+	bool state = false;
+	
+	i32 w, h;
+	r_textsize(R_VCROSDMONO, text, &w, &h);
+	w += 2 * O_UIBUTTONPAD;
+	h += 2 * O_UIBUTTONPAD;
+	
+	i32 mx, my;
+	i_rectmpos(&mx, &my);
+	
+	if (i_mdown(SDL_BUTTON_LEFT)
+		&& mx >= u_x
+		&& my >= u_y
+		&& mx < u_x + w
+		&& my < u_y + h)
+	{
+		state = true;
+	}
+	
+	u_elems[u_nelems++] = (u_elem_t)
+	{
+		.holdbutton =
+		{
+			.type = U_HOLDBUTTON,
 			.x = u_x,
 			.y = u_y,
 			.w = w,

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // program information.
-#define O_VERSION "0.4.0 playtest"
+#define O_VERSION "0.5.0 playtest"
 
 // windowing and setup options.
 #define O_SDLFLAGS (SDL_INIT_VIDEO | SDL_INIT_AUDIO)
@@ -44,8 +44,8 @@
 #define O_PLAYERDEATHSHAKE 4.0f
 #define O_MENUCYCLERATE 0.006f
 #define O_MENUCYCLEBOB 0.1f
-#define O_HIGHPIXELATION 4.0f
-#define O_LOWPIXELATION 2.0f
+#define O_HIGHPIXELATION 3.0f
+#define O_LOWPIXELATION 1.5f
 #define O_MENUTEXTHEIGHT 16
 #define O_SHAKEATTEN 0.99f
 #define O_SHAKEPOS 0.6f
@@ -54,7 +54,7 @@
 #define O_SHAKEROTRET 0.95f
 
 // UI visual options.
-#define O_UIPANELPAD 10
+#define O_UIPANELPAD 6
 #define O_UIBUTTONPAD 2
 #define O_UISLIDERPAD 2
 

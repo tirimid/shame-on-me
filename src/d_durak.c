@@ -211,6 +211,35 @@ d_renderoverlay(void)
 			d_rendercard(&d_state.data[i]);
 		}
 	}
+	else if (d_state.phase >= D_ATTACK)
+	{
+		// do help UI.
+		u_begin(10, 10);
+		if (u_holdbutton("Rules"))
+		{
+			u_pad(0, 20);
+			u_label("any other suit)");
+			u_label("other, except for trump cards, which can be played against");
+			u_label("(Only cards of equivalent suit can be played against each");
+			u_label("  6 7 8 9 10 J Q K A");
+			u_label("Card value (ascending):");
+			u_pad(0, 20);
+			u_label("You must get rid of your cards by the end to avoid losing.");
+			u_label("and the defender begins a new attack on his left player.");
+			u_label("Once the attack finishes, everyone draws back up to 6 cards");
+			u_label("equal face value to any of the previously played cards.");
+			u_label("for the defender to cover. This extra card must have an");
+			u_label("attacker may either finish the attack, or add another card");
+			u_label("cards in play and skip his turn. If he does defend, the");
+			u_label("card over top of it. If he cannot defend, he must take all");
+			u_label("as the 'defender', must 'defend' by placing a higher-value");
+			u_label("left of him by placing out a card. The left player, known");
+			u_label("cards. The first player begins an 'attack' on the player");
+			u_label("chosen as the trump suit. Then, each player is dealt 6");
+			u_label("At the start, a card is taken from the top and its suit is");
+		}
+		u_render();
+	}
 }
 
 void
