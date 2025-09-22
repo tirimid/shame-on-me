@@ -24,7 +24,7 @@ o_dyndefault(void)
 		.kleft = SDLK_LEFT,
 		.sfxvolume = 0.4f,
 		.musicvolume = 0.3f,
-		.pixelation = 4.0f,
+		.pixelation = O_HIGHPIXELATION,
 		.fullscreen = true
 	};
 }
