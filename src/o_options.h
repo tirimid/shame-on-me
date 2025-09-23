@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // program information.
-#define O_VERSION "1.0.0"
+#define O_VERSION "1.0.1"
 
 // windowing and setup options.
 #define O_SDLFLAGS (SDL_INIT_VIDEO | SDL_INIT_AUDIO)
