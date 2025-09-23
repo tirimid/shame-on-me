@@ -17,7 +17,7 @@
 	"........Q.#.#####" \
 	"....L.a.J.#......" \
 	"..........#......" \
-	"..NO..I.M.#......"
+	"..NO..IZM.#......"
 
 static void g_setupenv(void);
 
@@ -670,7 +670,6 @@ g_arkadydeathseq(void)
 			c_pancamera((vec3){0}, 0.0f, 0.0f);
 			c_wait(1700);
 			c_speak(T_PETER, "- You know what to do, scram");
-			c_lookat(C_ARKADY, 'J');
 			c_speak(T_MUTEARKADY, "(I feel a boiling rage)");
 			c_speak(T_ARKADY, "- How could you just move on so fucking easily?");
 			c_speak(T_PETER, "- I'm not sure what you mean, Arkady");
@@ -683,12 +682,13 @@ g_arkadydeathseq(void)
 			c_speak(T_MUTEARKADY, "(I know it'll go off at any moment)");
 			c_speak(T_ARKADY, "- I'll take you with me, you worthless fucking parasite");
 			c_lookwalkto(C_ARKADY, 'P');
-			c_lookwalkto(C_ARKADY, 'Q');
+			c_lookwalkto(C_ARKADY, 'M');
+			c_lookwalkto(C_ARKADY, 'Z');
 			c_wait(300);
 			c_speak(T_PETER, "- Get the hell off me!");
 			c_lookat(C_ARKADY, 'L');
 			c_speak(T_ARKADY, "- Gerasim, run!");
-			c_lookat(C_ARKADY, 'J');
+			c_lookat(C_ARKADY, 'I');
 			c_wait(400);
 			c_speak(T_PETER, "- Wait-");
 			c_shakecamera(O_PLAYERDEATHSHAKE);
